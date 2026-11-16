@@ -1,0 +1,155 @@
+mpmath 1.4.1 is installed. Writing two things now: a 50‑digit rerun of the spectrum/resonance checks, and a 40‑digit integrator to push ψ* and the flip test far below float64 resolution.
+
+The 42‑digit pipeline checks out (manifold residual 4e‑36, eigen-residual 5e‑41). Launching the high-precision bisection, exit-section scan and flip search in the background.
+
+mpmath 1.4.1 is installed and the first half of the extended-precision work is done; the flip test itself is still running in the background, and the JSON response is not yet updated.
+
+Done so far, at 50 digits:
+- **Spectra:** the closed-form eigenvalues match the linearisation to about 1e‑49 at L₋ and all three Euler points, for three mass triples. The identity between the card's κ and the Hessian eigenvalue holds to 1e‑50.
+- **Resonant coefficient:** |c| = 1.7764971969385870… for (1, 2, 18.4703902006), and c is zero to working precision (4e‑122) when two masses are equal.
+- **Other zeros of c:** along the resonance arc with masses (1, t, m₃(t)), |c|/Λ₋ is zero at t = 1 and strictly increasing on a 400-point grid up to t = 2000. No other zero found; one between grid points is not rigorously excluded.
+
+Running now, in 42-digit arithmetic:
+- bisection of ψ* with two independent settings;
+- a scan of the exit-section data for offsets from 1e‑2 down to 1e‑27 rad on both sides of ψ*;
+- location of the further orientation flips below the three that float64 could resolve.
+
+After that I'll run direct sign checks of the final binary's angular momentum around the new flips, rebuild [uc_cisim_tur7_yanit_claude.json](uc_cisim_tur7_yanit_claude.json), and report the numbers.
+
+Deep flips are confirmed directly at two spot checks, but one diagnostic looks off (too few steps for the reported separation), so I'm tracing a single orbit before trusting the direct sign checks.
+
+My new direct-check code had a bug: it evaluated the escape certificate on float64-rounded states, so the two "certified" spot checks were spurious. The earlier float64 results are unaffected, and I'm fixing it by computing those inputs in 42-digit arithmetic.
+
+The fix checks out: with 42-digit certificate inputs, the deep orbit now takes about 2,400 to 4,600 steps and the sign is properly certified. I'm launching the direct flip search on both sides in parallel, which should take about half an hour.
+
+The extended-precision results so far hold up, but the last stage (direct flip search on both sides of ψ*) is still running, about half an hour, and the JSON response has not been rebuilt yet.
+
+**ψ\* to 30 digits.** Two independent 42‑digit bisections, with different truncation degree, start radius and tolerance, agree to 7.9e‑33 rad. In the card's convention ψ* = 57.05394683549096023447549725357°. The card's 57.0539468355 and my earlier float64 value are both consistent with it. This is agreement between two runs, not a rigorous enclosure.
+
+**Rotation law behind the flips, down to 5.4e‑27 rad.** I scanned 101 offsets per side from 1e‑2 to 1e‑27 rad and tracked the non-collinear displacement at an exit section past the Euler point. A fixed linear functional of it has ten zeros per side, and the ratio of successive zeros converges to the predicted exp(−π/ω):
+
+| zeros | measured ratio | predicted |
+|---|---|---|
+| 3rd → 4th | 3.0100e‑3 | 3.0620447e‑3 |
+| 6th → 7th | 3.06190e‑3 | |
+| 9th → 10th | 3.0620440e‑3 (below), 3.0620443e‑3 (above) | |
+
+Fitted exponents on the window d < 1e‑12: β = 0.169927–0.169932 against the predicted 0.169930, and ω = 0.542706–0.542708 against 0.542714.
+
+**One correction to my own picture.** The true flips of the final binary's angular momentum are not at a fixed direction of that displacement; the direction is still converging as the offset shrinks. So the zeros in the table test the rotation of the displacement, and the true flips sit some per cent away from them. The one direct check so far puts a true flip about 10% above the corresponding zero. The running stage locates the true flips by direct integration through the near-collision pericentres.
+
+**A bug found and fixed along the way.** My first direct sign checks evaluated the escape certificate on float64-rounded states, which is meaningless at a pericentre of 1e‑10; two "certified" results from that version were spurious and are discarded. The certificate inputs are now computed at 42 digits. The float64 results reported earlier have pericentres of 1e‑6 or larger and are not affected.
+
+The 50‑digit spectrum and resonance checks from the previous message stand unchanged.
+
+One simulation crashed on an overflow, so I stopped the other and am restarting both with that handled and resume enabled. The partial results also show my earlier float64 flip positions were off by several percent, so the new direct runs will replace them.
+
+The direct flip search is running again on both sides after a crash, and it has already forced one correction to what I reported earlier. It needs roughly 35 more minutes; the JSON response is not rebuilt yet.
+
+**Correction to the float64 flip positions.** The three flip offsets I gave earlier (ψ* ± 1.39e‑2°, 4.10e‑5°, 1.25e‑7°) are off by several percent. Near a flip the binary becomes almost radial, my unregularised float64 run stalls at its pericentre, and the "refined" position was read from the sign at that early time, before the tides had finished acting. The float64 certified sign-change brackets are still valid, and so is the conclusion that the flips exist. But the refined positions, and the ratios 2.94e‑3 and 3.05e‑3 computed from them, should not be used.
+
+**What the 42‑digit direct runs show so far.** These integrate through the near-collision pericentres and read the sign once the third body is about 100 binary semi-major axes away:
+
+| flip | offset below ψ* (rad) | offset above ψ* (rad) |
+|---|---|---|
+| 3rd | 2.3150e‑9 | 2.3145e‑9 |
+| 4th | 7.0623e‑12 | 7.0609e‑12 |
+| 5th | 2.1670e‑14 | 2.1666e‑14 |
+| 6th | — | 6.6319e‑17 |
+
+Each is bracketed to 0.45%. Successive ratios are 3.051e‑3 and 3.068e‑3 on both sides, plus 3.061e‑3 for the 5th → 6th above; the prediction is 3.0620e‑3.
+
+**Second correction.** Last message I said the true flips are "not at a fixed direction" of the exit displacement. That was mostly an artefact of the biased float64 positions. At the directly located flips the direction is nearly constant (2.488, 2.500, 2.504 rad), which is what the linear picture in the conditional theorem predicts.
+
+**The crash.** One side died on a numeric overflow inside a rejected trial step near a pericentre. That is now treated as a rejected step, and the stage resumes from saved results.
+
+Still to come from the running stage:
+- the remaining flips, including the first two redone properly;
+- a check that the result does not depend on where I stop the integration;
+- certified signs between consecutive flips.
+
+Then I rebuild [uc_cisim_tur7_yanit_claude.json](uc_cisim_tur7_yanit_claude.json) with the corrected numbers.
+
+The side above ψ* finished cleanly (ten flips, eleven certified alternating signs); the side below is on its last few orbits. Starting the final cross-check stage now so both finish together.
+
+The side above ψ* is finished and confirms the accumulation over 23 decades; the side below and one cross-check are still running, and the JSON response is not rebuilt yet.
+
+**Ten flips above ψ\*, located by direct 42‑digit integration:**
+
+| flip | offset (rad) | ratio to previous |
+|---|---|---|
+| 1 | 2.5421e‑4 | — |
+| 2 | 7.5844e‑7 | 2.984e‑3 |
+| 3 | 2.3145e‑9 | 3.052e‑3 |
+| 4 | 7.0609e‑12 | 3.051e‑3 |
+| 5 | 2.1666e‑14 | 3.068e‑3 |
+| 6 | 6.6319e‑17 | 3.061e‑3 |
+| 7 | 2.0324e‑19 | 3.065e‑3 |
+| 8 | 6.2148e‑22 | 3.058e‑3 |
+| 9 | 1.9046e‑24 | 3.065e‑3 |
+| 10 | 5.8368e‑27 | 3.065e‑3 |
+
+The prediction is 3.0620e‑3. Each flip is bracketed to 0.2–0.5%, so from the second ratio on these agree within resolution.
+
+- **Certified alternation:** at eleven points between and around the flips, the sign of the final binary's angular momentum is certified by the escape criterion and alternates every time. That gives ten certified sign changes on this side. "Certified" means the inequalities hold on 42‑digit inputs, not interval arithmetic.
+- **Amplitude decay:** the amplitude shrinks by 0.3735–0.3740 per flip, against a predicted 0.37394.
+- **Stopping point:** moving where I read the sign from about 100 to about 400 binary semi-major axes shifts a flip by 0.03–0.05%, well inside the brackets.
+- **Direction at the flips:** the exit displacement direction converges (2.049, 2.396, 2.488, 2.500, then 2.504 ± 0.001 rad), as the linear picture requires.
+
+On the side below ψ* all ten flips are located (first at 2.5674e‑4 rad, last at 5.8320e‑27) and its certified-sign checks are on the last few orbits.
+
+These positions replace the float64 ones from my first summary, which were biased by 5–6%.
+
+When the remaining runs finish I'll rebuild [uc_cisim_tur7_yanit_claude.json](uc_cisim_tur7_yanit_claude.json) with all of this and send it.
+
+Both sides of the direct flip search are now complete and mirror each other: ten flips and eleven certified alternating signs on each side. The one remaining background job is the final cross-check of the rotation-law zeros; when it finishes I'll rebuild the JSON response and send the full summary.
+
+The extended-precision work is finished and [uc_cisim_tur7_yanit_claude.json](uc_cisim_tur7_yanit_claude.json) is rebuilt with it. The accumulation of orientation flips at ψ* now rests on ten flips per side instead of three, and the float64 flip positions from my first summary are marked superseded. There is still no interval arithmetic, so none of this is a computer-assisted proof.
+
+## ψ* to 30 digits
+
+Two independent 42‑digit bisections, with different truncation degree, start radius and tolerance, agree to 7.9e‑33 rad. In the card's convention ψ* = 57.05394683549096023447549725357°. That is agreement between two runs, not a rigorous enclosure.
+
+## Ten flips on each side of ψ*
+
+Each flip was located by direct integration through the near-collision pericentres, reading the sign of the final binary's angular momentum once the escaper is about 100 semi-major axes away.
+
+| flip | offset below ψ* (deg) | offset above ψ* (deg) |
+|---|---|---|
+| 1 | 1.4710e‑2 | 1.4565e‑2 |
+| 2 | 4.3464e‑5 | 4.3456e‑5 |
+| 3 | 1.3264e‑7 | 1.3261e‑7 |
+| 4 | 4.0464e‑10 | 4.0456e‑10 |
+| 5 | 1.2416e‑12 | 1.2413e‑12 |
+| 6 | 3.8050e‑15 | 3.7998e‑15 |
+| 7 | 1.1635e‑17 | 1.1645e‑17 |
+| 8 | 3.5657e‑20 | 3.5608e‑20 |
+| 9 | 1.0903e‑22 | 1.0913e‑22 |
+| 10 | 3.3415e‑25 | 3.3442e‑25 |
+
+- **Ratios:** the first ratio is 2.95e‑3 below and 2.98e‑3 above. All later ones lie between 3.051e‑3 and 3.068e‑3, against a predicted 3.0620e‑3; each flip is bracketed to 0.2–0.5%, so these agree within resolution.
+- **Certified alternation:** at eleven points per side, between and around the flips, the sign is certified by the escape criterion and alternates every time. That is ten certified sign changes per side.
+- **Amplitude decay:** 0.3734–0.3740 per flip after the first, against a predicted 0.37394.
+- **Stopping point:** reading the sign at about 400 rather than 100 semi-major axes shifts a flip by 0.03–0.05%.
+
+## The rotation law, to 7 digits
+
+The flips come from the non-collinear displacement rotating as the orbit lingers near the Euler point. Tracking that displacement directly, the ratio of successive zeros converges to 3.0620440e‑3 (below) and 3.0620443e‑3 (above), against a predicted 3.0620447e‑3. Fitted exponents on offsets below 1e‑12: β = 0.169927–0.169932 (predicted 0.169930) and ω = 0.542706–0.542708 (predicted 0.542714).
+
+## Corrections to what I said earlier
+
+- **Float64 flip positions.** The offsets in my first summary (1.39e‑2°, 4.10e‑5°, 1.25e‑7°) and the ratios 2.94e‑3 and 3.05e‑3 were biased by 5–6%. Near a flip the binary is almost radial, the unregularised run stalled at its pericentre, and the sign was read too early. The float64 certified brackets remain valid and contain the true flips.
+- **Direction at the flips.** My interim remark that the flips are "not at a fixed direction" was mostly an artefact of that bias. At the true flips the direction converges to 2.504 rad.
+- **Certificate precision.** Evaluating the escape criterion on float64-rounded states is meaningless at a pericentre of 1e‑10. I caught this before any result was recorded; the JSON carries a caution for anyone reusing the criterion.
+
+## Spectrum and resonance at 50 digits
+
+- The closed-form eigenvalues match the linearisation to about 1e‑49, and the card's κ identity holds to 1e‑50.
+- |c| = 1.7764971969385870… for masses (1, 2, 18.4703902006); c is zero to working precision when two masses are equal.
+- Along the resonance arc, |c|/Λ₋ is zero at the symmetric point and strictly increasing on a 400-point grid up to mass ratio 2000. A zero between grid points is not rigorously excluded.
+
+## Still open
+
+The accumulation result remains a conditional theorem: the two estimates and the non-degeneracy hypothesis listed as proof gaps are unchanged. The numerics now support the hypothesis strongly for equal masses but do not prove it.
+
+New scripts: [r7_hp.py](r7_hp.py) for the 42‑digit runs and [r7_spectrum_mp.py](r7_spectrum_mp.py) for the 50‑digit checks; the run order is in the JSON.

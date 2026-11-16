@@ -1,0 +1,238 @@
+Burak, altıncı turun en güçlü sonucu **P01’deki Euler spektral özdeşliği**: türetimi ayakta kalıyor ve κ formülünü Euler polinomuna göre ayrıca sembolik olarak kontrol ettim. Buna karşılık bildirilen **13/13 PASS’i bu makinede yeniden üretemedim**: özgün betik **12/13 PASS, P08 FAIL** ve çıkış kodu **1** verdi. P08’i ayrı çalıştırınca aynı sonuç tekrarlandı.
+
+Daha ciddi matematiksel bulgu P07’de: rapor, sonlu uzaklıkta gözlenen negatif bağıl enerjiyi “sonsuzdaki negatif enerji” diye yorumluyor. Gerçekten sonsuza kaçan bir cisim için böyle bir negatif limit mümkün değil. P09’daki koşullu sonluluk teoremi de verilen argümanla henüz kanıtlanmış değil.
+
+İki eki tamamen açtım ve özgün içerikleri koruyarak çalıştırdım. Sonuç dosyaları:
+
+- [Özgün 6. tur betiği](C:/Users/[REDACTED]/Documents/Codex/2026-11-13/referenced-chatgpt-conversation-this-is-an-2/outputs/uc_cisim_tur6.py)
+- [14 yanıtı içeren özgün JSON](C:/Users/[REDACTED]/Documents/Codex/2026-11-13/referenced-chatgpt-conversation-this-is-an-2/outputs/uc_cisim_tur6_yanit.json)
+- [Bağımsız tam koşunun ham çıktısı](C:/Users/[REDACTED]/Documents/Codex/2026-11-13/referenced-chatgpt-conversation-this-is-an-2/outputs/bagimsiz_tam_kosu.txt)
+- [P08 tekrar koşusu](C:/Users/[REDACTED]/Documents/Codex/2026-11-13/referenced-chatgpt-conversation-this-is-an-2/outputs/p08_tekrar.txt)
+- [P01 için ayrı sembolik kontrol](C:/Users/[REDACTED]/Documents/Codex/2026-11-13/referenced-chatgpt-conversation-this-is-an-2/outputs/p01_sembolik_kontrol.py)
+
+## 1. Kodun gerçekten ne yaptığı
+
+Özgün betiğin SHA-256 değeri `f07ad460567dd135a2fc089855da947cc605c96c698a4d181d46e1a916348cde`; JSON metnininki `7de5c28386ebe5610af668f2a98d8f1ce6bf233955650b0ae150dd28da66d9d2`. Betiği değiştirmeden Python 3.12, NumPy 2.5.4 ve SciPy 1.18.1 içeren ayrı bir ortamda çalıştırdım. Tam koşu 214 saniye sürdü:
+
+```text
+P01 PASS   P02 PASS   P03 PASS   P05 PASS   P06 PASS
+P10 PASS   P07a PASS  P07b PASS  P08 FAIL   P09 PASS
+P11 PASS   P12 PASS   P13 PASS
+
+Toplam: 12 PASS, 1 FAIL
+Çıkış kodu: 1
+```
+
+Bunlar **13 matematiksel teorem testi değil**, betiğin ürettiği 13 sayısal kontrol sonucu. Örneğin P06 ve P10, P05’in içindeki hesaplardan PASS alıyor; P04 ve P14 için bağımsız PASS testi yok. PASS yazan açıklamalar da bazen kodun ölçtüğünden daha güçlü bir iddiada bulunuyor.
+
+### P08 neden FAIL?
+
+Son iki başlangıç büyüklüğünde betik şunları üretti:
+
+| Ölçüm | `ε = 10⁻⁶` | `ε = 10⁻⁷` |
+|---|---:|---:|
+| Yön farkı | `7,83 × 10⁻⁴°` | `1,08 × 10⁻⁴°` |
+| Ölçekli enerji farkı | `9,32 × 10⁻⁷` | `1,42 × 10⁻⁷` |
+| Son onluktan yön eğimi | — | `0,862` |
+| Son onluktan enerji eğimi | — | `0,817` |
+
+Öngörü `α ≈ 0,8685`. Kod enerji eğiminin öngörüden farkının `0,03` altında olmasını istiyor; burada fark yaklaşık `0,0515`. Bağımsız P08 tekrarında da FAIL çıktı. Bu başarısızlık tek başına önerilen üssün yanlış olduğunu kanıtlamaz; **mevcut sayısal testin kendi kabul koşulunu sağlamadığını** gösterir.
+
+Daha temel sorun şu: P08, referans ve yörüngeler için varsayılan `10⁻⁶` göreli kaçış toleransını kullanıyor. Referans ölçekli enerji yaklaşık `0,394`, dolayısıyla yalnız bu kuyruk toleransının ölçeği yaklaşık `3,9 × 10⁻⁷`; son fark ise `1,42 × 10⁻⁷`. İddia edilen hata sınırı geçerli kabul edilse bile son fark, o sınırın altındadır. İki sonlu değer arasındaki farktan güvenilir asimptotik eğim çıkarmak için kuyruk ve integrasyon hataları ayrıca küçültülmeli veya sertifikalanmalı.
+
+## 2. Öncelikli matematiksel hakemlik
+
+### P01 — Euler κ özdeşliği ve formülü
+
+**Kararım: Özdeşlik ispatlandı; verilen κ formülü için bağımsız sembolik kontrol başarılı.**
+
+Kütle ağırlıklı koordinatlarda kollinear merkezi konfigürasyonu x eksenine yerleştirelim. İkili Newton potansiyelinin Hessian’ı bu eksende
+
+\[
+D^2U=\operatorname{diag}(2A,-A)
+\]
+
+biçimindedir. Merkezi konfigürasyon ve homojenlikten, boyutu bir olan konfigürasyon vektörü için
+
+\[
+A\xi=U\xi
+\]
+
+çıkar. \(A\)’nın diğer özdeğerine \(a\) dersek, şekil yönlerindeki özdeğerler
+
+\[
+\mu_+=2a+U,\qquad \mu_-=U-a
+\]
+
+olur. Dolayısıyla doğrudan
+
+\[
+\boxed{\mu_+ +2\mu_-=3U}.
+\]
+
+\(\nu_E^2=2U\) olduğundan bu, iki κ tanımının eşitliğini verir:
+
+\[
+\boxed{\kappa
+=\frac{\mu_+}{\nu_E^2}-\frac32
+=-\frac{2\mu_-}{\nu_E^2}
+=\frac aU-1}.
+\]
+
+Ayrıca
+
+\[
+\kappa=\frac{I}{U}\sum_{i<j}\frac{m_i+m_j}{d_{ij}^3}-2
+\]
+
+ölçekten bağımsız biçimidir.
+
+Ekteki rasyonel κ ifadesini bu bağımsız ifadeyle karşılaştırdım: farkın payı, verilen Euler beşinci derece polinomuna bölündüğünde **sembolik kalan sıfır** çıkıyor. Ayrıca 1.000 rastgele pozitif kütle üçlüsünde en büyük mutlak sayısal fark yaklaşık `2,8 × 10⁻¹²` idi. Bu son ölçüm ispatın yerine geçmez; sembolik cebir kontrolünü destekler.
+
+Eşit kütlede \(r=1\) ve **\(\kappa=7/5\)** elde ediliyor. “Kapalı form” ifadesinin sınırı şu: formül \(r\)’ye göre rasyonel, ama \(r\) Euler beşinci derece denkleminin pozitif kökü olarak tanımlı; genel kütlelerde beşinci derecenin radikallerle çözüldüğü iddiası yok.
+
+### P03 — Levi-Civita × McGehee düzenlileştirmesi
+
+**Kararım: Yerel düzenlileştirme mekanizması güçlü ve tutarlı; kapsam açık yazılırsa PROVED olarak korunabilir.**
+
+İkili koordinat \(s_1=\zeta^2\) yapılıp
+
+\[
+\omega=\bar\zeta y_1,\qquad d\tau=|\zeta|^2d\sigma
+\]
+
+alındığında enerji bağıntısı kullanılarak görünürdeki tekil terim kaldırılıyor. Diğer iki ikili uzaklık sıfırdan ayrıysa kalan potansiyel analitik. Çarpışmada
+
+\[
+|\omega|^2=2k_1>0,\qquad \frac{d\zeta}{d\sigma}=\frac{\omega}{2}\ne0,
+\]
+
+yani düzenlileştirilmiş akışın çarpışma noktasını enine geçmesi yerel olarak destekleniyor.
+
+Ancak bunun tam anlamı şudur: **çarpışmadan geçen çözüm düzenlileştirilmiş çözüm kavramındadır.** Özgün Newton vektör alanı ikili çarpışma anında tanımlı değildir. Her üç ikili için ayrı harita, çakışan bölgelerde işaret/dal dönüşümleri ve sabit enerji yüzeyi varsayımı açık tutulmalı. Üçlü çarpışmanın da aynı işlemle otomatik olarak çözüldüğü söylenemez.
+
+Betiğin eksenlerdeki yakın sonuçları bu yapıyla uyumlu sayısal kontrollerdir; analitik düzgünlüğün bağımsız ispatı değildir.
+
+### P07 — Kalıcı kaçış sertifikası
+
+**Kararım: Bootstrap fikri değerli; “koşulsuz klasik Newton akışında tüm zamanlar” ve sunulan karşı örneğin sonsuz-zaman yorumu düzeltilmeli.**
+
+#### Kesin hata: negatif “sonsuz kaçış enerjisi”
+
+Dış cismin bağıl Kepler enerjisi
+
+\[
+E_{\rm rel}(t)=\frac{\mu_R}{2}|V(t)|^2-\frac{m_bm_k}{R(t)}
+\]
+
+olsun. Eğer \(R(t)\to\infty\) ve \(E_{\rm rel}(t)\to E_\infty\) ise, ilk terim negatif olamaz ve ikinci terim sıfıra gider. Dolayısıyla
+
+\[
+\boxed{E_\infty\ge 0}.
+\]
+
+Bu nedenle **“cisim sonsuza kaçıyor ve asimptotik bağıl enerjisi negatif” ifadesi çelişkilidir**.
+
+P07b’nin kodu \(k=10,20\) için enerjiyi yalnızca `R=10k` ve `R=30k` seviyelerinde ölçüyor. Bu seviyelerde negatif enerji bulması ilginç ve mesafe eşiğinin güvenilirliğini sorgulamak için iyi bir deneydir. Ama:
+
+- Gerçek geri dönüş entegre edilmemiş.
+- Ölçülen “kuyruk ölçeği” tek başına tüm gelecek için ispatlı hata sınırı değil.
+- Sonlu \(R\)’de negatif enerji, raporda yazıldığı gibi negatif bir **sonsuz kaçış enerjisi** kurmaz.
+- Yalnız \(k=10,20\) incelenmişken `her k için` sonucuna geçilemez.
+
+Dolayısıyla bu örneği **sayısal karşı örnek adayı** olarak tutuyorum; verilen dört eski koşulun kalıcı kaçışı dışladığına dair tamamlanmış karşı örnek olarak kabul etmiyorum.
+
+#### Açık karşı örnek: ölçüt ikili çarpışmayı dışlamıyor
+
+Üç kütle de 1 olsun. Başlangıçta ikili üyeleri x ekseninde \(-1/2\) ve \(1/2\), üçüncü cisim ikili merkezinden \(R=100\) uzaklıkta olsun. İkilinin göreli hızı sıfır, üçüncü cismin dışarı yönlü göreli hızı \(v\) olsun ve
+
+\[
+v^2=3\left(1+\frac1{99.5}+\frac1{100.5}\right).
+\]
+
+Bu seçimle toplam enerji **tam sıfır**, toplam açısal momentum da sıfırdır. Ayrıca
+
+\[
+\epsilon_b=-2,\quad b=1.25,\quad
+V\approx1.73183,\quad
+\delta\epsilon\approx0.0001324<0.4=|\epsilon_b|/5.
+\]
+
+Yani P07’nin yazılı C koşulları sağlanır. Buna rağmen ikili başlangıçta durmaktadır ve birbirine doğru düşer. Üçüncü cismin 100 birim uzaktan oluşturduğu gelgit düzeltmesi bu kısa sürede çok küçüktür; ikili uzaklığı için örneğin \(x''<-1\) bağı kurulabilir ve sonlu sürede \(x=0\) olur.
+
+Bunun sonucu: **C, klasik Newton çözümünün çarpışmasız biçimde tüm \(t\ge t_0\) için var olmasını garanti etmez.** Cümle, ikili çarpışmalarda P03’teki düzenlileştirilmiş devamı açıkça benimseyerek kurulabilir; o zaman da enerji tahmininin çarpışma anlarından geçişi ve tüm zamanlara uzaması kanıtta gösterilmelidir.
+
+P07’nin radyal karşılaştırma ve enerji bootstrap’ı makul bir ispat iskeleti. Açısal hata sınırı için de dış merkezlik, dal ve özellikle \(e-\Delta e>1\) koşulunun geçerliliği ayrı korunmalı. Bu ayrıntıları tamamlamadan bütün P07’yi koşulsuz PROVED saymıyorum.
+
+### P08 — λ-lemma ve saçılma limiti
+
+**Kararım: PARTIAL; limit fikri makul, belirtilen hız ve açık aralık henüz kanıtlı değil.**
+
+λ-lemma, uygun hiperboliklik ve enine kesişim koşulları altında giriş disklerinin kararsız manifolda yaklaşmasını sağlar. Fakat tek başına:
+
+1. Hangi \(\psi\)’nin hangi çıkış açısına gittiğini,
+2. Açı etiketlemesinin tam özdeş olduğunu,
+3. Sonsuz-zaman saçılma gözlenebilirinin bu yaklaşım boyunca düzgün ve düzgün denetimli olduğunu,
+4. Hatanın tam olarak \(C\epsilon^{0.8685}\) ile sınırlanacağını
+
+vermez.
+
+Bunlar için yerel giriş–çıkış haritasına **nicel** tahmin, ardından sonlu zamanda doğrulanmış kaçış bölgesine geçiş ve **eşit derecede geçerli kuyruk sınırı** gerekir. Özellikle rezonans veya geçiş katsayıları logaritmik düzeltmeler yaratabilir; λ-lemma’ya atıf bunları otomatik dışlamaz.
+
+`ρ_min` eğiminin 0,8685’e yaklaşması güzel bir gözlem. Fakat aynı şeyin saçılma enerjisi ve yönü için ispatlandığı söylenemez. Nonempty açık aralık da kesin bir saçılan örnek ve açıklık argümanı ile kurulmalı; burada örnekler aralık aritmetiğiyle doğrulanmamış.
+
+### P09 — Koşullu sonluluk
+
+**Kararım: PARTIAL; “\(L^-\!\to L^+\) bağlantısı yoksa B sonludur” teoreminin verilen ispatında gerçek boşluk var.**
+
+Kritik adımda analitik bir başlangıç eğrisinin Euler kararlı manifolduyla kesişiminin ya ayrık noktalar ya da bir yay olduğu söyleniyor. Bu yerel analitik gözlem tek başına yeterli değil. Metin ardından, böyle bir yay varsa ucunun zorunlu olarak \(W^s(L^+)\)’ya ulaşacağını söylüyor. Bu sonuç gösterilmemiş:
+
+- Yay, seçilen kapalı açı aralığının ucuna ulaşabilir.
+- Kesişimin bir yay oluşturması, başlı başına \(L^+\) bağlantısı gerektirmez.
+- Euler’den çıkan iki dalın gerçekten istenen kaçış kanallarına gittiği küresel argüman da ayrıca tamamlanmalı.
+- Çarpışmalar ve farklı yerel/yapıştırılmış kararlı-manifold parçaları boyunca kompaktlık varsayımları açık olmalı.
+
+Dolayısıyla **H2 doğru olsa bile sonluluk bu metinden çıkmıyor**. Önerilen teorem belki ek eninelik ve kompaktlık koşullarıyla kurtarılabilir; şimdiki haliyle karşı örneğini bu üç cisim ailesi için kurmuş değilim.
+
+Tarama `N=240` üzerinde tek etiket değişimi ve \(L^+\)’ya yaklaşık `0,135` en yakın geçiş buldu. Bu, **o ızgaranın gözlemi**; bağlantı yokluğunun veya sınır kümesinin sonluluğunun kanıtı değil.
+
+Kaynak düzeltmesi de önemli: atıf yapılan makalenin yazarları **Moeckel, Montgomery ve Sánchez Morgado**. Makalede parabolik yörüngeler için tek denge noktasına yakınsama argümanı gerçekten var; fakat bunun kendi yörünge sınıfımıza uygulanması için tam varsayımlar ayrıca eşleştirilmeli. [Özgün makale](https://arxiv.org/pdf/1705.00723)
+
+### P14 — İmkânsızlık sınıfları
+
+**Kararım: Sınıf ayrımı doğru yaklaşım; “dört sınıfın tamamı kanıtlandı” sonucu fazla geniş.**
+
+- **Sonlu boyutlu doğrusal temsil:** Ölçeği değişen dairesel Lagrange yörüngelerinin periyotları sürekli değişir. Sabit sonlu boyutlu \(A\) matrisinin hayali özdeğerleri ise sınırlı sayıdadır. Verilen sürekli, birebir temsil varsayımı altında argüman güçlüdür. Fakat kullandığı dairesel yörüngeler \(E=0,L=0\) alanında değildir; sonuç **onları içeren geniş alan** içindir.
+- **Sonlu açılı yarı-periyodik temsil:** Pozitif entropili kompakt bir kümede uygun tanımlanmış bir torus-dönüş temsiline engel makuldür. Ancak metindeki “yalnız süreklilikten ayrışma sayısı polinomdur” gerekçesi gösterilmemiş; düzgünlük modülü ve tam temsil sınıfı netleştirilmeli. Ayrıca [atıf yapılan kaos makalesinin](https://arxiv.org/abs/2207.14351) kütle ve enerji varsayımları hedef alanla eşleştirilmeli.
+- **İlk integraller ve kuadratürler:** Meromorfik Liouville integrallenemezliği, belirli bağımsız ve involüsyondaki meromorfik ilk integral ailelerini dışlar. Bundan, hiçbir ek argüman olmadan, bütün tanımlanmamış “integral + kuadratür” gösterimlerinin olanaksızlığı çıkmaz. [Tsygvintsev’in sonucu](https://arxiv.org/abs/math/0009218) kendi meromorfik ve yerel varsayımlarıyla kullanılmalı.
+- **Polylog maliyet:** Hiperbolik bölgede başlangıç verisinden yaklaşık doğrusal sayıda ek bit gerekmesi güçlü bir **model koşullu alt sınır fikridir**. Hesap modeli, girdi erişimi, sabit doğruluk ve yörüngelerin o bölgede kalma koşulları tam biçimlendirilmeden evrensel karmaşıklık teoremi sayılmaz.
+- **Genel sonlu elementer bileşimler:** Bu sınıfın açık bırakılması doğru ve dürüst. Kaos tek başına böyle bütün formüllerin imkânsızlığını göstermez.
+
+## 3. Diğer problemlerin kısa durumu
+
+| Problem | Hakemlik durumu | Gerekçe |
+|---|---|---|
+| **P02** | PARTIAL | Yerel manifold hesabı ve küçük artıklar yararlı; yakınsaklık yarıçapı ve kesme hatası sayısal olarak sertifikalı değil. |
+| **P04** | Koşullu yerel sonuç güçlü | Kompakt, çarpışmasız ve enine geçilen yörünge parçalarında analitik geçiş standarttır. Akışın gerçekten hedef kesite kadar var olması varsayım olarak açık kalmalı. |
+| **P05** | NUMERICAL_EVIDENCE | `57,053946835…°` sayısal adaydır; kullanılan 24. derece manifold kesmesi “tam manifold” ile özdeş değildir. Eninelik ve basamaklar aralıkla sertifikalı değil. |
+| **P06** | Koşullu yerel sonuç güçlü | Hiperbolik denge, uygun giriş/çıkış ve enine kesişim altında logaritmik bekleme yasası standart biçimde gerekçelendirilebilir. Gerçek P05 kesişiminin enineliği ayrı problemdir. |
+| **P10** | PARTIAL | Özdeğer oranları gözle uyumlu; yerel asimptotiğin sonsuz saçılma gözlenebilirlerine aktarımı ve sıfır olmayan bağlaşım sertifikalı değil. |
+| **P11** | PARTIAL | Güçlü mod baskınlığı, belirtilen doğrusal-normal-biçim ve düzgün saçılma koşulları altında anlaşılır. Sunulan eş-kanal örneği sayısaldır. |
+| **P12** | PARTIAL | Sabit nokta dalı varsa korunum ve simetri türetimleri anlamlı; küresel çözülürlük, açık adım sınırı ve hata tahmini tamamlanmış değil. |
+| **P13** | PARTIAL | Periyodik yörünge üzerinde her yerde artan skaler saat olamaz. Sekiz yörüngesinin KAM kararlılığına ilişkin bağımsız bilgisayar destekli çalışma mevcut; sembolik kodlama sonucunda kullanılan uzay ve konjugasyon sınıfı açık kalmalı. [Kapela–Simó](https://arxiv.org/abs/1105.3235) |
+
+## 4. Yedinci tur için en yüksek kaldıraçlı hedefler
+
+Bence sırayı şu şekilde değiştirmeliyiz: önce **uzak kaçış ve sayısal hata kontrolünü sağlamlaştırmak**, sonra bu temelin üzerine limit ve sınır geometrisini kurmak. Aksi halde P08, P09 ve P10 aynı belirsiz sonsuz-zaman gözlenebilirini tekrar kullanıyor.
+
+| Öncelik | Matematiksel hedef | Yanlışlanabilir sınama / teslim |
+|---|---|---|
+| **T7-01** | P07’yi çarpışma düzenlileştirmesi açık belirtilmiş kesin teorem haline getir. \(R(t)\), ikili enerji, asimptotik enerji ve yön için bütün sabitleri türet. | Yukarıdaki sıfır enerjili çarpışmalı örneği koşullara koy. Teorem klasik akış diyorsa başarısız olmalı; düzenlileştirilmiş akış diyorsa geçiş ve enerji hesabı gösterilmeli. |
+| **T7-02** | Eski mesafe ölçütü için gerçek karşı örnek üret veya kapsamını kurtar. | Belirli sayısal başlangıç verisi, açık hata aralıkları ve \(R\)’nin önce artıp sonra azaldığını gösteren **doğrulanmış** sonlu zaman yörüngesi ver. “Negatif sonsuz kaçış enerjisi” kullanma. |
+| **T7-03** | P02 manifold kesmesini ve P05 kesişimini sertifikala. | Parametrizasyon için artık + kuyruk sınırı; ardından aralıkla doğrulanmış akış ve Euler kararlı manifoldu için kon/işaret koşulu. Bir aralıkta enine kesişim göster veya önerilen aralığı dışla. |
+| **T7-04** | P08 için nicel giriş–çıkış teoremi kur. | \(\epsilon\), manifold kesme mertebesi, integratör toleransı ve kaçış kuyruk toleransını bağımsız küçült. Tahmini hata çubukları ölçülen farktan küçük değilse üs ölçümünü `UNRESOLVED` say. Olası \(\epsilon^\alpha|\log\epsilon|^p\) düzeltmelerini de karşılaştır. |
+| **T7-05** | P09’daki yay ihtimalini çöz. | Önce genel analitik/hyperbolik bir modelde H2 altında sonsuz kesişim veya kesişim yayı örneği ara. Yoksa, üç cisim sistemine özgü eninelik ve kompaktlık varsayımlarını açık bir teoremde yaz ve ispatla. |
+| **T7-06** | P10 yerel üslere küresel saçılma aktarımını sınırla. | Çıkış kesitinden sertifikalı kaçış bölgesine türev sınırı ve iki tarafta sıfırdan ayrı bağlaşım katsayısı üret; katsayı sıfır çıkarsa alternatif baş terimi hesapla. |
+| **T7-07** | P14’te tek bir formül sınıfını tamamen tanımla. | Önce \(C_{\rm lin}\) için alan ve düzenlilik varsayımlarını yazıp periyot ispatını tamamla; ardından meromorfik integrallenemezlik ile kuadratür iddiasını ayrı önermeler halinde kur. Her önermede hangi kütle ve enerji alanının kapsandığını belirt. |
+
+Burada gerçek ilerleme şu: P01’deki analitik iskelet sağlamlaştı; P03 yerel olarak anlamlı; P07’de ise deneyin gösterdiği ile raporun iddia ettiği arasındaki farkı ve klasik akıştaki çarpışma sınırını açıkça ayırdık. **Küresel saçılma haritası, sınır topolojisi ve genel kapalı çözüm hâlâ açık.**

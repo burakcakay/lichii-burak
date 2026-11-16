@@ -1,0 +1,43 @@
+   [A] psi = 57.05, t0 = 0.1, N = 170, 720 bit: ||A||_inf <= 12.484, K <= 2.129e-03, xi_N <= 0.1210, Y <= 1.866e-125
+       daralma K g'(xi_N + rho) <= 0.1711 (< 1/2: True);  kuyruk siniri rho = 7.946e-128;  |F(L-)| <= 2e-215, |(A - Lam) V| <= 3e-214
+       adim 200: sigma = 0.2690, nu = -2.42880, |zeta|^2 = 0.8186, R = 0.02, rho_P = 0.00603, N = 179, yaricap = 1.39e-125, sure = 54 s
+       adim 400: sigma = 0.4819, nu = -2.39636, |zeta|^2 = 0.8752, R = 0.02, rho_P = 0.00464, N = 177, yaricap = 4.40e-124, sure = 107 s
+       adim 600: sigma = 0.6441, nu = -2.33874, |zeta|^2 = 0.9299, R = 0.02, rho_P = 0.00353, N = 175, yaricap = 1.10e-122, sure = 156 s
+       adim 800: sigma = 0.7702, nu = -2.25413, |zeta|^2 = 0.9720, R = 0.02, rho_P = 0.00285, N = 173, yaricap = 2.31e-121, sure = 208 s
+       adim 1000: sigma = 0.8779, nu = -2.13994, |zeta|^2 = 0.9951, R = 0.02, rho_P = 0.00263, N = 171, yaricap = 4.51e-120, sure = 254 s
+       adim 1200: sigma = 0.9804, nu = -1.99266, |zeta|^2 = 0.9918, R = 0.01, rho_P = 0.00247, N = 169, yaricap = 8.33e-119, sure = 301 s
+       adim 1400: sigma = 1.0763, nu = -1.83150, |zeta|^2 = 0.9577, R = 0.02, rho_P = 0.00224, N = 168, yaricap = 1.05e-117, sure = 345 s
+       adim 1600: sigma = 1.1681, nu = -1.67113, |zeta|^2 = 0.8977, R = 0.02, rho_P = 0.00245, N = 167, yaricap = 1.15e-116, sure = 390 s
+       adim 1800: sigma = 1.2866, nu = -1.47076, |zeta|^2 = 0.7921, R = 0.04, rho_P = 0.00375, N = 165, yaricap = 1.65e-115, sure = 434 s
+       adim 2000: sigma = 1.5357, nu = -1.09527, |zeta|^2 = 0.5349, R = 0.04, rho_P = 0.01161, N = 163, yaricap = 4.04e-114, sure = 477 s
+       adim 2200: sigma = 3.5943, nu = +0.86956, |zeta|^2 = 0.4667, R = 0.04, rho_P = 0.01463, N = 160, yaricap = 4.39e-112, sure = 518 s
+       adim 2400: sigma = 3.8732, nu = +1.30916, |zeta|^2 = 0.7664, R = 0.04, rho_P = 0.00388, N = 158, yaricap = 1.21e-110, sure = 560 s
+       adim 2600: sigma = 3.9926, nu = +1.52853, |zeta|^2 = 0.8826, R = 0.04, rho_P = 0.00241, N = 157, yaricap = 1.65e-109, sure = 601 s
+       adim 2800: sigma = 4.0816, nu = +1.70015, |zeta|^2 = 0.9485, R = 0.02, rho_P = 0.00216, N = 155, yaricap = 1.59e-108, sure = 642 s
+       adim 3000: sigma = 4.1740, nu = +1.87465, |zeta|^2 = 0.9885, R = 0.01, rho_P = 0.00237, N = 153, yaricap = 1.89e-107, sure = 686 s
+       adim 3200: sigma = 4.2737, nu = +2.03972, |zeta|^2 = 0.9965, R = 0.02, rho_P = 0.00265, N = 152, yaricap = 3.46e-106, sure = 729 s
+       adim 3400: sigma = 4.3839, nu = +2.17739, |zeta|^2 = 0.9731, R = 0.04, rho_P = 0.00297, N = 150, yaricap = 7.52e-105, sure = 770 s
+       adim 3600: sigma = 4.5198, nu = +2.28498, |zeta|^2 = 0.9232, R = 0.04, rho_P = 0.00392, N = 148, yaricap = 1.58e-103, sure = 806 s
+       adim 3800: sigma = 4.7059, nu = +2.36120, |zeta|^2 = 0.8526, R = 0.02, rho_P = 0.00530, N = 146, yaricap = 3.75e-102, sure = 846 s
+       adim 4000: sigma = 4.9408, nu = +2.40345, |zeta|^2 = 0.7820, R = 0.01, rho_P = 0.00651, N = 143, yaricap = 1.05e-100, sure = 883 s
+       adim 4200: sigma = 5.2298, nu = +2.42657, |zeta|^2 = 0.7214, R = 0.005, rho_P = 0.00803, N = 141, yaricap = 4.16e-99, sure = 915 s
+       adim 4400: sigma = 5.5470, nu = +2.44207, |zeta|^2 = 0.6741, R = 0.01, rho_P = 0.00781, N = 139, yaricap = 1.77e-97, sure = 949 s
+       adim 4600: sigma = 5.8541, nu = +2.45648, |zeta|^2 = 0.6370, R = 0.01, rho_P = 0.00752, N = 136, yaricap = 6.76e-96, sure = 981 s
+       adim 4800: sigma = 6.1497, nu = +2.47320, |zeta|^2 = 0.6043, R = 0.02, rho_P = 0.00726, N = 135, yaricap = 2.45e-94, sure = 1011 s
+       adim 5000: sigma = 6.4351, nu = +2.49339, |zeta|^2 = 0.5745, R = 0.02, rho_P = 0.00701, N = 132, yaricap = 7.62e-93, sure = 1040 s
+       adim 5200: sigma = 6.7099, nu = +2.51680, |zeta|^2 = 0.5483, R = 0.02, rho_P = 0.00671, N = 130, yaricap = 2.20e-91, sure = 1069 s
+       adim 5400: sigma = 6.9724, nu = +2.54186, |zeta|^2 = 0.5273, R = 0.02, rho_P = 0.00644, N = 128, yaricap = 5.69e-90, sure = 1096 s
+       adim 5600: sigma = 7.2285, nu = +2.56699, |zeta|^2 = 0.5126, R = 0.01, rho_P = 0.00643, N = 126, yaricap = 1.46e-88, sure = 1123 s
+       adim 5800: sigma = 7.4916, nu = +2.59096, |zeta|^2 = 0.5045, R = 0.01, rho_P = 0.00674, N = 124, yaricap = 3.65e-87, sure = 1148 s
+       adim 6000: sigma = 7.7685, nu = +2.61152, |zeta|^2 = 0.5032, R = 0.005, rho_P = 0.00718, N = 121, yaricap = 9.53e-86, sure = 1174 s
+       adim 6200: sigma = 8.0554, nu = +2.62607, |zeta|^2 = 0.5077, R = 0.005, rho_P = 0.00698, N = 119, yaricap = 2.80e-84, sure = 1198 s
+       adim 6400: sigma = 8.3311, nu = +2.63374, |zeta|^2 = 0.5155, R = 0.005, rho_P = 0.00681, N = 117, yaricap = 7.77e-83, sure = 1221 s
+       adim 6600: sigma = 8.5914, nu = +2.63681, |zeta|^2 = 0.5246, R = 0.01, rho_P = 0.00622, N = 116, yaricap = 1.94e-81, sure = 1241 s
+       adim 6800: sigma = 8.8291, nu = +2.63782, |zeta|^2 = 0.5347, R = 0.01, rho_P = 0.00564, N = 114, yaricap = 4.29e-80, sure = 1262 s
+       adim 7000: sigma = 9.0423, nu = +2.63877, |zeta|^2 = 0.5466, R = 0.02, rho_P = 0.00503, N = 112, yaricap = 8.95e-79, sure = 1281 s
+       adim 7200: sigma = 9.2299, nu = +2.64090, |zeta|^2 = 0.5615, R = 0.02, rho_P = 0.00434, N = 111, yaricap = 1.54e-77, sure = 1301 s
+       adim 7400: sigma = 9.3885, nu = +2.64499, |zeta|^2 = 0.5799, R = 0.02, rho_P = 0.00359, N = 109, yaricap = 2.45e-76, sure = 1320 s
+       adim 7600: sigma = 9.5168, nu = +2.65146, |zeta|^2 = 0.6010, R = 0.02, rho_P = 0.00284, N = 107, yaricap = 3.17e-75, sure = 1339 s
+   [B] ok = True, label = 1, sigma = 9.615384417878051, steps = 7795, Nmax = 181, hmin = 0.0004307250534073783, rad0 = 4.506483488719366e-127, rad = 3.590592103427525e-74, nu_lower = 2.660173885518324, nuE = 2.6591479484724942, Gamma = 9.086552665068825e-74, norm = 3.315693002022679e-74, time = 1355.5612390041351
+   [C] psi = 57.05: nu >= 2.660174 > nu_E = 2.659148;  mesafeler (kacan adayina gore) = {2: 0.8813020860076991, 3: 1.3914655675439858, 1: 0.535845320533801}
+   => KESIN: Gamma(57.05 derece) icin kacan cisim = 1

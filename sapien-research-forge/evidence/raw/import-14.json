@@ -1,0 +1,144 @@
+{
+ "project": "THREE_BODY_CLASSICAL_SOLUTION",
+ "round": 7,
+ "date": "2026-11-13",
+ "summary": {
+  "T7_01": "PARTIAL",
+  "T7_02": "PARTIAL",
+  "T7_03": "PROVED",
+  "T7_04": "PROVED"
+ },
+ "rigor_note": [
+  "Interval results below were produced with Arb ball arithmetic (python-flint 0.9.0) by my own program uc_cisim_tur7.py. Every enclosure is rigorous if the program is correct; the program has not been audited by anyone else.",
+  "A Lohner-type validated integrator (CAPD) is what the missing certificates need. I cloned it, but building external code was refused by the session's permission policy, so nothing was built or run. The set-valued (covering) computations were therefore not attempted.",
+  "T7_03 and T7_04 are paper proofs that use named classical theorems; they are not computer-checked.",
+  "Result labels follow the protocol; PROVED for T7_03 and T7_04 means: complete argument given here, unrefereed. The step I would attack first in T7_03 is the compactness of the regularized level set K; in T7_04 the proof is short and rests on one quoted proposition."
+ ],
+ "answers": [
+  {
+   "id": "T7_01",
+   "result": "PARTIAL",
+   "theorem_A": "m=(1,1,1), E=0, L=0. Let Gamma(psi) be the ray of W^u(L_minus) with first-order direction cos(psi) e_A + sin(psi) e_B (e_A: body 1 radially outward, e_B: body 1 tangential; mass-normalized shape basis). Then the escaping body is 1 for psi = 57 deg and psi = 57.05 deg, and 2 for psi = 57.06 deg and psi = 58 deg (57.05 and 57.06 mean the nearest IEEE doubles, off by less than 3e-15 deg). Consequently there is psi_star in (57.05, 57.06) whose orbit never gets a label: nu <= nu_E for all time, the orbit is parabolic, i.e. a heteroclinic connection from L_minus to L_plus or to one of the E_plus points.",
+   "derivation": [
+    "Step A (validated unstable manifold, done). The ray solves Lam t Z'(t) = F(Z(t)), Z(0) = L_minus, Z'(0) = V(psi), in the 11-variable polynomial system Z = (s, y, u_k = 1/d_k); Lam = (sqrt 6/4)(1 + sqrt 13); equilibrium and eigenvector are closed-form (for equal masses the shape Hessian is (3U/2) Id by D3 symmetry, U = 3).",
+    "Tail bound: write Z = Z^N + W. For n > N the coefficients satisfy W_n = (n Lam - A)^-1 [G(Z^N + W)]_n with A = DF(L_minus), G = F - A (quadratic and higher). In the norm ||x|| = max_i sum_n |x_{n,i}| t0^n: ||(n Lam - A)^-1|| <= K = 1/((N+1) Lam - ||A||_inf) for n > N (entrywise Neumann bound); ||G(X)|| <= g(||X||) with g the coefficient-absolute-value majorant of G computed through the arithmetic circuit of F. If K g'(xi_N + rho) <= 1/2 with rho = 2 K ||Pi_{>N} G(Z^N)||, the map is a contraction of the ball of radius rho, so |Z_i(t) - Z^N_i(t)| <= rho for |t| <= t0.",
+    "The series lies exactly on the constraint set: each constraint c (u_k d_k = 1, |s| = 1, H = 0, L = 0) obeys Lam t c' = a(t) c along the ray with a(0) in {0, 2 nu_L, -nu_L, nu_L/2}; a nonzero leading coefficient c_m t^m would need Lam m = a(0), which has no integer solution m >= 1.",
+    "Step B (interval-enclosed flow, done for point data). The validated ball is mapped to Levi-Civita variables of the chart with binary (1,3): (zeta, s2, omega, y2, uA, uB), a 10-variable polynomial vector field that is regular through close passages of bodies 1 and 3 (the unregularized system stalls there: the certified step collapses to 1e-5). Each step: Taylor coefficients by ball-arithmetic recurrences; truncation by a Cauchy bound: on the complex polydisc of radius R around the ball, |F_i| <= M_i = sup|F_i(ball)| + sum_{k>=1} Q_ik R^k (circuit majorant), so the solution is analytic for |sigma| < rho_P = min_i R/M_i and the tail is R theta^(N+1)/(1 - theta), theta = h/rho_P = 0.2.",
+    "Step C (label rule, proved). H = 0 and |s| = 1 give U(s) >= nu^2/2. For equal masses, on every wall where the two smallest mutual distances coincide (isosceles, legs <= base, ratio lambda in [1,2]) U = (2 + 1/lambda) sqrt((2 + lambda^2)/3) is increasing in lambda, so U <= U_E = 5/sqrt 2 there. nu is non-decreasing at E = 0. Hence once nu > nu_E = sqrt(2 U_E) the orbit can never touch a wall again: the closest pair is frozen. Every slab {c1 <= nu <= c2} is compact in the regularized, rotation-reduced space (T7_03, uses L = 0) and there is no rest point above nu_E, so nu -> infinity, U -> infinity and d_closest/rho -> 0 with rho increasing: the body outside the frozen pair separates from it (class HE_k in Chazy's terms). The label is decided at a finite time; no asymptotic tail estimate is needed.",
+    "Step D (existence). Label sets are open and disjoint and the arc is connected, so an unlabeled psi_star exists between two certified angles with different labels. An unlabeled orbit has nu <= nu_E for all time, so it stays in a compact slab; nu is strictly increasing off rest points, so the omega-limit set is a connected set of rest points, i.e. a single rest point with -sqrt 6 < nu <= nu_E: L_plus or some E_plus_j. This argument is self-contained; it agrees with Chazy's classification (at E = 0 a future-complete motion is hyperbolic-elliptic or parabolic) and with Chazy's statement that the shape of a parabolic motion tends to the central configurations."
+   ],
+   "certificates": {
+    "validated_unstable_manifold": "DONE for the four rays used, not for the whole 2-dimensional manifold. t0 = 0.1. N = 150, 640 bit (psi = 57, 58): ||A||_inf <= 12.484, K <= 2.42e-3, contraction constant <= 0.195, tail bound rho <= 6.3e-113. N = 170, 720 bit (psi = 57.05, 57.06): K <= 2.13e-3, contraction constant <= 0.171, rho <= 7.9e-128. F(L_minus) = 0 and A V = Lam V are closed-form identities (ball residuals 2e-215 and 3e-214).",
+    "interval_enclosed_flow": {
+     "psi=57": "6974 steps, sigma = 8.26, ball radius 3.0e-112 -> 1.4e-65, nu >= 2.660187 > nu_E = 2.659148; distances (2,3): 0.5163, (1,3): 0.9034, (1,2): 1.3847 -> escaping body 1",
+     "psi=57.05": "7795 steps, sigma = 9.62, ball radius 4.5e-127 -> 3.6e-74, nu >= 2.660174; distances (2,3): 0.5358, (1,3): 0.8813, (1,2): 1.3915 -> escaping body 1",
+     "psi=57.06": "7127 steps, sigma = 9.68, ball radius 4.5e-127 -> 3.0e-77, nu >= 2.660238; distances (1,3): 0.5310, (2,3): 0.8910, (1,2): 1.3871 -> escaping body 2",
+     "psi=58": "4845 steps, sigma = 7.76, ball radius 3.6e-112 -> 6.2e-76, nu >= 2.660223; distances (1,3): 0.3153, (2,3): 1.0616, (1,2): 1.3318 -> escaping body 2",
+     "scope": "single orbits (point initial data with a tiny ball), logs cert_57.log, cert_57.05.log, cert_57.06.log, cert_58.log"
+    },
+    "validated_euler_stable_manifold": "NOT DONE.",
+    "transversality_lower_bound": "NOT DONE."
+   },
+   "what_is_missing_and_why": [
+    "Which rest point: the argument gives L_plus or some E_plus. Soft information only: the first unlabeled point after 57.05 cannot converge to E_plus_1 (orbits next to W^s(E_plus_j) get labels different from j); and if the unlabeled point in the bracket is unique and its limit is an Euler point, that point is E_plus_3. Excluding L_plus and proving uniqueness needs set-valued integration of the arc (boxes in psi), i.e. a Lohner-type C0 method. Plain ball propagation inflates by about e^(11..13 sigma) (measured over the four orbits: 2e36 to 8e52), so it only works for point data with more than 50 digits to spare.",
+    "Transversality and uniqueness: needs a C1 enclosure of the image of Gamma at a section near E_plus_3 and cone conditions in a block around E_plus_3. The local rates are lambda_u = 3.912 against Re lambda_s = -0.665: reaching a block of size a along W^s costs an expansion factor (1/a)^5.88 (4.5e7 for a = 0.05, 5.8e11 for a = 0.01). That needs multiprecision C1 Lohner sets or a validated high-order parametrization of the 3-dimensional W^s(E_plus) with a complex eigenpair.",
+    "Numerical evidence (round 6, not rigorous) is consistent with the certified bracket: psi_star = 57.0539468355 deg, rest point E_plus with body 3 in the middle, contact order 1 from the dwell-time slope. The statement 'transverse intersection with W^s(E_plus)' is therefore neither proved nor disproved; no evidence against it."
+   ]
+  },
+  {
+   "id": "T7_02",
+   "result": "PARTIAL",
+   "derivation": [
+    "Limit object: S_0(psi) = scattering of the exact ray Gamma(psi) at E = 0 (round 6). With the label rule of T7_01 step C the escape label of S_0 is decided in finite time, so label sets are open without any tail estimate.",
+    "Refined rate law (numerical, with a mechanism). Put eta = rho_min * E (dimensionless energy at the encounter). Then rho_min = c(psi) eps^alpha (1 + o(1)) with alpha = nu_L/Lam = 4/(1 + sqrt 13) = 0.868517, and S_eps(psi) = S_0(psi) + eta * D(psi) + o(eta). So delta = alpha exactly and the constant is C(psi) = |E| c(psi) |D(psi)|.",
+    "Mechanism: at E != 0 the scaled flow is the E = 0 flow plus the term h = rho E in the energy relation; h is transported by h' = nu h and equals eta at the size minimum; the encounter is a regular perturbation in eta. The exponent alpha is the contraction of rho relative to the unstable rate during the passage near L_minus.",
+    "What is proved: existence of the limit, at the level of the round-6 argument (inclination lemma on the McGehee manifold with boundary, finite-time continuity, open label sets).",
+    "What is not proved: the rate with a computable C. Notation: at L_minus the eigenvalues of the 5-dimensional flow (E as a parameter, h = rho E as a variable) are Lam = 2.8203 (double), -mu = -1.5957 (double), -v = -sqrt 6 (h direction). Obstacle 1: a C1 linearization exists (the sums -mu + Lam = 1.2247 and -v + Lam = 0.371 are not real parts of eigenvalues), but C1 gives the exit direction only up to o(1); a rate needs C^(1+beta) regularity of the stable fibration with explicit constants. Obstacle 2: the structural resonance 2 Lam - 2 mu - v = 0 (from Lam - mu = v/2) rules out a smooth linearization, so a normal form with the resonant monomial has to be carried. Obstacle 3: the requested certificates (quantitative lambda lemma, transfer error, rounding bounds for a family) need the set-valued integrator that was not available."
+   ],
+   "computational_certificate": {
+    "c(psi) = rho_min/eps^alpha at eps = 1e-5, 1e-6, 1e-7": {
+     "psi=10": "1.0966, 1.0965, 1.0965",
+     "psi=40": "0.7017, 0.7017, 0.7017",
+     "psi=50": "0.4731, 0.4731, 0.4731"
+    },
+    "D(psi) = (S_eps - S_0)/eta, (direction in rad, scaled energy)": {
+     "psi=10": "(+0.0415, +0.9583), (+0.0438, +0.9580), (+0.0454, +0.9578)",
+     "psi=40": "(+1.0339, -0.0601), (+1.0556, -0.0721), (+1.0667, -0.0759)",
+     "psi=50": "(+4.8750, -0.4617), (+4.8944, -0.4617), (+4.8972, -0.4582)"
+    },
+    "note": "double precision, regularized flow of round 6; these are measurements, not bounds"
+   },
+   "certificates": {
+    "quantitative_lambda_lemma": "NOT DONE",
+    "finite_time_transfer_error": "NOT DONE",
+    "asymptotic_tail_bound": "DONE in round 6 (criterion C, proved) and made unnecessary for the label by T7_01 step C",
+    "truncation_and_rounding_bounds": "NOT DONE for the family; done only for the four single orbits of T7_01"
+   }
+  },
+  {
+   "id": "T7_03",
+   "result": "PROVED",
+   "scope": "equal masses, E = 0, L = 0. Proved: the boundary B of the escape-label domains on the circle of rays is finite, and it has at least 6 points. Not proved: that it has exactly 6 (numerical only); no explicit upper bound (the argument is non-effective).",
+   "derivation": [
+    "Setting. Regularized phase space (three Levi-Civita charts, round 6), reduced by rotations, with a global analytic time change d tau = d_12 d_13 d_23 d sigma'. X = the resulting analytic vector field. K = {nu_L- + c <= nu <= nu_E + delta}.",
+    "Compactness. On K the chart variables are bounded: |omega|^2 <= 2 k1 + 2 |zeta|^2 U_reg; the energy relation bounds |zeta||y2|; L = 0 gives Im(conj(s2) y2) = -Im(conj(zeta) omega), and nu bounded gives Re(conj(s2) y2) bounded; |s2|^2 >= 1/2 where the chart's pair is the closest. So K is a compact semianalytic set, and the time-t maps of X on K are restricted analytic.",
+    "Rest points in K: only L_plus (two orientations) and E_plus_1,2,3 (E_minus has nu = -nu_E < nu_L-). Since nu(phi_1(Z)) - nu(Z) > 0 off rest points, there is T with: every orbit leaves K_0 = K minus small neighbourhoods N_L, N_E of the rest points within time T.",
+    "Decided region. By T7_01 step C, on {nu > nu_E} the label is the complement of the closest pair, locally constant, semianalytic.",
+    "Passage near E_plus. Analytic coordinates (u, x) straighten W^s = {u = 0} and W^u = {x = 0}; then u' = u g, g > 0, and |x| decreases on the faces |x| = a. An orbit entering N_E = {|x| <= a, |u| <= b} with u != 0 leaves through u = +-b with nu > nu_E (a small relative to b), where the label equals that of the branch gamma_+- of W^u(E_plus). Both branches have labels (they are collinear; round 6). So inside N_E the label is the sign of the analytic function u; the complex stable pair only makes the orbit spiral inside one side and does not enter the label.",
+    "Passage near L_plus. Eigenvalues (a, a, -b, -b) with b/a = (7 + sqrt 13)/6, a quadratic irrational, hence badly approximable: |(p-1) a - q b| >= c/q. Siegel's theorem gives an analytic linearization. In these coordinates the passage map is (x_s, x_u) -> (x_s (|x_u|/b0)^(b/a), b0 x_u/|x_u|), definable in the o-minimal structure R_an,exp. After the passage nu > nu_L + eta, so L_plus is visited at most once, and afterwards the orbit is decided or enters one N_E.",
+    "Definability. Every itinerary is: K_0 segment (time <= T), optionally one L_plus passage, K_0 segment, then decided directly or through one N_E. Each label domain D_k on the circle is therefore defined by a first-order formula over R_an,exp (restricted analytic flow maps, semianalytic sets, one power map, one sign). By o-minimality D_k has finitely many connected components.",
+    "Conclusion. D_k is open, so it is a finite union of open arcs and its boundary is finite. B is finite and there is no accumulation of escape boundaries, with or without L_minus -> L_plus connections. The round-6 hypothesis H2 is no longer needed for finiteness.",
+    "Lower bound. Theorem A puts a boundary point of D_1 in the certified bracket of T7_01. The symmetry group of order 6 (cyclic relabelling: psi -> psi + 120; reflection: psi -> -psi) gives 6 distinct boundary points.",
+    "Location (not exact count). B is contained in Gamma intersect (W^s(E_plus) union W^s(L_plus)): an unlabeled point has nu <= nu_E forever and is parabolic."
+   ],
+   "certificates": {
+    "global_compactness_conditions": "PROVED (uses L = 0 in an essential way)",
+    "analytic_intersection_classification": "PROVED via definability in R_an,exp (theorems used: stable manifold theorem in the analytic class, Siegel linearization, o-minimality of R_an,exp)",
+    "L_minus_to_L_plus_connection_test": "NOT RIGOROUS: numerical closest approach D = 0.135 at psi = 60 (round 6). Not needed for finiteness.",
+    "boundary_accumulation_analysis": "PROVED: no accumulation"
+   },
+   "limits": "Unequal masses: the same proof needs a Diophantine condition on the four eigenvalues at L_plus (generic, can fail for special masses) and the label rule with three different Euler levels; not written out."
+  },
+  {
+   "id": "T7_04",
+   "result": "PROVED",
+   "class_C": {
+    "name": "Liouvillian closed forms in time",
+    "grammar": "f ::= c | t | f + f | f * f | f / f | any root of a polynomial with coefficients f | exp(f) | integral of f dt     (c complex constant; log f = integral of f'/f; sin, cos, arctan, radicals, elliptic integrals, erf are included)",
+    "formal_definition": "f is Liouvillian if it lies in a differential field K_n of meromorphic functions on a domain, C(t) = K_0 < K_1 < ... < K_n, K_{i+1} = K_i(theta_i), with theta_i algebraic over K_i, or theta_i' in K_i, or theta_i'/theta_i in K_i.",
+    "membership_of_U": "U_general is in C if for every admissible datum (m, r0, v0) each coordinate function t -> U_general(i, t, m, r0, v0) coincides on some interval with a Liouvillian function. The tower may depend on the datum; no uniformity is required. This is the weakest possible requirement, so non-existence is the strongest statement."
+   },
+   "parameter_domain": "all m1, m2, m3 > 0; collision-free initial data (planar data suffice)",
+   "theorem": "For every m1, m2, m3 > 0 there is no U_general in C. Precisely: for every Lagrange homographic elliptic solution with eccentricity 0 < e < 1 (collision-free, defined for all t), the two coordinates of r_1(t) are not both Liouvillian functions of t.",
+   "derivation": [
+    "1. Lagrange. Let c_1, c_2, c_3 be the vertices of an equilateral triangle of side 1 with sum m_i c_i = 0 (complex notation). If z'' = -M z/|z|^3 then r_i(t) = z(t) c_i solves the three-body equations, because sum_j m_j (r_j - r_i)/|r_j - r_i|^3 = -M z c_i/|z|^3. c_1 != 0 since the centre of mass is interior.",
+    "2. Kepler. Take the elliptic solution z = a(cos E - e) + i a sqrt(1 - e^2) sin E with n t = E - e sin E, n = sqrt(M/a^3), 0 < e < 1.",
+    "3. Assume both coordinates of r_1 are Liouvillian. Then Re z and Im z lie in a Liouvillian extension K of C(t) with constant field C, hence so do cos E, sin E, w = cos E + i sin E and E = n t + e sin E.",
+    "4. w'/w = i E'. Put y = w, zeta = iE, k = C(t). Then y'/y = zeta'. Since E = n t + (e/2i)(w - 1/w), k(y, zeta) = k(y). Since w^2 - (2i/e)(E - n t) w - 1 = 0, k(y, zeta) is algebraic over k(zeta). Rosenlicht's proposition (1969; statement as quoted by Bronstein, Corless, Davenport, Jeffrey 2008: if y_i'/y_i = z_i' in a Liouvillian extension with the same constants and k(y,z) is algebraic over each of k(y) and k(z), then all y_i, z_i are algebraic over k) gives: w and E are algebraic over C(t).",
+    "5. Contradiction. sin E(t) is then algebraic over C(t): P(t, sin E(t)) = 0 with P != 0, on an interval and hence on all of R by analyticity. But sin E(t) is non-constant and periodic, so each value s0 in its range is taken at infinitely many t; thus P(., s0) = 0 for all s0 in an interval, so P = 0. Contradiction.",
+    "6. Hence U_general is not in C, for any masses."
+   ],
+   "what_this_does_and_does_not_say": [
+    "The obstruction is the Kepler time law carried by Lagrange's exact solutions. It needs neither chaos nor non-integrability, and it already holds for two bodies.",
+    "It does not exclude closed forms in classes closed under inversion (solution by quadratures followed by inversion, the sense in which Kepler, Euler's two centres and the rigid bodies are 'solved'). For that class the three-body question stays open; round 6 listed what is known (no meromorphic integrals; no quasi-periodic form on horseshoes; no finite linear representation)."
+   ]
+  }
+ ],
+ "sources": [
+  "Bronstein, Corless, Davenport, Jeffrey, Algebraic properties of the Lambert W function from a result of Rosenlicht and of Liouville, Integral Transforms Spec. Funct. 19 (2008) 709-712 (statement of Rosenlicht's proposition, used in T7_04)",
+  "Rosenlicht, On the explicit solvability of certain transcendental equations, Publ. IHES 36 (1969) (cited through the above)",
+  "Chazy's classification of final motions: statement as in Guardia, Kaloshin, Zhang, arXiv:1805.00800, Theorem 1.1, and Guardia, Martin, Paradela, Seara, arXiv:2207.14351; energy restrictions as recalled in arXiv:2211.00916. Used only for terminology (HE_k, parabolic).",
+  "Limit shape of completely parabolic motions tends to central configurations (Chazy), as recalled in Burgos, Maderna, arXiv:2002.06153. Not needed: step D is self-contained.",
+  "Siegel linearization theorem and o-minimality of R_an,exp (van den Dries, Macintyre, Marker; van den Dries, Miller): used from memory in T7_03, not re-checked this round"
+ ],
+ "files": [
+  "uc_cisim_tur7.py (python-flint; 'label <psi> [N] [bits]' reproduces a certificate, 'check' cross-checks against uc_cisim_tur6.py)",
+  "cert_57.log",
+  "cert_57.05.log",
+  "cert_57.06.log",
+  "cert_58.log"
+ ],
+ "corrections": [
+  "Earlier notes of mine cited 'Moeckel, Montgomery, Venturelli, arXiv:1705.00723' for convergence of parabolic orbits. That label was wrong: arXiv:1705.00723 is Moeckel, Montgomery, Sanchez Morgado, 'Free time minimizers for the planar three-body problem', and it is not the source of that statement. The citation is withdrawn; the step it supported is now proved directly (T7_01 step D)."
+ ]
+}

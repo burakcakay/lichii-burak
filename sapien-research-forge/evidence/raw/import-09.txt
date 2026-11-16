@@ -1,0 +1,654 @@
+
+far below float64 resolution.
+
+Arithmetic: Python `decimal` at 42 digits for the hot loops (series, integrator),
+mpmath (50 digits) for sin/cos/log.  Same equations and conventions as r7_core.py
+/ r7_gamma.py; nothing is taken from the float runs except starting brackets.
+
+stages:  python r7_hp.py check | bisect | scan | flips | direct
+"""
+import json
+import math
+import sys
+import time
+import decimal
+from decimal import Decimal as D, getcontext
+import mpmath as mp
+import numpy as np
+from r7_core import Sys, certificate, certificate_from_scalars
+
+getcontext().prec = 42
+mp.mp.dps = 50
+R8 = range(8)
+ZERO, ONE, TWO, HALF = D(0), D(1), D(2), D(1) / 2
+SQ3, SQ6, SQ13 = D(3).sqrt(), D(6).sqrt(), D(13).sqrt()
+MU1, MU2, A1, A2, MB, MM = HALF, D(2) / 3, HALF, HALF, D(2), D(3)      # masses (1,1,1)
+NU0 = -SQ6
+LAM = SQ6 / 4 * (1 + SQ13)
+Z0 = [ONE, ZERO, ZERO, SQ3 / 2, NU0, ZERO, ZERO, NU0 * SQ3 / 2]
+E1 = [ONE, ZERO, ZERO, -SQ3 / 2]
+E2 = [ZERO, ONE, SQ3 / 2, ZERO]
+NU_E = (5 * D(2).sqrt()).sqrt()                  # nu at the Euler rest point E+
+NU_S = NU_E + D(2) / 100                         # exit section  nu = nu(E+) + 0.02
+NDEG, T0 = 30, D(4) / 100
+SYS64 = Sys((1.0, 1.0, 1.0))
+
+
+def to_dec(x):
+    return D(mp.nstr(x, 46, strip_zeros=False))
+
+
+def rhs(z):
+    x1, x2, X1, X2, u1, u2, W1, W2 = z
+    nu = MU1 * (x1 * u1 + x2 * u2) + MU2 * (X1 * W1 + X2 * W2)
+    q = x1 * x1 + x2 * x2
+    r3i = ONE / (q * q.sqrt())
+    p1 = X1 + A2 * x1
+    p2 = X2 + A2 * x2
+    s1 = X1 - A1 * x1
+    s2 = X2 - A1 * x2
+    q = p1 * p1 + p2 * p2
+    d13 = ONE / (q * q.sqrt())
+    q = s1 * s1 + s2 * s2
+    d23 = ONE / (q * q.sqrt())
+    ax1 = -MB * x1 * r3i + (s1 * d23 - p1 * d13)
+    ax2 = -MB * x2 * r3i + (s2 * d23 - p2 * d13)
+    c = -MM / MB
+    aX1 = c * (p1 * d13 + s1 * d23)
+    aX2 = c * (p2 * d13 + s2 * d23)
+    h = nu / 2
+    return [u1 - nu * x1, u2 - nu * x2, W1 - nu * X1, W2 - nu * X2,
+            ax1 + h * u1, ax2 + h * u2, aX1 + h * W1, aX2 + h * W2]
+
+
+def nu_of(z):
+    return MU1 * (z[0] * z[4] + z[1] * z[5]) + MU2 * (z[2] * z[6] + z[3] * z[7])
+
+
+def U_of(z):
+    x1, x2, X1, X2 = z[0], z[1], z[2], z[3]
+    r = (x1 * x1 + x2 * x2).sqrt()
+    p = ((X1 + A2 * x1) ** 2 + (X2 + A2 * x2) ** 2).sqrt()
+    s = ((X1 - A1 * x1) ** 2 + (X2 - A1 * x2) ** 2).sqrt()
+    return ONE / r + ONE / p + ONE / s
+
+
+def project(z):
+    inv = ONE / (MU1 * (z[0] * z[0] + z[1] * z[1]) + MU2 * (z[2] * z[2] + z[3] * z[3])).sqrt()
+    s = [z[i] * inv for i in range(4)]
+    L = MU1 * (s[0] * z[5] - s[1] * z[4]) + MU2 * (s[2] * z[7] - s[3] * z[6])
+    js = [-s[1], s[0], -s[3], s[2]]
+    y = [z[4 + i] - L * js[i] for i in range(4)]
+    y2 = MU1 * (y[0] * y[0] + y[1] * y[1]) + MU2 * (y[2] * y[2] + y[3] * y[3])
+    f = (2 * U_of(s) / y2).sqrt()
+    return s + [v * f for v in y]
+
+
+# ------------------------------------------------------------ GBS in Decimal
+NSEQ = [2 * (i + 1) for i in range(18)]
+FAC = [[None] + [D(NSEQ[k] ** 2) / D(NSEQ[k - j] ** 2) - 1 for j in range(1, k + 1)] for k in range(18)]
+
+
+def gbs_step(y, f0, H, rtol, atol, kmin=4, kmax=17):
+    T = []
+    err = None
+    for k in range(kmax):
+        n = NSEQ[k]
+        h = H / n
+        h2 = h + h
+        ym = y
+        yn = [y[i] + h * f0[i] for i in R8]
+        for _ in range(n - 1):
+            d = rhs(yn)
+            ym, yn = yn, [ym[i] + h2 * d[i] for i in R8]
+        d = rhs(yn)
+        row = [[(ym[i] + yn[i] + h * d[i]) / 2 for i in R8]]
+        for j in range(1, k + 1):
+            fc = FAC[k][j]
+            a, b = row[j - 1], T[k - 1][j - 1]
+            row.append([a[i] + (a[i] - b[i]) / fc for i in R8])
+        T.append(row)
+        if k >= 1:
+            err = max(abs(row[k][i] - row[k - 1][i]) / (atol + rtol * max(abs(y[i]), abs(row[k][i]))) for i in R8)
+            if k >= kmin - 1 and err <= 1:
+                return row[k], float(err), k, True
+    return row[-1], float(err), kmax - 1, False
+
+
+def adapt(h, err, k):
+    fac = 0.94 * (0.65 / max(err, 1e-30)) ** (1.0 / (2 * k + 1))
+    if k <= 9:
+        fac = max(fac, 1.4)
+    if k >= 14:
+        fac = min(fac, 0.8)
+    return h * D(repr(min(3.0, max(0.4, fac))))
+
+
+def integrate(z, tau_max, rtol, atol, h, callback, hmin=D("1e-30"), max_steps=400000):
+    """callback(tau, z_prev, z_new, h_used) -> truthy to stop.  Returns (tau, z, h, status, nsteps)."""
+    tau = ZERO
+    for n in range(max_steps):
+        if tau >= tau_max:
+            return tau, z, h, "end", n
+        f0 = rhs(z)
+        while True:
+            try:
+                znew, err, k, ok = gbs_step(z, f0, h, rtol, atol)
+            except (decimal.Overflow, decimal.InvalidOperation, decimal.DivisionByZero):
+                ok = False                      # trial step blew up near a pericentre: reject it
+            if ok:
+                break
+            h = h / 2
+            if h < hmin:
+                return tau, z, h, "hmin", n
+        zprev, hused = z, h
+        tau += h
+        z = project(znew)
+        h = adapt(h, err, k)
+        if callback(tau, zprev, z, hused):
+            return tau, z, h, "event", n + 1
+    return tau, z, h, "maxsteps", max_steps
+
+
+# ------------------------------------------------ W^u(L-) by Taylor series
+def smul(a, b, N):
+    out = [ZERO] * (N + 1)
+    for i, ai in enumerate(a):
+        if ai:
+            for j in range(N + 1 - i):
+                bj = b[j]
+                if bj:
+                    out[i + j] += ai * bj
+    return out
+
+
+def spow_m32(a, N):
+    """a^(-3/2) for a power series with a[0] > 0."""
+    p = D(-3) / 2
+    b = [ZERO] * (N + 1)
+    b[0] = ONE / (a[0] * a[0].sqrt())
+    for n in range(1, N + 1):
+        acc = ZERO
+        for k in range(1, n + 1):
+            if a[k]:
+                acc += (p * k - (n - k)) * a[k] * b[n - k]
+        b[n] = acc / (n * a[0])
+    return b
+
+
+def F_series(zs, N):
+    x1, x2, X1, X2, u1, u2, W1, W2 = zs
+    mul = lambda a, b: smul(a, b, N)
+    add = lambda a, b: [a[i] + b[i] for i in range(N + 1)]
+    sub = lambda a, b: [a[i] - b[i] for i in range(N + 1)]
+    sc = lambda c, a: [c * v for v in a]
+    nu = add(sc(MU1, add(mul(x1, u1), mul(x2, u2))), sc(MU2, add(mul(X1, W1), mul(X2, W2))))
+    r3i = spow_m32(add(mul(x1, x1), mul(x2, x2)), N)
+    p1, p2 = add(X1, sc(A2, x1)), add(X2, sc(A2, x2))
+    s1, s2 = sub(X1, sc(A1, x1)), sub(X2, sc(A1, x2))
+    d13 = spow_m32(add(mul(p1, p1), mul(p2, p2)), N)
+    d23 = spow_m32(add(mul(s1, s1), mul(s2, s2)), N)
+    ax1 = add(sc(-MB, mul(x1, r3i)), sub(mul(s1, d23), mul(p1, d13)))
+    ax2 = add(sc(-MB, mul(x2, r3i)), sub(mul(s2, d23), mul(p2, d13)))
+    c = -MM / MB
+    aX1 = sc(c, add(mul(p1, d13), mul(s1, d23)))
+    aX2 = sc(c, add(mul(p2, d13), mul(s2, d23)))
+    hn = sc(HALF, nu)
+    return [sub(u1, mul(nu, x1)), sub(u2, mul(nu, x2)), sub(W1, mul(nu, X1)), sub(W2, mul(nu, X2)),
+            add(ax1, mul(hn, u1)), add(ax2, mul(hn, u2)), add(aX1, mul(hn, W1)), add(aX2, mul(hn, W2))]
+
+
+def solve(Amat, b):
+    n = len(b)
+    M = [list(Amat[i]) + [b[i]] for i in range(n)]
+    for c in range(n):
+        p = max(range(c, n), key=lambda r: abs(M[r][c]))
+        M[c], M[p] = M[p], M[c]
+        for r in range(c + 1, n):
+            f = M[r][c] / M[c][c]
+            if f:
+                for k in range(c, n + 1):
+                    M[r][k] -= f * M[c][k]
+    x = [ZERO] * n
+    for i in range(n - 1, -1, -1):
+        x[i] = (M[i][n] - sum(M[i][k] * x[k] for k in range(i + 1, n))) / M[i][i]
+    return x
+
+
+def jacobian():
+    J = [[ZERO] * 8 for _ in R8]
+    for k in R8:
+        zs = [[Z0[i], ONE if i == k else ZERO] for i in R8]
+        Fs = F_series(zs, 1)
+        for i in R8:
+            J[i][k] = Fs[i][1]
+    return J
+
+
+JAC = jacobian()
+
+
+def gamma_series(psi, N=NDEG):
+    """psi: mpmath real (radians).  Returns Taylor coefficients (8 lists of length N+1)."""
+    c, s = to_dec(mp.cos(psi)), to_dec(mp.sin(psi))
+    e = [c * E1[i] + s * E2[i] for i in range(4)]
+    v = e + [(LAM + NU0) * ei for ei in e]
+    zs = [[Z0[i], v[i]] + [ZERO] * (N - 1) for i in R8]
+    for n in range(2, N + 1):
+        Fs = F_series([zz[:n + 1] for zz in zs], n)
+        G = [Fs[i][n] for i in R8]
+        Amat = [[(n * LAM if i == j else ZERO) - JAC[i][j] for j in R8] for i in R8]
+        Pn = solve(Amat, G)
+        for i in R8:
+            zs[i][n] = Pn[i]
+    return zs, v
+
+
+def horner(c, t):
+    acc = ZERO
+    for a in reversed(c):
+        acc = acc * t + a
+    return acc
+
+
+def gamma_point(psi, t0=T0, N=NDEG):
+    zs, _ = gamma_series(psi, N)
+    return project([horner(zs[i], t0) for i in R8])
+
+
+# ------------------------------------------------------------ exit section
+def exit_state(psi, rtol=D("1e-33"), atol=D("1e-36"), t0=T0, N=NDEG, tau_max=D(60)):
+    """Integrate Gamma(psi) to the section nu = NU_S.  Returns dict with the state and
+    the normal data a = signed area, a' = d a / d tau, and the three side lengths."""
+    z = gamma_point(psi, t0, N)
+    hit = {}
+
+    def cb(tau, zp, zn, h):
+        if nu_of(zn) >= NU_S:
+            hit.update(zp=zp, h=h, tau=tau - h)
+            return True
+        return False
+    tau, z, h, status, nsteps = integrate(z, tau_max, rtol, atol, D("0.01"), cb)
+    if status != "event":
+        return dict(status=status)
+    # secant on the last step length to land on the section
+    zp, f0 = hit["zp"], rhs(hit["zp"])
+    ha, na = ZERO, nu_of(zp) - NU_S
+    hb, nb = hit["h"], nu_of(z) - NU_S
+    zc = z
+    for _ in range(40):
+        hc = hb - nb * (hb - ha) / (nb - na)
+        zc, err, k, ok = gbs_step(zp, f0, hc, rtol, atol)
+        zc = project(zc)
+        nc = nu_of(zc) - NU_S
+        ha, na, hb, nb = hb, nb, hc, nc
+        if abs(nc) < D("1e-34"):
+            break
+    x1, x2, X1, X2, u1, u2, W1, W2 = zc
+    nu = nu_of(zc)
+    area = (x1 * X2 - x2 * X1) / 2
+    darea = (u1 * X2 - u2 * X1 + x1 * W2 - x2 * W1) / 2 - 2 * nu * area
+    r12 = (x1 * x1 + x2 * x2).sqrt()
+    r13 = ((X1 + A2 * x1) ** 2 + (X2 + A2 * x2) ** 2).sqrt()
+    r23 = ((X1 - A1 * x1) ** 2 + (X2 - A1 * x2) ** 2).sqrt()
+    return dict(status="ok", z=zc, tau=hit["tau"] + hb, a=area, da=darea, r12=r12, r13=r13, r23=r23, nsteps=nsteps)
+
+
+def proxy_label(ex):
+    """escaping body read off at the exit section: the closest pair is the future binary."""
+    d = [(ex["r12"], 3), (ex["r13"], 2), (ex["r23"], 1)]
+    return min(d)[1]
+
+
+def pair_scalars(z, k):
+    """Scalars entering the R3 certificate for escaper k (0-based), computed at 42 digits."""
+    x1, x2, X1, X2, u1, u2, W1, W2 = z
+    rr = [(-A2 * x1 - X1 / 3, -A2 * x2 - X2 / 3), (A1 * x1 - X1 / 3, A1 * x2 - X2 / 3), (2 * X1 / 3, 2 * X2 / 3)]
+    vv = [(-A2 * u1 - W1 / 3, -A2 * u2 - W2 / 3), (A1 * u1 - W1 / 3, A1 * u2 - W2 / 3), (2 * W1 / 3, 2 * W2 / 3)]
+    i, j = [q for q in range(3) if q != k]
+    xb = (rr[j][0] - rr[i][0], rr[j][1] - rr[i][1])
+    vb = (vv[j][0] - vv[i][0], vv[j][1] - vv[i][1])
+    Xk = (rr[k][0] - (rr[i][0] + rr[j][0]) / 2, rr[k][1] - (rr[i][1] + rr[j][1]) / 2)
+    Vk = (vv[k][0] - (vv[i][0] + vv[j][0]) / 2, vv[k][1] - (vv[i][1] + vv[j][1]) / 2)
+    r0 = (xb[0] * xb[0] + xb[1] * xb[1]).sqrt()
+    h0 = (vb[0] * vb[0] + vb[1] * vb[1]) / 2 - TWO / r0
+    R0 = (Xk[0] * Xk[0] + Xk[1] * Xk[1]).sqrt()
+    Rdot = (Xk[0] * Vk[0] + Xk[1] * Vk[1]) / R0
+    ell = xb[0] * vb[1] - xb[1] * vb[0]
+    speed = (Vk[0] * Vk[0] + Vk[1] * Vk[1]).sqrt()
+    return r0, h0, R0, Rdot, ell, speed
+
+
+def full_orbit(psi, cap_ratio=40.0, need_H4=False, max_steps=60000):
+    """Exit section at full precision, then continue (rtol 1e-20) until the R3 certificate H1-H3
+    holds and either H4 holds (sign certified) or, unless need_H4, R0 > cap_ratio * b.
+    All certificate inputs are computed at 42 digits (the pair passes within 1e-10 of collision)."""
+    ex = exit_state(psi)
+    if ex["status"] != "ok":
+        return dict(status=ex["status"])
+    info = dict(label=0, certified=False, ell_rel=0.0, steps=0, a=float(ex["a"]), da=float(ex["da"]))
+
+    def cb(tau, zp, zn, h):
+        info["steps"] += 1
+        if info["steps"] % 8:
+            return False
+        for k in range(3):
+            r0, h0, R0, Rdot, ell, speed = pair_scalars(zn, k)
+            if h0 >= 0 or Rdot <= 0:
+                continue
+            c = certificate_from_scalars(2.0, 1.0, 3.0, k, float(r0), float(h0), float(R0), float(Rdot), float(ell), float(speed))
+            if c is None:
+                continue
+            a_ = 1.0 / abs(float(h0))                       # m_b / (2 |h|), m_b = 2
+            info.update(label=k + 1, ell_rel=float(ell) / math.sqrt(2.0 * a_), delta_rel=c["delta"] / math.sqrt(2.0 * a_),
+                        R0_over_b=c["R0"] / c["b"], R_over_a=c["R0"] / a_)
+            if c["H4"]:
+                info["certified"] = True
+                return True
+            return (not need_H4) and c["R0"] > cap_ratio * c["b"]
+        return False
+    tau, z, h, status, n = integrate(ex["z"], D(400), D("1e-20"), D("1e-24"), D("0.01"), cb, hmin=D("1e-36"), max_steps=max_steps)
+    info["status"] = status
+    return info
+
+
+# ------------------------------------------------------------------ stages
+def cmd_check():
+    psi = mp.radians(mp.mpf(17))
+    t = time.time()
+    zs, v = gamma_series(psi)
+    Jv = [sum(JAC[i][j] * v[j] for j in R8) - LAM * v[i] for i in R8]
+    print(f"series degree {NDEG}: {time.time() - t:.2f}s;  |J v - Lam v| = {max(abs(q) for q in Jv):.2e}")
+    for t0 in (D("0.04"), D("0.08")):
+        z = [horner(zs[i], t0) for i in R8]
+        dz = [horner([k * zs[i][k] for k in range(1, NDEG + 1)], t0) for i in R8]
+        F = rhs(z)
+        print(f"  t0={t0}: invariance residual = {max(abs(F[i] - LAM * t0 * dz[i]) for i in R8):.2e};"
+              f"  last coefficient * t0^N = {max(abs(zs[i][NDEG]) for i in R8) * t0 ** NDEG:.1e}")
+    t = time.time()
+    ex = exit_state(psi)
+    print(f"exit section at psi=17 deg: status={ex['status']} tau={float(ex['tau']):.6f} steps={ex['nsteps']} [{time.time() - t:.2f}s]"
+          f"  a={float(ex['a']):+.12f} a'={float(ex['da']):+.12f} proxy label={proxy_label(ex)}")
+    # same orbit in float64 for comparison
+    import r7_gamma as g
+    from r7_core import integrate as integ64
+    rec = {}
+
+    def cb(tt, zz):
+        if g.SYS.nu(zz) >= float(NU_S) and "z" not in rec:
+            rec["z"] = zz.copy()
+            return True
+        return False
+    integ64(g.SYS.rhs_scaled, g.gamma_point(math.radians(17.0)), 60.0, rtol=1e-13, atol=1e-15, callback=cb, post=g.SYS.project)
+    zf = rec["z"]
+    print(f"float64 state just past the section: area={(zf[0] * zf[3] - zf[1] * zf[2]) / 2:+.12f} (section crossed, not interpolated)")
+    t = time.time()
+    fo = full_orbit(psi)
+    print(f"full orbit: {fo}  [{time.time() - t:.2f}s]")
+
+
+def cmd_bisect():
+    b = json.load(open("r7_gamma_boundaries.json"))[1]            # transition 1 -> 2 near 117.05 deg
+    lo, hi = mp.mpf(b["psi_lo"]) - mp.mpf("1e-10"), mp.mpf(b["psi_hi"]) + mp.mpf("1e-10")
+    out = {}
+    for tag, N, t0, rtol in (("A", 30, D("0.04"), D("1e-33")), ("B", 26, D("0.03"), D("1e-31"))):
+        a, c = lo, hi
+        la = proxy_label(exit_state(a, rtol=rtol, t0=t0, N=N))
+        lc = proxy_label(exit_state(c, rtol=rtol, t0=t0, N=N))
+        assert la == 1 and lc == 2, (la, lc)
+        t = time.time()
+        it = 0
+        while c - a > mp.mpf("1e-33") and it < 90:
+            m = (a + c) / 2
+            if proxy_label(exit_state(m, rtol=rtol, t0=t0, N=N)) == 1:
+                a = m
+            else:
+                c = m
+            it += 1
+        mid = (a + c) / 2
+        print(f"run {tag} (N={N}, t0={t0}, rtol={rtol}): psi* = {mp.nstr(mid, 36)} rad = {mp.nstr(mp.degrees(mid), 36)} deg;"
+              f" bracket {mp.nstr(c - a, 3)}; {it} iterations, {time.time() - t:.0f}s", flush=True)
+        out[tag] = dict(N=N, t0=str(t0), rtol=str(rtol), psi_lo=mp.nstr(a, 45), psi_hi=mp.nstr(c, 45),
+                        psi_star_rad=mp.nstr(mid, 40), psi_star_deg=mp.nstr(mp.degrees(mid), 40),
+                        psi_star_card_convention_deg=mp.nstr(mp.degrees(mid) - 60, 40))
+    diff = abs(mp.mpf(out["A"]["psi_star_rad"]) - mp.mpf(out["B"]["psi_star_rad"]))
+    print("difference between the two runs:", mp.nstr(diff, 3), "rad")
+    out["difference_rad"] = mp.nstr(diff, 5)
+    json.dump(out, open("r7_hp_bisect.json", "w"), indent=1)
+
+
+def load_star():
+    b = json.load(open("r7_hp_bisect.json"))["A"]
+    return mp.mpf(b["psi_lo"]), mp.mpf(b["psi_hi"])
+
+
+def cmd_scan(per_decade=4, kmin=8, kmax=108):
+    lo, hi = load_star()
+    rows = {"below": [], "above": []}
+    t = time.time()
+    for side, base, sg in (("below", lo, -1), ("above", hi, +1)):
+        for k in range(kmin, kmax + 1):
+            d = mp.mpf(10) ** (-mp.mpf(k) / per_decade)
+            ex = exit_state(base + sg * d)
+            rows[side].append(dict(log10d=-k / per_decade, a=str(ex["a"]), da=str(ex["da"]), tau=str(ex["tau"]),
+                                   label=proxy_label(ex), ratio=str(min(ex["r13"], ex["r23"]) / max(ex["r13"], ex["r23"]))))
+        print(f"side {side}: {len(rows[side])} orbits [{time.time() - t:.0f}s]; labels {set(r['label'] for r in rows[side])}", flush=True)
+    json.dump(rows, open("r7_hp_scan.json", "w"), indent=0)
+
+
+def fit_scan(rows, dmax_log=-4.0):
+    """fit a = d^beta (C cos(w ln d) + S sin(w ln d)) in float64 for beta, w."""
+    dat = [(r["log10d"] * math.log(10), float(r["a"]), float(r["da"])) for r in rows if r["log10d"] <= dmax_log]
+    ld = np.array([q[0] for q in dat])
+    res = {}
+    for name, col in (("a", 1), ("da", 2)):
+        yv = np.array([q[col] for q in dat])
+
+        def rss(beta, w):
+            sc = np.exp(-beta * ld)
+            Am = np.stack([np.cos(w * ld), np.sin(w * ld)], axis=1)
+            coef, *_ = np.linalg.lstsq(Am, yv * sc, rcond=None)
+            return float(np.sum((Am @ coef - yv * sc) ** 2) / np.sum((yv * sc) ** 2)), coef
+        gb, gw = np.linspace(0.16, 0.18, 81), np.linspace(0.53, 0.555, 101)
+        for _ in range(7):
+            best = min((rss(bb, ww)[0], bb, ww) for bb in gb for ww in gw)
+            db, dw = gb[1] - gb[0], gw[1] - gw[0]
+            gb = np.linspace(best[1] - db, best[1] + db, 21)
+            gw = np.linspace(best[2] - dw, best[2] + dw, 21)
+        res[name] = dict(beta=best[1], omega=best[2], rel_rss=best[0], n=len(dat))
+    return res
+
+
+def cmd_flips():
+    lo, hi = load_star()
+    scan = json.load(open("r7_hp_scan.json"))
+    fl64 = json.load(open("r7_gamma_flips_1.json"))["result"]
+    out = {}
+    omega = float(mp.sqrt(mp.mpf(51) / 5) / (mp.sqrt(mp.mpf(237) / 5) - 1))
+    for side, base, sg in (("below", lo, -1), ("above", hi, +1)):
+        fits = {f"d<1e{int(c)}": fit_scan(scan[side], c) for c in (-4.0, -8.0, -12.0)}
+        for kx, v in fits.items():
+            print(f"side {side} fit {kx}: a: beta={v['a']['beta']:.9f} omega={v['a']['omega']:.9f} (rel rss {v['a']['rel_rss']:.1e});"
+                  f"  a': beta={v['da']['beta']:.9f} omega={v['da']['omega']:.9f}")
+        # kernel of the functional ell_inf = L.n from the float64-certified flips
+        nvec = []
+        for d in fl64[side]["flips"]:
+            ex = exit_state(base + sg * mp.mpf(d))
+            nvec.append((float(ex["a"]), float(ex["da"])))
+        ang = [math.atan2(v[1], v[0]) % math.pi for v in nvec]
+        print(f"side {side}: direction of n_exit at the three float64 flips (mod pi): {[round(a_, 6) for a_ in ang]}")
+        c = (-math.sin(ang[-1]), math.cos(ang[-1]))             # functional vanishing on the direction at the deepest float flip
+
+        def fval(logd):
+            ex = exit_state(base + sg * mp.e ** mp.mpf(logd))
+            return c[0] * float(ex["a"]) + c[1] * float(ex["da"])
+        pts = [(r["log10d"] * math.log(10), c[0] * float(r["a"]) + c[1] * float(r["da"])) for r in scan[side]]
+        roots = []
+        for (l1, f1), (l2, f2) in zip(pts[:-1], pts[1:]):
+            if f1 * f2 < 0:
+                a_, b_, fa_ = l1, l2, f1
+                for _ in range(34):
+                    m_ = 0.5 * (a_ + b_)
+                    fm = fval(m_)
+                    if fm * fa_ > 0:
+                        a_, fa_ = m_, fm
+                    else:
+                        b_ = m_
+                roots.append(0.5 * (a_ + b_))
+        ds = [math.exp(r) for r in roots]
+        ratios = [ds[i + 1] / ds[i] for i in range(len(ds) - 1)]
+        print(f"side {side}: zeros of L.n_exit: {['%.9e' % q for q in ds]}")
+        print(f"side {side}: ratios: {['%.8e' % q for q in ratios]}  predicted {math.exp(-math.pi / omega):.8e}", flush=True)
+        out[side] = dict(fits=fits, n_exit_angle_at_float_flips=ang, functional=c, zeros=ds, ratios=ratios,
+                         float64_flips=fl64[side]["flips"])
+    out["predicted_ratio"] = math.exp(-math.pi / omega)
+    json.dump(out, open("r7_hp_flips.json", "w"), indent=1)
+
+
+RATIO = math.exp(-math.pi / (math.sqrt(10.2) / (math.sqrt(47.4) - 1)))      # exp(-pi/omega), equal masses
+
+
+def cmd_direct(side):
+    """True flips of the final binary angular momentum by direct integration (resumable).
+    Sign of ell is read when the R3 certificate H1-H3 holds and R0 > 40 b; flips are bisected in ln d.
+    Then: stopping-rule convergence check (R0 > 160 b) and H4-certified signs at the antinodes."""
+    lo, hi = load_star()
+    base, sg = (lo, -1) if side == "below" else (hi, +1)
+    fname = f"r7_hp_direct_{side}.json"
+    try:
+        out = json.load(open(fname))
+    except Exception:
+        out = dict(flips=[], antinodes=[])
+    out.setdefault("cap_check", [])
+    t = time.time()
+
+    def run(d, **kw):
+        return full_orbit(base + sg * mp.mpf(d), **kw)
+
+    def known(idx):
+        return [f for f in out["flips"] if f["index"] == idx]
+
+    def locate(idx, guess, lo_f, hi_f, iters):
+        da, db = guess * lo_f, guess * hi_f
+        ra, rb = run(da), run(db)
+        if ra.get("ell_rel", 0) * rb.get("ell_rel", 0) >= 0:
+            print(f"  {side} flip {idx}: no sign change in [{da:.3e}, {db:.3e}] ({ra.get('ell_rel')}, {rb.get('ell_rel')})", flush=True)
+            return
+        sa = ra["ell_rel"] > 0
+        last = ra
+        for _ in range(iters):
+            dm = math.sqrt(da * db)
+            rm = run(dm)
+            last = rm
+            if (rm["ell_rel"] > 0) == sa:
+                da = dm
+            else:
+                db = dm
+        dflip = math.sqrt(da * db)
+        ex = exit_state(base + sg * mp.mpf(dflip))
+        ang = math.atan2(float(ex["da"]), float(ex["a"])) % math.pi
+        out["flips"].append(dict(index=idx, d=dflip, rel_bracket=db / da - 1, n_exit_angle_mod_pi=ang,
+                                 n_exit_norm=math.hypot(float(ex["a"]), float(ex["da"])), label=last["label"], R_over_a=last.get("R_over_a")))
+        out["flips"].sort(key=lambda f: f["index"])
+        print(f"  {side} flip {idx}: d = {dflip:.6e} (bracket {db / da - 1:.1e}), n_exit angle {ang:.5f}, "
+              f"|n| = {math.hypot(float(ex['a']), float(ex['da'])):.2e} [{time.time() - t:.0f}s]", flush=True)
+        json.dump(out, open(fname, "w"), indent=1)
+
+    # deep flips: predict from the deepest known one with the limiting ratio
+    for idx in range(5, 10):
+        if known(idx):
+            continue
+        prev = known(idx - 1)
+        if not prev:
+            break
+        locate(idx, prev[0]["d"] * RATIO, 0.93, 1.07, 6)
+    # shallow flips: extrapolate upwards from flip 2
+    for idx in (1, 0):
+        if known(idx):
+            continue
+        nxt = known(idx + 1)
+        if not nxt:
+            break
+        locate(idx, nxt[0]["d"] / RATIO, 0.7, 1.6, 8)
+    # stopping-rule convergence: sign at flip*(1 -/+ 1.5%) with R0 > 160 b
+    if not out["cap_check"]:
+        for idx in (3, 6):
+            f = known(idx)
+            if not f:
+                continue
+            for eps in (-0.015, 0.015):
+                d = f[0]["d"] * (1 + eps)
+                r40, r160 = run(d), run(d, cap_ratio=160.0)
+                out["cap_check"].append(dict(index=idx, eps=eps, ell_rel_cap40=r40.get("ell_rel"), ell_rel_cap160=r160.get("ell_rel"),
+                                             R_over_a_cap160=r160.get("R_over_a"), certified_cap160=r160.get("certified")))
+                print(f"  {side} cap check flip {idx} eps={eps:+.3f}: ell_rel {r40.get('ell_rel'):+.3e} (R0>40b) vs {r160.get('ell_rel'):+.3e} (R0>160b) [{time.time() - t:.0f}s]", flush=True)
+                json.dump(out, open(fname, "w"), indent=1)
+    # certified signs at the antinodes
+    fl = [f["d"] for f in out["flips"]]
+    pts = [math.sqrt(fl[i] * fl[i + 1]) for i in range(len(fl) - 1)]
+    if fl:
+        pts = [fl[0] / math.sqrt(RATIO)] + pts + [fl[-1] * math.sqrt(RATIO)]
+    done = {round(math.log(a_["d"]), 6) for a_ in out["antinodes"]}
+    for d in pts:
+        if round(math.log(d), 6) in done:
+            continue
+        r = run(d, need_H4=True)
+        out["antinodes"].append(dict(d=d, **{k: r.get(k) for k in ("label", "certified", "ell_rel", "delta_rel", "R_over_a", "steps", "status")}))
+        out["antinodes"].sort(key=lambda a_: -a_["d"])
+        print(f"  {side} antinode d={d:.3e}: label={r.get('label')} ell_rel={r.get('ell_rel'):+.3e} delta_rel={r.get('delta_rel', 0):.1e} "
+              f"certified={r.get('certified')} R/a={r.get('R_over_a', 0):.0f} steps={r.get('steps')} [{time.time() - t:.0f}s]", flush=True)
+        json.dump(out, open(fname, "w"), indent=1)
+    print(f"{side}: direct stage finished [{time.time() - t:.0f}s]", flush=True)
+
+
+def cmd_zeros2():
+    """Zeros of the linear functional of n_exit whose kernel is the direction of n at the deepest
+    directly located true flip (instead of the float64 flip used in stage `flips`)."""
+    lo, hi = load_star()
+    scan = json.load(open("r7_hp_scan.json"))
+    out = {}
+    for side, base, sg in (("below", lo, -1), ("above", hi, +1)):
+        dd = json.load(open(f"r7_hp_direct_{side}.json"))["flips"]
+        deep = [f["n_exit_angle_mod_pi"] for f in dd if f["index"] >= 4]
+        ang = sum(deep) / len(deep)
+        c = (-math.sin(ang), math.cos(ang))
+
+        def fval(logd):
+            ex = exit_state(base + sg * mp.e ** mp.mpf(logd))
+            return c[0] * float(ex["a"]) + c[1] * float(ex["da"])
+        pts = [(r["log10d"] * math.log(10), c[0] * float(r["a"]) + c[1] * float(r["da"])) for r in scan[side]]
+        roots = []
+        for (l1, f1), (l2, f2) in zip(pts[:-1], pts[1:]):
+            if f1 * f2 < 0:
+                a_, b_, fa_ = l1, l2, f1
+                for _ in range(34):
+                    m_ = 0.5 * (a_ + b_)
+                    fm = fval(m_)
+                    if fm * fa_ > 0:
+                        a_, fa_ = m_, fm
+                    else:
+                        b_ = m_
+                roots.append(0.5 * (a_ + b_))
+        ds = [math.exp(r) for r in roots]
+        ratios = [ds[i + 1] / ds[i] for i in range(len(ds) - 1)]
+        print(f"side {side}: kernel angle {ang:.5f}; zeros: {['%.9e' % q for q in ds]}")
+        print(f"side {side}: ratios: {['%.8e' % q for q in ratios]}  predicted {RATIO:.8e}", flush=True)
+        out[side] = dict(kernel_angle=ang, zeros=ds, ratios=ratios)
+    out["predicted_ratio"] = RATIO
+    json.dump(out, open("r7_hp_zeros2.json", "w"), indent=1)
+
+
+if __name__ == "__main__":
+    cmd = sys.argv[1]
+    if cmd == "check":
+        cmd_check()
+    elif cmd == "bisect":
+        cmd_bisect()
+    elif cmd == "scan":
+        cmd_scan()
+    elif cmd == "flips":
+        cmd_flips()
+    elif cmd == "direct":
+        cmd_direct(sys.argv[2])
+    elif cmd == "zeros2":
+        cmd_zeros2()

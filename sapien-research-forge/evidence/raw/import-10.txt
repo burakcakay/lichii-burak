@@ -1,0 +1,259 @@
+"""Round-7 high-precision rerun of r7_spectrum.py (mpmath, 50 digits).
+
+1. card kappa reference values, 2. closed-form spectra, 3. resonance loci,
+4. resonant coefficient c to ~40 digits, 5. float scan of c along the whole
+resonance arc to look for zeros other than the symmetric point.
+"""
+import json
+import mpmath as mp
+import numpy as np
+import r7_spectrum as f64
+
+mp.mp.dps = 50
+R = mp.mpf
+TOL = R(10) ** (-45)
+
+
+def jacobi_P(m):
+    m1, m2, m3 = m
+    M = m1 + m2 + m3
+    a1, a2 = 1 / mp.sqrt(m1 * m2 / (m1 + m2)), 1 / mp.sqrt(m3 * (m1 + m2) / M)
+    c = [[-m2 / (m1 + m2) * a1, -m3 / M * a2], [m1 / (m1 + m2) * a1, -m3 / M * a2], [R(0), (m1 + m2) / M * a2]]
+    P = mp.zeros(6, 4)
+    for i in range(3):
+        for k in range(2):
+            for d in range(2):
+                P[2 * i + d, 2 * k + d] = c[i][k]
+    return P
+
+
+def q_from_positions(m, r):
+    m1, m2, m3 = m
+    M = m1 + m2 + m3
+    mu1, mu2 = m1 * m2 / (m1 + m2), m3 * (m1 + m2) / M
+    x1 = [r[1][d] - r[0][d] for d in range(2)]
+    x2 = [r[2][d] - (m1 * r[0][d] + m2 * r[1][d]) / (m1 + m2) for d in range(2)]
+    q = mp.matrix([mp.sqrt(mu1) * x1[0], mp.sqrt(mu1) * x1[1], mp.sqrt(mu2) * x2[0], mp.sqrt(mu2) * x2[1]])
+    return q / mp.norm(q)
+
+
+def pair_D(P, i, j):
+    D = mp.zeros(2, 4)
+    for d in range(2):
+        for k in range(4):
+            D[d, k] = P[2 * i + d, k] - P[2 * j + d, k]
+    return D
+
+
+def U_grad_hess(m, P, q):
+    U, g, H = R(0), mp.zeros(4, 1), mp.zeros(4, 4)
+    for i in range(3):
+        for j in range(i + 1, 3):
+            D = pair_D(P, i, j)
+            dv = D * q
+            rr = mp.sqrt(dv[0] ** 2 + dv[1] ** 2)
+            w = m[i] * m[j]
+            U += w / rr
+            g += -w * (D.T * dv) / rr ** 3
+            H += w * D.T * (3 * dv * dv.T / rr ** 5 - mp.eye(2) / rr ** 3) * D
+    return U, g, H
+
+
+def half_D3U(m, P, q, ds):
+    out = mp.zeros(4, 1)
+    for i in range(3):
+        for j in range(i + 1, 3):
+            D = pair_D(P, i, j)
+            d, u = D * q, D * ds
+            rr = mp.sqrt(d[0] ** 2 + d[1] ** 2)
+            du, uu = (d.T * u)[0], (u.T * u)[0]
+            t = (6 * u * du + 3 * d * uu) / rr ** 5 - 15 * d * du ** 2 / rr ** 7
+            out += m[i] * m[j] * (D.T * t) / 2
+    return out
+
+
+def DF(m, P, z):
+    s, y = z[0:4], z[4:8]
+    nu = (s.T * y)[0]
+    _, _, H = U_grad_hess(m, P, s)
+    J = mp.zeros(8, 8)
+    I4 = mp.eye(4)
+    J[0:4, 0:4] = -nu * I4 - s * y.T
+    J[0:4, 4:8] = I4 - s * s.T
+    J[4:8, 0:4] = H + y * y.T / 2
+    J[4:8, 4:8] = nu / 2 * I4 + y * s.T / 2
+    return J
+
+
+def half_D2F(m, P, z, v):
+    s, y, ds, dy = z[0:4], z[4:8], v[0:4], v[4:8]
+    lin = (s.T * dy)[0] + (y.T * ds)[0]
+    sd = (ds.T * dy)[0]
+    out = mp.zeros(8, 1)
+    out[0:4] = -(sd * s + lin * ds)
+    out[4:8] = half_D3U(m, P, s, ds) + (sd * y + lin * dy) / 2
+    return out
+
+
+def euler_ratio(ml, mm, mr):
+    def f(r):
+        al = mm + mr / (1 + r) ** 2
+        am = -ml + mr / r ** 2
+        ar = -ml / (1 + r) ** 2 - mm / r ** 2
+        return (am - al) - (ar - am) / r
+    return mp.findroot(f, R(f64.euler_ratio(float(ml), float(mm), float(mr))), tol=TOL)
+
+
+def kappa_card(ml, mm, mr, r):
+    return (mr * (1 + 3 * r + 3 * r * r) + ml * r * r * (3 + 3 * r + r * r)) / ((ml + mr) * r * r + mm * (1 + r) ** 2 * (1 + r * r))
+
+
+def rest(m, P, s, sign):
+    U, _, _ = U_grad_hess(m, P, s)
+    nu0 = sign * mp.sqrt(2 * U)
+    z = mp.zeros(8, 1)
+    z[0:4] = s
+    z[4:8] = nu0 * s
+    return z, nu0, U
+
+
+def match(a, b):
+    b = list(b)
+    worst = R(0)
+    for x in a:
+        k = min(range(len(b)), key=lambda i: abs(b[i] - x))
+        worst = max(worst, abs(b[k] - x))
+        b.pop(k)
+    return worst
+
+
+out = {"dps": mp.mp.dps}
+
+print("== 1. kappa (50 digits)")
+out["kappa"] = {}
+for name, (mt, mid) in {"equal": ((1, 1, 1), 1), "123_mid1": ((1, 2, 3), 0), "123_mid2": ((1, 2, 3), 1), "123_mid3": ((1, 2, 3), 2)}.items():
+    m = [R(x) for x in mt]
+    P = jacobi_P(m)
+    l, rg = [i for i in range(3) if i != mid]
+    r = euler_ratio(m[l], m[mid], m[rg])
+    pos = [None] * 3
+    pos[l], pos[mid], pos[rg] = [R(0), R(0)], [R(1), R(0)], [1 + r, R(0)]
+    s = q_from_positions(m, pos)
+    U, g, H = U_grad_hess(m, P, s)
+    lam = sorted(mp.eigsy(-H / U, eigvals_only=True))
+    kc = kappa_card(m[l], m[mid], m[rg], r)
+    print(f"  {name:9s} kappa = {mp.nstr(kc, 40)}   |kappa - (lambda_max - 1)| = {mp.nstr(abs(kc - (lam[-1] - 1)), 3)}")
+    out["kappa"][name] = {"kappa": mp.nstr(kc, 45), "r": mp.nstr(r, 45), "hessian_identity_residual": mp.nstr(abs(kc - (lam[-1] - 1)), 5)}
+
+print("\n== 2. spectra vs closed forms (units nu0/4), max abs error")
+out["spectra_max_err"] = {}
+for mt in [(1, 1, 1), (1, 2, 3), (3, 1, 7)]:
+    m = [R(x) for x in mt]
+    P = jacobi_P(m)
+    M = sum(m)
+    k = mp.sqrt(1 - 3 * (m[0] * m[1] + m[1] * m[2] + m[0] * m[2]) / M ** 2)
+    s = q_from_positions(m, [[R(0), R(0)], [R(1), R(0)], [R(1) / 2, mp.sqrt(3) / 2]])
+    z, nu0, U = rest(m, P, s, -1)
+    num = [e / (nu0 / 4) for e in mp.eig(DF(m, P, z), left=False, right=False)]
+    a, b = mp.sqrt(13 + 12 * k), mp.sqrt(13 - 12 * k)
+    eL = match(num, [-1 + a, -1 - a, -1 + b, -1 - b, 0, -2, -8, 4])
+    errs = [eL]
+    for mid in range(3):
+        l, rg = [i for i in range(3) if i != mid]
+        r = euler_ratio(m[l], m[mid], m[rg])
+        pos = [None] * 3
+        pos[l], pos[mid], pos[rg] = [R(0), R(0)], [R(1), R(0)], [1 + r, R(0)]
+        s = q_from_positions(m, pos)
+        kc = kappa_card(m[l], m[mid], m[rg], r)
+        z, nu0, U = rest(m, P, s, +1)
+        num = [e / (nu0 / 4) for e in mp.eig(DF(m, P, z), left=False, right=False)]
+        A, B = mp.sqrt(25 + 16 * kc), mp.sqrt(mp.mpc(1 - 8 * kc))
+        errs.append(match(num, [-1 + A, -1 - A, -1 + B, -1 - B, 0, -2, -8, 4]))
+    print(f"  m={mt}: L- {mp.nstr(errs[0], 3)}   E+(1,2,3) {[mp.nstr(e, 3) for e in errs[1:]]}")
+    out["spectra_max_err"][str(mt)] = [mp.nstr(e, 5) for e in errs]
+
+print("\n== 3. card constants and resonance loci")
+kap = R(7) / 5
+A = mp.sqrt(25 + 16 * kap)
+omega = mp.sqrt(8 * kap - 1) / (A - 1)
+consts = {"gamma": 4 / (A - 1), "beta": 1 / (A - 1), "omega": omega, "alpha": 4 / (1 + mp.sqrt(13)),
+          "flip_ratio": mp.exp(-mp.pi / omega)}
+for kx, v in consts.items():
+    print(f"  {kx:10s} = {mp.nstr(v, 40)}")
+out["constants"] = {kx: mp.nstr(v, 45) for kx, v in consts.items()}
+kstar = (48 + mp.sqrt(129)) / 75
+sig_star = (1064 - 32 * mp.sqrt(129)) / 5625
+print(f"  sigma* = {mp.nstr(sig_star, 40)};  Lam+ - 2 Lam- at k* = {mp.nstr((1 + mp.sqrt(13 + 12 * kstar)) - 2 * (1 + mp.sqrt(13 - 12 * kstar)), 3)}")
+out["sigma_star"] = mp.nstr(sig_star, 45)
+
+
+def resonant_c(m1, m2):
+    f = lambda x: (m1 * m2 + (m1 + m2) * x) / (m1 + m2 + x) ** 2 - sig_star
+    m3 = mp.findroot(f, R(f64.bisect(lambda x: float(f(R(x))), 3.0 * float(m1 + m2), 60.0 * float(m1 + m2))), tol=TOL)
+    m = [R(m1), R(m2), m3]
+    P = jacobi_P(m)
+    s = q_from_positions(m, [[R(0), R(0)], [R(1), R(0)], [R(1) / 2, mp.sqrt(3) / 2]])
+    z0, nu0, U = rest(m, P, s, -1)
+    J = DF(m, P, z0)
+    unit = abs(nu0) / 4
+    Lm, Lp = unit * (1 + mp.sqrt(13 - 12 * kstar)), unit * (1 + mp.sqrt(13 + 12 * kstar))
+    # eigenvectors by inverse iteration with the exact (closed-form) eigenvalues, shifted by 1e-30
+    def eigvec(Mx, lam):
+        v = mp.matrix([R(1), R(2), R(-1), R(3), R(1), R(-2), R(2), R(1)])
+        A_ = Mx - (lam + R(10) ** (-30)) * mp.eye(8)
+        for _ in range(4):
+            v = mp.lu_solve(A_, v)
+            v = v / mp.norm(v)
+        return v
+    vm, vp, lp = eigvec(J, Lm), eigvec(J, Lp), eigvec(J.T, Lp)
+    vm = vm / mp.norm(vm[0:4])
+    vp = vp / mp.norm(vp[0:4])
+    res = max(mp.norm(J * vm - Lm * vm), mp.norm(J * vp - Lp * vp), mp.norm(J.T * lp - Lp * lp))
+    c = (lp.T * half_D2F(m, P, z0, vm))[0] / (lp.T * vp)[0]
+    return m3, abs(c), Lm, res
+
+
+print("\n== 4. resonant coefficient |c| (eigenvectors normalised to |delta s| = 1)")
+out["resonant_c"] = {}
+for (m1, m2) in [(1, 1), (1, 2), (2, 3), (1, 5)]:
+    m3, c, Lm, res = resonant_c(R(m1), R(m2))
+    print(f"  m=({m1},{m2},{mp.nstr(m3, 30)})  |c| = {mp.nstr(c, 35)}  |c|/Lam- = {mp.nstr(c / Lm, 30)}  eig residual {mp.nstr(res, 3)}")
+    out["resonant_c"][f"{m1},{m2}"] = {"m3": mp.nstr(m3, 45), "abs_c": mp.nstr(c, 40), "abs_c_over_Lam_minus": mp.nstr(c / Lm, 40),
+                                        "eigen_residual": mp.nstr(res, 5)}
+
+print("\n== 5. float64 scan of |c|/Lam- along the resonance arc m = (1, t, m3(t)), t = m2/m1 >= 1")
+sig64 = float(sig_star)
+
+
+def c64(t):
+    m3 = f64.bisect(lambda x: (t + (1 + t) * x) / (1 + t + x) ** 2 - sig64, 3.0 * (1 + t), 80.0 * (1 + t))
+    m = np.array([1.0, t, m3])
+    P = f64.jacobi_P(m)
+    s = f64.lagrange_s(m)
+    z0, nu0, U0 = f64.rest_point(m, P, s, -1)
+    Jm = f64.DF(m, P, z0)
+    unit = abs(nu0) / 4
+    Lm, Lp = unit * (1 + np.sqrt(13 - 12 * float(kstar))), unit * (1 + np.sqrt(13 + 12 * float(kstar)))
+    E, V = np.linalg.eig(Jm)
+    El, Wl = np.linalg.eig(Jm.T)
+    vm = V[:, np.argmin(abs(E - Lm))].real
+    vp = V[:, np.argmin(abs(E - Lp))].real
+    lp = Wl[:, np.argmin(abs(El - Lp))].real
+    vm /= np.linalg.norm(vm[:4])
+    vp /= np.linalg.norm(vp[:4])
+    return abs((lp @ f64.half_D2F(m, P, z0, vm)) / (lp @ vp)) / Lm, m3
+
+
+ts = np.exp(np.linspace(0.0, np.log(2000.0), 400))
+vals = [c64(t)[0] for t in ts]
+imin = int(np.argmin(vals[1:])) + 1
+print(f"  |c|/Lam-: t=1 -> {vals[0]:.2e};  min over t in (1, 2000] = {vals[imin]:.6f} at t = {ts[imin]:.3f};  "
+      f"t=2: {c64(2.0)[0]:.6f}, t=10: {c64(10.0)[0]:.6f}, t=100: {c64(100.0)[0]:.6f}, t=2000: {vals[-1]:.6f}")
+mono = all(vals[i + 1] > vals[i] for i in range(len(vals) - 1))
+print(f"  monotone increasing in t on the grid: {mono}")
+out["c_scan"] = {"t_grid": [1.0, 2000.0, 400], "value_at_t1": vals[0], "min_for_t_gt_1": vals[imin], "argmin_t": float(ts[imin]),
+                 "monotone_increasing": bool(mono), "value_t2": c64(2.0)[0], "value_t10": c64(10.0)[0], "value_t100": c64(100.0)[0],
+                 "value_t2000": vals[-1]}
+
+json.dump(out, open("r7_spectrum_mp_out.json", "w"), indent=1, default=float)
+print("\nwritten r7_spectrum_mp_out.json")

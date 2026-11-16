@@ -1,0 +1,363 @@
+{
+  "schema_id": "THREE_BODY_MULTI_AGENT_RESEARCH",
+  "schema_version": "7.1",
+  "agent_id": "AGY_ROUND7_GEOMETRY_TOPOLOGY_SCATTERING_CAP",
+  "problem_ids": [
+    "X02",
+    "X04",
+    "X08",
+    "X10"
+  ],
+  "related_resolved_or_advanced_assets": [
+    "P02 (global analytic truncation bound certified across all psi in [0, 360] deg)",
+    "P05 / T7_01 (Euler heteroclinic intersection upgraded from numerical candidate to interval-certified theorem)",
+    "A08 (refuted as stated via two Arb-certified counterexamples; replaced by closed spatial 3D theorem)",
+    "A07 / P07 / P08 / T7_02 (monopole O(R^-1) tail upgraded to LRL quadrupole O(b^2(R-b)^-3) operator with exact nonlinear Kepler variational Gronwall bound)"
+  ],
+  "status": "PROVED",
+  "precise_claim": {
+    "claim_summary": "We establish four rigorous mathematical results (and two interval-certified counterexamples) across global planar differential geometry (X02), topological Conley-Wazewski index theory (X04), 256-bit Arb computer-assisted proof of manifold truncation and transverse heteroclinic intersection (X08, P02, P05/T7_01), and spatial 3D arbitrary-mass asymptotic escape and collision exclusion (X10, A08 refutation, A07/P08 upgrade). Each sub-claim is strictly scoped by spatial dimension, mass domain, energy E, angular momentum L, and mathematical status.",
+    "X02_THEOREM_global_planar_atlas_and_arbitrary_EL_reduction": {
+      "classification": "THEOREM (Analytic Global Differential Geometry & Routh Reduction)",
+      "scope": "Planar 2D motion, arbitrary positive masses m1, m2, m3 > 0, arbitrary energy E in R, arbitrary scalar angular momentum L in R.",
+      "statement": "(a) Using mass-weighted Jacobi vectors q1 = sqrt(mu1)*(r2 - r1), q2 = sqrt(mu2)*(r3 - (m1*r1 + m2*r2)/(m1 + m2)) in C with mu1 = m1*m2/(m1+m2), mu2 = (m1+m2)*m3/M, the inhomogeneous biholomorphic two-chart atlas {U1: zeta = q2/q1 in C, U2: tilde_zeta = q1/q2 in C} with holomorphic transition tilde_zeta = 1/zeta on C^* covers the entire planar shape sphere S = S^3/U(1) = CP^1 = S^2. Because q1 = 0 (zeta = infinity) is the physical binary collision B12, a SINGLE global chart U1_reg = C \\ {zeta_31, zeta_32} with zeta = u + i*v, zeta_31 = -sqrt(mu2/mu1)*m2/(m1+m2), zeta_32 = +sqrt(mu2/mu1)*m1/(m1+m2) covers ALL collision-free planar three-body shapes globally, mapping the entire collinearity locus {det(Q) = 0} smoothly onto the real axis {v = 0} without any Q^(-1) singularity. (b) In (u, v, rho, nu, wu, wv) with P = 1 + u^2 + v^2, dt = rho^(3/2)*d_tau, wu = u'/P, wv = v'/P, Routh reduction by SO(2) yields a globally real-analytic 6D reduced ODE on (C \\ {zeta_31, zeta_32}) x R_+ x R^3 for arbitrary (E, L) in R^2, conserving H_red = 0.5*(nu^2 + wu^2 + wv^2) + L^2/(2*rho) - U(u,v) - rho*E = 0, with exact quadrature reconstruction of overall orientation via theta' = L/sqrt(rho) - (u*wv - v*wu). (c) At E = 0, L = 0, setting tilde_zeta = xi^2 = (xi1 + i*xi2)^2 and d_tau = (2*|xi|^2 / (1 + |xi|^4))*ds yields a globally bounded real-analytic vector field on R^5 \\ {B13, B23} regularizing B12 (xi = 0) and conserving H_LC = 0.5*(p1^2 + p2^2) + 0.5*|xi|^2*nu^2 - V_LC(xi1, xi2) = 0 (with V_LC(xi) = |xi|^2*U_tilde(xi^2)) identically on R^5."
+    },
+    "P02_COMPUTER_ASSISTED_THEOREM_global_manifold_truncation": {
+      "classification": "THEOREM (Computer-Assisted Proof in 256-bit Arb Ball Arithmetic)",
+      "scope": "Planar 2D motion, equal masses m = (1, 1, 1), E = 0, L = 0, complete unstable manifold W^u(L_-) on the 4D zero-energy manifold M0.",
+      "statement": "Let X_24(a1, a2) = (du, dv, wu, wv) be the unique degree-24 bivariate polynomial solution of the PDE F(X(a)) = DX(a)*Lambda*a around L_- = (u=0, v=1, wu=0, wv=0, nu=-sqrt(6)) with non-resonant double eigenvalue Lambda = lambda_+ * I_2, lambda_+ = (sqrt(6) + sqrt(78))/4. By exact 49-node DFT recovery of trigonometric coefficients, polar-sector Cauchy tail bounds on |z| = R_hol = 0.12, and a Perron/Banach contraction theorem across 120 rigorous intervals covering the exact D3 x Z2 fundamental domain psi in [0, 60] deg (extending by exact symmetry to all psi in [0, 360] deg), the true local analytic unstable manifold X_exact exists on |a| <= r0 = 0.025 with contraction factor kappa <= 0.0552495152 < 1 and uniform global truncation error ||X_exact(r0*cos(psi), r0*sin(psi)) - X_24(r0*cos(psi), r0*sin(psi))||_inf <= 1.5542859715e-18 for all psi in [0, 360] deg."
+    },
+    "X04_X08_P05_COMPUTER_ASSISTED_THEOREM_transverse_heteroclinic_intersection": {
+      "classification": "THEOREM (Topological Conley-Wazewski Proof + 256-bit Arb Computer-Assisted Transversality Proof)",
+      "scope": "Planar 2D motion, equal masses m = (1, 1, 1), E = 0, L = 0, collision-free ordinary Newtonian flow on M0 (dim M0 = 4, dim W^u(L_-) = 2, dim W^s(E_+) = 3).",
+      "statement": "Within the explicit compact isolating block N = {(u_E, v_E) in R x R^3 : |u_E| <= 0.0035, ||v_E||_2 <= 0.0027} around the Euler equilibrium E_+ = (xi1 = 3^(-1/4), xi2 = 0, p1 = 0, p2 = 0, nu = 50^(1/4)) on the regular energy hypersurface H_LC = 0, the exit set N^- = {|u_E| = 0.0035} is strictly immediate-exit (ratio <= 0.1172 < 1), the lateral boundary {||v_E||_2 = 0.0027} is strictly inward-entering (ratio <= 0.8941 < 1), and the quadratic unstable cone C_u = {|du_E| >= ||dv_E||_2} is strictly forward-invariant and expanding (cone ratio <= 0.7723 < 1), endowing (N, N^-) with homology Conley index CH_k(N, N^-) = Z for k = 1 and 0 otherwise. For the enclosing angle interval Psi_* = [57.0539468354909602021753154893 deg, 57.0539468354909602667756790064 deg] (width 6.460036e-17 deg), validated Lohner QR + order-24 Arb Taylor integration up to s_E = 34.4 proves that the shooting arc Gamma(Psi_*) lies strictly inside int(N) (max |u_E| <= 0.002735 < 0.0035, max ||v_E||_2 <= 0.002364 < 0.0027), links the two exit caps inside the invariant cones (u_E(psi_-) - ||v_E(psi_-)||_2 >= +3.908997e-4 > 0, u_E(psi_+) + ||v_E(psi_+)||_2 <= -3.827300e-4 < 0), satisfies the strict transverse cone condition |du_E/dpsi| - ||dv_E/dpsi||_2 >= 5.215211e+13 deg^-1 > 0 across all psi in Psi_*, and maintains strictly positive pairwise distances min r12 >= 0.0213744 > 0, min{r13, r23} >= 0.5774409 > 0. Consequently: (i) by Wazewski's Principle / Conley index without angle bisection (X04), there exists at least one heteroclinic orbit in W^u(L_-) intersect W^s(E_+); (ii) by quadratic cone monotonicity (X08, P05, T7_01), there is a UNIQUE psi_* in Psi_* at which W^u(L_-) intersects W^s(E_+) transversely on M0, and the connecting orbit is a genuine collision-free Newtonian solution."
+    },
+    "A08_COUNTEREXAMPLES_and_X10_THEOREM_spatial_escape_and_quadrupole_LRL": {
+      "classification": "COUNTEREXAMPLES (Arb-Certified Refutation of A08) + THEOREM (Analytical Spatial 3D Arbitrary-Mass Bootstrap & LRL Quadrupole Asymptotics)",
+      "scope": "Spatial 3D motion, arbitrary positive masses m1, m2, m3 > 0, arbitrary energy E in R and arbitrary angular momentum vector L in R^3 on the open hyperbolic binary-escape domain defined by (C1)-(C3).",
+      "statement": "(a) COUNTEREXAMPLES TO A08: Proposed asset A08 is false as stated. Counterexample 1 (m=(1,1,1), b=1, R0=10, V=2, x(0)=(0.5,0,0), xdot(0)=(-4,2,0), R(0)=(10,0,0), Rdot(0)=(3,0,0)) satisfies |ell_0| = 1 > 1/162, 0 < r(t) <= 0.5013 < b = 1, and Rdot(t) >= 2.9659 > V = 2 for all t in [0, 0.09], yet Arb integration certifies r(0.09) in [0.178887377763, 0.178887377763] < 0.2469231062 = r_claim(A08) because A08 omits epsilon_b < 0. Counterexample 2 (circular binary r(0)=0.998 < b=1, eps_b(0)=-1.0020 < 0, |ell_0|=1.4128 > 0.1481, R(0)=(2.5,0,0), Rdot(0)=(4,0,0), V=3) satisfies eps_b(0) < 0 and Rdot(t) > V throughout [0, 0.21], yet pure 3-body tidal pull drives r(0.21) in [1.000151485928, 1.000151485928] > b = 1 because A08 lacks a tidal energy buffer. (b) CLOSED SPATIAL 3D THEOREM (X10): Let m_b = m_i + m_j, M = m_b + m_k, alpha_i = m_j/m_b, alpha_j = m_i/m_b, and fix R0 > b > 0 at t = t0 with r(t0) < b and Rdot(t0) > 0. If (C1) e_rad,min := 0.5*Rdot(t0)^2 - M/R0 - M*alpha_i*alpha_j*b^2/(R0 - b)^3 > 0 (setting V := sqrt(2*e_rad,min) and V_max := |Rdot_vec(t0)| + M*alpha_i*alpha_j*b^2/(V*(R0 - b)^3)), (C2) eps_max := eps_b(t0) + (2 + V_max/V)*m_k*b^2/(R0 - b)^3 < -m_b/b < 0, and (C3) |ell(t0)| > Delta_ell := m_k*b^2/(V*(R0 - b)^2), then the ordinary spatial 3D Newtonian solution extends collision-free to all [t0, +infinity) with Rdot(t) > V, R(t) >= R0 + V*(t - t0), and 0 < r_min <= r(t) <= r_max < b where ell_min = |ell(t0)| - Delta_ell and r_min = ell_min^2 / (m_b + sqrt(m_b^2 - 2*|eps_max|*ell_min^2)) > ell_min^2/(2*m_b), r_max = (m_b + sqrt(m_b^2 - 2*|eps_max|*ell_min^2))/(2*|eps_max|) < m_b/|eps_max| < b. (c) NONLINEAR KEPLER VARIATIONAL GRONWALL & LRL QUADRUPOLE BOUND (A07/P07/P08): The nonsingular Laplace-Runge-Lenz asymptotic velocity operator V_Kep(R_vec, Rdot_vec) = v_k * (v_k*(L_out x A_out) - M*A_out)/(M^2 + v_k^2*|L_out|^2) (with v_k = sqrt(2*e_out), L_out = R_vec x Rdot_vec, A_out = Rdot_vec x L_out - M*R_vec/R) converges to V_infinity = lim_{t->inf} Rdot_vec(t) with explicit certified quadrupole error |V_infinity - V_Kep(t)| <= exp(M/(V^2*R(t))) * M*alpha_i*alpha_j*b^2 / (V*(R(t) - b)^3) =: Delta_V_LRL(t) = O(b^2*(R(t)-b)^-3), infinity-energy bound |e_infinity - e_out(t)| <= (V_max/V)*M*alpha_i*alpha_j*b^2/(R(t) - b)^3 (with e_infinity >= e_rad,min > 0), and outgoing-direction angle bound angle(hat_V_infinity, hat_V_Kep(t)) <= arcsin(Delta_V_LRL(t)/v_k(t)) whenever Delta_V_LRL(t) < v_k(t)."
+    }
+  },
+  "assumptions": {
+    "universal_physical_assumptions": [
+      "Classical Newtonian gravitation with G = 1 in inertial center-of-mass frame P = sum_i m_i*v_i = 0.",
+      "Strictly positive point masses m1, m2, m3 > 0 (M = m1 + m2 + m3)."
+    ],
+    "pillar_specific_assumptions": {
+      "X02": "Planar motion (p_z = z = 0); arbitrary m1, m2, m3 > 0; arbitrary E in R and L in R; single chart U1_reg assumes non-collision r_ij > 0 (while the 2-chart Hopf-Levi-Civita extension at E=0, L=0 additionally regularizes B12 globally away from B13, B23, and cyclic permutation of pairs (12), (23), (31) provides a 3-chart binary-regularized atlas away from triple collision rho = 0).",
+      "P02_X04_X08": "Planar motion with equal masses m = (1, 1, 1), zero energy E = 0, and zero angular momentum L = 0, restricted to the 4D McGehee zero-energy, zero-angular-momentum manifold M0.",
+      "X10": "Spatial 3D motion with arbitrary positive masses m1, m2, m3 > 0, arbitrary total energy E in R, and arbitrary total angular momentum L in R^3, for any initial state at t = t0 satisfying the three explicit algebraic inequalities (C1), (C2), (C3) at R(t0) = R0 > b > 0 and r(t0) < b."
+    }
+  },
+  "derivation": {
+    "X02_global_planar_atlas_and_routh_reduction": [
+      "1. Mass-weighted complex Jacobi coordinates: Define q1 = sqrt(mu1)*(r2 - r1) in C and q2 = sqrt(mu2)*(r3 - (m1*r1 + m2*r2)/(m1 + m2)) in C, where mu1 = m1*m2/(m1+m2) and mu2 = (m1+m2)*m3/M. Then kinetic energy is T = 0.5*(|q1_dot|^2 + |q2_dot|^2), hyperradius is rho = sqrt(|q1|^2 + |q2|^2), and angular momentum is L = Im(conj(q1)*q1_dot + conj(q2)*q2_dot).",
+      "2. Minimal global atlas and single-chart coverage of regular shapes: Modulo planar rotations SO(2) = U(1) and scale R_+, (q1 : q2) defines homogeneous coordinates on CP^1 = S^2 covered by two holomorphic charts U1 = {q1 != 0} with zeta = u + i*v = q2/q1 and U2 = {q2 != 0} with tilde_zeta = q1/q2, transition tilde_zeta = 1/zeta on C^*. Because q1 = 0 is the physical binary collision B12 (r1 = r2), every collision-free configuration satisfies q1 != 0 and lies in the SINGLE chart U1_reg = C \\ {zeta_31, zeta_32}. Signed triangle area satisfies 2*sqrt(mu1*mu2)*Area_123 = Im(conj(q1)*q2) = |q1|^2 * v, so det(Q) = 0 (collinearity) is the smooth real line {v = 0}; orientation/reflection acts by complex conjugation zeta -> conj(zeta) (v -> -v), and body permutations S3 act by real-coeff Mobius transformations on CP^1 preserving R union {infinity}.",
+      "3. Exact arbitrary-(E, L) Routh reduction and gauge reconstruction: Writing q1 = (rho/sqrt(P))*exp(i*theta), q2 = zeta*q1 with P = 1 + u^2 + v^2, the Fubini-Study identity gives |q_dot|^2 = rho_dot^2 + (rho^2/P^2)*|zeta_dot|^2 + rho^2*(theta_dot + (u*v_dot - v*u_dot)/P)^2 and L = rho^2*(theta_dot + (u*v_dot - v*u_dot)/P). Eliminating theta_dot = L/rho^2 - (u*v_dot - v*u_dot)/P and introducing dt = rho^(3/2)*d_tau, nu = sqrt(rho)*rho_dot, wu = u'/P, wv = v'/P yields H_red = 0.5*(nu^2 + wu^2 + wv^2) + L^2/(2*rho) - U(u,v) - rho*E = 0 and the globally nonsingular reduced ODEs: u' = P*wu, v' = P*wv, rho' = nu*rho, nu' = 0.5*(wu^2 + wv^2) + L^2/(2*rho) + rho*E, wu' = P*dU/du - 0.5*nu*wu - 2*wv*(u*wv - v*wu) + (2*L/sqrt(rho))*wv, wv' = P*dU/dv - 0.5*nu*wv + 2*wu*(u*wv - v*wu) - (2*L/sqrt(rho))*wu, with inertial angle reconstructed by quadrature theta' = L/sqrt(rho) - (u*wv - v*wu). Notice the exact Coriolis/magnetic Fubini-Study curvature term +/- (2*L/sqrt(rho))*(wv, -wu).",
+      "4. Globalized bounded Levi-Civita-Hopf regularization at E=0, L=0: In U2 (tilde_zeta = 1/zeta), set tilde_zeta = xi^2 = (xi1 + i*xi2)^2, P_xi = 1 + |xi|^4, and bounded time d_tau = (2*|xi|^2 / P_xi)*ds. Defining p = P_xi * (d_xi / d_tau) = 2*(d_xi / ds) and V_LC(xi) = |xi|^2 * U_tilde(xi^2) (which removes the |xi|^(-1) singularity at xi = 0 with V_LC(0) = m1*m2*sqrt(mu1) = 1/sqrt(2) for unit equal masses), the energy constraint becomes H_LC = 0.5*(p1^2 + p2^2) + 0.5*|xi|^2*nu^2 - V_LC(xi1, xi2) = 0 everywhere on R^5, and the regularized flow is xi' = p/2, p' = 0.5*(grad_xi V_LC - nu^2*xi) - (|xi|^2/P_xi)*(0.5*nu*p + 2*(|p|^2*xi - (xi . p)*p)), nu' = |p|^2/(2*P_xi), conserving dH_LC/ds = 0 identically across B12 (xi = 0)."
+    ],
+    "P02_X04_X08_manifold_conley_and_cap_transversality": [
+      "1. Exact manifold PDE and Cauchy-Banach contraction (P02): At L_- (u=0, v=1, wu=0, wv=0, nu=-sqrt(6)) for m=(1,1,1), E=0, L=0, the 4x4 Jacobian on M0 has double unstable eigenvalue lambda_+ = (sqrt(6) + sqrt(78))/4 and double stable eigenvalue lambda_- = (sqrt(6) - sqrt(78))/4 (giving -nu(L_-)/lambda_+ = sqrt(6)/((sqrt(6)+sqrt(78))/4) = (sqrt(13)-1)/3 = 0.8685170918). Because lambda_+ has multiplicity 2 in the 2D unstable subspace, ALL resonances among unstable eigenvalues are absent: k*lambda_+ - lambda_+ = (k-1)*lambda_+ > 0 for all k >= 2. Along each ray a = z*(cos(psi), sin(psi)) (z in C), x(z) = T*y(z) solves z*lambda_+*y'(z) - D*y(z) = N_nl(y(z)), where D = diag(lambda_+, lambda_+, lambda_-, lambda_-). Writing y = y_N + delta with degree-N polynomial y_N solving the exact recursive algebraic jet up to z^N, the residual R_N(z) = N_nl(y_N(z)) + D*y_N(z) - z*lambda_+*y_N'(z) vanishes to order z^N, so by Cauchy's Integral Formula on |z| = R_hol = 0.12 > r0 = 0.025, ||R_N||_{r0} <= ||N_nl(y_N)||_{R_hol} * (r0/R_hol)^(N+1) without subtraction cancellation. The inverse linear operator K on z^(N+1)*O(D_r0) satisfies ||K|| <= 1/(N*lambda_+) (since Re(k*lambda_+ - lambda_-) > N*lambda_+ for k >= N+1). Whenever kappa := L_N/(N*lambda_+) < 1 where L_N bounds ||DN_nl(y_N + ball(pad))||_{r0}, Banach's theorem yields a unique analytic fixed point delta with ||delta||_{r0} <= ||R_N||_{r0} / (N*lambda_+ - L_N). Because P_k^hom(cos(psi), sin(psi)) has trigonometric degree <= k <= 24, evaluating the recursive jet at M = 2*24 + 1 = 49 exact 256-bit Arb angles recovers exact Fourier coefficients with zero aliasing and certifies ||X_exact - X_24||_inf <= 1.5543e-18 across all psi in [0, 360] deg.",
+      "2. Conley isolating block and quadratic cone at E_+ (X04, X08, A04/P06, P10): On H_LC = 0 near E_+ = (3^(-1/4), 0, 0, 0, (50)^(1/4)), eliminating nu = sqrt(2*V_LC - p1^2 - p2^2)/|xi| gives a 4D analytic vector field q' = A_E*q + R_E(q) whose real modal transform y = S_E^(-1)*q = (u_E, v1, v2, v3) brings A_E to real Jordan form diag(lambda_u, [lambda_s1], [[-beta, omega], [-omega, -beta]]) with s-time eigenvalues lambda_u = +1.6939957981 > 0, lambda_s1 = -2.2697182171 < 0, -beta +/- i*omega = -0.2878612095 +/- 0.9193549774*i (corresponding in McGehee tau to +3.9121157202, -5.2417121145, -0.6647869871 +/- 2.1231593746*i with nu_E = (50)^(1/4) = 2.6591479485, reproducing the exact time-reparametrization-invariant P10 spectral ratios gamma = nu_E/lambda_u = 0.6797211889, beta/lambda_u = 0.1699302972, omega/lambda_u = 0.5427138476 and discharging the transversality hypothesis of A04/P06). On N = {|u_E| <= delta_u, ||v_E||_2 <= delta_s} with delta_u = 0.0035, delta_s = 0.0027, exact Arb interval evaluation of DG_E(N) certifies Frobenius Lipschitz constant eta_E <= 0.1571905047, proving: (i) on {|u_E| = delta_u}, u_E*u_E' >= delta_u^2*(lambda_u - eta_E*sqrt(1 + (delta_s/delta_u)^2)) > 0 (exit ratio 0.117195 < 1); (ii) on {||v_E||_2 = delta_s}, v_E . v_E' <= -delta_s^2*(beta - eta_E*sqrt(1 + (delta_u/delta_s)^2)) < 0 (entrance ratio 0.894009 < 1); (iii) on the difference cone {|du_E| = ||dv_E||_2}, d/ds(|du_E|^2 - ||dv_E||_2^2) >= 2*|du_E|^2*(lambda_u + beta - 2*sqrt(2)*eta_E) > 0 (cone ratio 0.772250 < 1).",
+      "3. Topological existence without bisection (X04) and uniqueness/transversality (X08): By Wazewski's Retract Principle (and Conley index CH_1(N, N^-) = Z), any continuous curve Gamma: [psi_-, psi_+] -> N with Gamma(psi_-) in N^-_+ = {u_E = +delta_u} (or flowing directly to N^-_+ inside the forward-invariant exit cone u_E > ||v_E||_2) and Gamma(psi_+) flowing to N^-_- = {u_E = -delta_u} inside u_E < -||v_E||_2 cannot be retracted to N^- without some psi_* in (psi_-, psi_+) remaining in N for all s >= s_E; since V_quad(u_E, v_E) shows the maximal forward-invariant set in N is W^s_loc(E_+) intersect N, Gamma(psi_*) in W^s(E_+). Furthermore, backward invariance of the complement of C_u forces W^s_loc(E_+) intersect N = {(h(v_E), v_E)} to be a C^1 graph with Lip(h) < 1. When |du_E/dpsi| > ||dv_E/dpsi||_2 on [psi_-, psi_+], g(psi) := u_E(psi) - h(v_E(psi)) satisfies |g'(psi)| >= |du_E/dpsi| - Lip(h)*||dv_E/dpsi||_2 > |du_E/dpsi| - ||dv_E/dpsi||_2 > 0, proving strict monotonicity, uniqueness of psi_* in [psi_-, psi_+], and strict codimension-1 transversality W^u(L_-) pitchfork W^s(E_+) on M0."
+    ],
+    "X10_spatial_escape_collision_exclusion_and_quadrupole_LRL": [
+      "1. Exact Jacobi decomposition and sharp dipole-cancelled bounds in R^3: For binary (i, j) of mass m_b = m_i + m_j, reduced mass mu_in = m_i*m_j/m_b, relative vector x = r_j - r_i (r = |x|), and escaping body k at R_vec = r_k - (m_i*r_i + m_j*r_j)/m_b (R = |R_vec|, mu_out = m_b*m_k/M, alpha_i = m_j/m_b, alpha_j = m_i/m_b), exact 3-body total energy is E = mu_out*e_out + mu_in*eps_b - W_tidal, where e_out = 0.5*|Rdot_vec|^2 - M/R, eps_b = 0.5*|xdot|^2 - m_b/r, and W_tidal = m_i*m_k*(1/|R_vec + alpha_i*x| - 1/R) + m_j*m_k*(1/|R_vec - alpha_j*x| - 1/R). Whenever r <= b < R, Taylor's remainder with exact Hessian norm ||D^2(|y|^-1)||_2 = 2/|y|^3 and force-Jacobian norm ||D(y/|y|^3)||_2 = 2/|y|^3 (since I - 3*w_hat*w_hat^T has eigenvalues {1, 1, -2}) yields: (i) |W_tidal| <= mu_in * m_k*b^2/(R - b)^3; (ii) outer quadrupole residual |R_ddot_vec + M*R_vec/R^3| = |F_quad| <= 3*M*alpha_i*alpha_j*b^2/(R - b)^4; (iii) specific binary tidal torque |d(x cross xdot)/dt| <= r * |f_tidal| <= 2*m_k*r^2/(R - r)^3 <= 2*m_k*b^2/(R - b)^3.",
+      "2. Closing the global bootstrap [t0, T_max): Define T* = sup{t in [t0, T_max) : Rdot(s) > V and r(s) < b on [t0, t]}. On [t0, T*), R(s) >= R0 + V*(s - t0). First, d/ds(0.5*Rdot^2 - M/R) = (|L_out|^2/(R^3))*Rdot + R_hat . F_quad >= -3*M*alpha_i*alpha_j*b^2*Rdot/(R - b)^4 = d/ds(M*alpha_i*alpha_j*b^2/(R - b)^3), so 0.5*Rdot(t)^2 >= e_rad,min + M/R(t) + M*alpha_i*alpha_j*b^2/(R(t) - b)^3 > 0.5*V^2, strictly preserving Rdot(t) > V! Second, |Rdot_vec(t)| <= |Rdot_vec(t0)| + int_{t0}^t |F_quad(s)| ds <= V_max, so |e_out(t) - e_out(t0)| <= V_max * int_{t0}^t |F_quad(s)| ds <= (V_max/V)*M*alpha_i*alpha_j*b^2/(R0 - b)^3. By exact total energy conservation mu_in*(eps_b(t) - eps_b(t0)) = -mu_out*(e_out(t) - e_out(t0)) + W_tidal(t) - W_tidal(t0) and mu_out*M*alpha_i*alpha_j/mu_in = m_k, we obtain eps_b(t) <= eps_b(t0) + (2 + V_max/V)*m_k*b^2/(R0 - b)^3 = eps_max < -m_b/b < 0! Third, |ell(t)| >= |ell(t0)| - int_{t0}^t 2*m_k*b^2/(R0 - b + V*(s - t0))^3 ds > |ell(t0)| - m_k*b^2/(V*(R0 - b)^2) = ell_min > 0. Combining 0.5*r_dot^2 >= 0 with ell_min^2/(2*r^2) - m_b/r <= eps_b(t) <= eps_max < 0 yields the quadratic |eps_max|*r^2 - m_b*r + 0.5*ell_min^2 <= 0, forcing 0 < r_min <= r(t) <= r_max < m_b/|eps_max| < b! Thus neither Rdot(t) > V nor r(t) < b can fail at T*, nor can any pairwise distance vanish (r_ij >= r_min > 0, r_ik, r_jk >= R0 - b > 0) or velocities blow up, proving T* = T_max = +infinity by standard ODE continuation.",
+      "3. Nonlinear Kepler variational Gronwall lemma and LRL quadrupole bound: Because V_Kep(R_vec, Rdot_vec) is an exact vector first integral of the pure Kepler flow X_ddot = -M*X/|X|^3 with lim_{tau->inf} X_dot(tau) = V_Kep(X(0), X_dot(0)), along the 3-body solution d/ds V_Kep(R_vec(s), Rdot_vec(s)) = (D_{Rdot_vec} V_Kep)(R_vec(s), Rdot_vec(s)) * F_quad(s). Linearizing the pure Kepler flow around X(tau) starting at (R_vec(s), Rdot_vec(s)) with (delta_X(0)=0, delta_X_dot(0)=w, |w|=1) gives |delta_X_ddot(tau)| <= 2*M*|delta_X(tau)|/(R(s) + V*tau)^3. Setting M_var(tau) := 1 + int_0^tau 2*M*|delta_X(sigma)|/(R(s) + V*sigma)^3 d_sigma, monotonicity of M_var gives |delta_X(tau)| <= tau*M_var(tau), hence M_var'(tau)/M_var(tau) <= 2*M*tau/(R(s) + V*tau)^3; integrating over [0, infinity) gives ||D_{Rdot_vec} V_Kep||_2 <= exp(M/(V^2*R(s))). Integrating |F_quad(s)| from t to infinity yields |V_infinity - V_Kep(t)| <= exp(M/(V^2*R(t))) * M*alpha_i*alpha_j*b^2 / (V*(R(t) - b)^3)."
+    ]
+  },
+  "verification": {
+    "analytical": "Complete self-contained proofs given above for: (1) X02 global single-chart regular coverage, arbitrary-(E,L) Routh-Fubini-Study equations, orientation quadrature, and globalized bounded Levi-Civita-Hopf Hamiltonian H_LC = 0 on R^5; (2) X04 Wazewski/Conley isolating block and quadratic unstable cone graph theorem; (3) X10 closed spatial 3D arbitrary-mass bootstrap (C1)-(C3), collision exclusion, and nonlinear Kepler variational Gronwall bound for V_Kep.",
+    "numerical": {
+      "X02_independent_cartesian_vs_reduced_test": {
+        "script": "C:/Users/[REDACTED]/.gemini/antigravity/scratch/three_body_round7/verify_x02_global_atlas.py",
+        "masses": [
+          1.3,
+          2.7,
+          0.9
+        ],
+        "E": -3.3845276931530828,
+        "L": 4.469308163265305,
+        "integrator": "DOP853 (rtol=3e-14, atol=1e-15) comparing 12D Cartesian Newton against 6D reduced Fubini-Study ODE + orientation quadrature",
+        "collinear_syzygy_crossings_v_eq_0": 8,
+        "min_gram_det_Q": 3.244944299706363e-06,
+        "max_cartesian_position_reconstruction_error": 5.589972928987663e-13,
+        "max_cartesian_velocity_reconstruction_error": 2.8070878954622458e-12,
+        "reduced_hamiltonian_drift": 1.7763568394002505e-14
+      },
+      "X10_and_P08_numerical_diagnostics": {
+        "script": "C:/Users/[REDACTED]/.gemini/antigravity/scratch/three_body_round7/verify_x10_a08_p08.py",
+        "spatial_3D_test_masses": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "R0": 12.0,
+        "V_certified": 2.0972388151512193,
+        "r_bounds_vs_observed": "certified [0.247580, 0.491708] encloses observed [0.260714, 0.477293]",
+        "A07_naive_velocity_error_at_R0": 0.2258293536209893,
+        "LRL_quadrupole_velocity_error_at_R0": 2.0758748505409946e-05,
+        "LRL_improvement_factor": 10878.755699657704,
+        "P08_scaling_diagnostic_note": "STATUS = NUMERICAL_EVIDENCE / DIAGNOSTIC ONLY (not claimed as a CAP theorem). Exact spectral ratio alpha = -nu_L / Lambda_+ = (sqrt(13) - 1)/3 = 0.8685170918213297. Using LRL quadrupole-certified infinity observables on epsilon in [1e-4, 1e-7] eliminates O(R^-1) finite-radius monopole contamination; remaining last-decade slope deviation (~0.894 in energy, ~0.878 in direction when perturbing at finite rho(0)=1) arises analytically from the small spectral gap 1 - alpha = (4 - sqrt(13))/3 = 0.131483 between the leading epsilon^alpha term and the smooth O(epsilon^1) perturbation term."
+      }
+    },
+    "computer_assisted_proof": {
+      "library_and_precision": "python-flint 0.9.0 (FLINT/Arb midpoint-radius ball arithmetic at 256-bit precision for X04/X08/P02 and 192-bit precision for A08 counterexamples)",
+      "P02_global_degree_24_certificate": {
+        "domain_psi_degrees": "[0, 360] (via exact D3 x Z2 fundamental domain [0, 60] covered by 120 intervals)",
+        "polynomial_degree_N": 24,
+        "evaluation_radius_r0": "0.025",
+        "holomorphy_cauchy_radius_R_hol": "0.12",
+        "max_contraction_factor_kappa": 0.05524951518395967,
+        "certified_global_truncation_bound_inf_norm": 1.554285971494139e-18
+      },
+      "X08_target_ray_degree_38_certificate": {
+        "r0": "0.025",
+        "rho1": "0.065",
+        "R_hol": "0.12",
+        "polynomial_degree_N": 38,
+        "contraction_kappa": 0.021063734999005893,
+        "delta_trunc_x_inf": 1.8356294545452661e-28,
+        "delta_trunc_x_psi_inf": 2.781027174957205e-20
+      },
+      "X04_X08_E_plus_conley_block_certificate": {
+        "delta_u": "0.0035",
+        "delta_s": "0.0027",
+        "lam_u_s": 1.6939957981375364,
+        "lam_s1_s": -2.2697182170871497,
+        "beta_s": 0.2878612094748067,
+        "omega_s": 0.9193549773548001,
+        "lam_u_tau": 3.9121157202432064,
+        "beta_tau": 0.6647869871181236,
+        "omega_tau": 2.1231593746264648,
+        "certified_eta_E_frobenius": 0.15719050467363613,
+        "exit_cap_ratio_must_be_lt_1": 0.11719476563812127,
+        "lateral_entrance_ratio_must_be_lt_1": 0.8940085618821517,
+        "cone_ratio_must_be_lt_1": 0.7722504327391257
+      },
+      "X08_validated_integration_and_transversality_certificate": {
+        "integration_horizon_s_E": 34.4,
+        "step_schedule": "h=0.04 on [0,1.6], h=0.01 on [1.6,12.4], h=0.04 on [12.4,34.4]",
+        "taylor_order_K": 24,
+        "subintervals": 2,
+        "certified_min_pair_distance_r12": 0.021374433854361996,
+        "certified_min_pair_distance_r13_r23": 0.5774408988654613,
+        "endpoint_psi_minus": {
+          "u_enclosure": [
+            0.002672955773360928,
+            0.002734584512805969
+          ],
+          "v_norm_upper": 0.0022820560616351334
+        },
+        "endpoint_psi_plus": {
+          "u_enclosure": [
+            -0.002726655143876262,
+            -0.0026653794982414115
+          ],
+          "v_norm_upper": 0.0022826495319471615
+        },
+        "negative_exit_cone_margin_must_be_lt_0": -0.00038272996629269555,
+        "positive_exit_cone_margin_must_be_gt_0": 0.0003908997117180232,
+        "full_interval_max_abs_u": 0.002734584526909101,
+        "full_interval_max_v_norm": 0.0023632964013877928,
+        "certified_min_abs_du_dpsi_deg": 68625484245857.93,
+        "certified_max_norm_dv_dpsi_deg": 16594952144802.395,
+        "certified_transversality_lower_bound_per_deg": 52152106011547.6
+      },
+      "certified_psi_star_interval_degrees": [
+        "57.0539468354909602021753154893",
+        "57.0539468354909602667756790064"
+      ],
+      "certified_psi_star_interval_width_degrees": 6.460036351707904e-17
+    },
+    "counterexample": {
+      "Counterexample_1_refuting_A08_missing_negative_binary_energy": {
+        "masses": [
+          1,
+          1,
+          1
+        ],
+        "parameters": {
+          "b": 1.0,
+          "R0": 10.0,
+          "V": 2.0
+        },
+        "explicit_initial_conditions_CM_frame": {
+          "r1_0": [
+            "-43/12 (-3.5833333333333333...)",
+            "0",
+            "0"
+          ],
+          "r2_0": [
+            "-37/12 (-3.0833333333333333...)",
+            "0",
+            "0"
+          ],
+          "r3_0": [
+            "20/3 (6.6666666666666666...)",
+            "0",
+            "0"
+          ],
+          "v1_0": [
+            "+1",
+            "-1",
+            "0"
+          ],
+          "v2_0": [
+            "-3",
+            "+1",
+            "0"
+          ],
+          "v3_0": [
+            "+2",
+            "0",
+            "0"
+          ],
+          "equivalent_jacobi": "x(0) = (0.5, 0, 0), xdot(0) = (-4, 2, 0), R_vec(0) = (10, 0, 0), Rdot_vec(0) = (3, 0, 0)"
+        },
+        "verification_of_all_A08_hypotheses_on_0_to_0_09": "|ell_0| = 1.0 > m_k*b^2/(V*(R0-b)^2) = 1/162 = 0.0061728; continuous Picard-Taylor rough enclosures certify 0 < r(t) <= 0.501223 < b = 1.0 and Rdot(t) >= 2.96598 > V = 2.0 (hence R(t) >= R0 + V*t) for ALL t in [0, 0.09].",
+        "falsified_implication": "A08 claims r(t) > (|ell_0| - 1/162)^2 / (2*m_b) = 0.2469231062, whereas rigorous 192-bit Arb integration certifies r(0.09) in [0.178887377763, 0.178887377763], violating A08 by 0.068036 because eps_b(0) = +6.0 > 0 allows hyperbolic pericenter approach r_min = (sqrt(m_b^2 + 2*eps_b*ell^2) - m_b)/(2*eps_b) << ell^2/(2*m_b)."
+      },
+      "Counterexample_2_refuting_unclosed_tidal_bootstrap_even_when_eps_b0_lt_0": {
+        "masses": [
+          1,
+          1,
+          1
+        ],
+        "parameters": {
+          "b": 1.0,
+          "R0": 2.5,
+          "V": 3.0
+        },
+        "explicit_initial_conditions_jacobi": "Circular pure 2-body binary x(0) = (0.998, 0, 0), xdot(0) = (0, sqrt(2/0.998), 0) (eps_b(0) = -1.002004 < 0, pure 2-body radius identically 0.998 < 1.0), outer body R_vec(0) = (2.5, 0, 0), Rdot_vec(0) = (4.0, 0, 0), |ell_0| = sqrt(1.996) = 1.4128 > m_k*b^2/(V*(R0-b)^2) = 1/6.75 = 0.1481.",
+        "falsified_implication": "Continuous 192-bit Arb integration certifies Rdot(t) > V = 3.0 on [0, 0.21], yet 3-body tidal pull stretches the binary across r = b at t = 0.21: r(0.21) in [1.000151485928, 1.000151485928] > 1.0 = b, proving that r(0) < b and eps_b(0) < 0 do NOT close the bootstrap r(t) <= b without our tidal energy buffer Condition (C2): eps_max < -m_b/b."
+      }
+    },
+    "literature": [
+      {
+        "source": "R. McGehee (1974), 'Triple collision in the collinear three-body problem', Inventiones Mathematicae 27, 191-227.",
+        "hypothesis_matching_and_extension": "Establishes radial blow-up rho -> 0, time scaling dt = rho^(3/2)*d_tau, and monotonicity d_nu/d_tau >= 0 at E = 0, L = 0 in 1D collinear motion. We extend the blow-up to planar arbitrary-mass CP^1 Fubini-Study coordinates with arbitrary (E, L) Routh reduction (X02) and certify an explicit planar non-collinear heteroclinic connection W^u(L_-) pitchfork W^s(E_+) (X04, X08)."
+      },
+      {
+        "source": "R. Moeckel and R. Montgomery (2013), 'Symmetric regularization, reduction and blow-up of the planar three-body problem', Pacific J. Math. 262(1), 129-189 (arXiv:1202.0972).",
+        "hypothesis_matching_and_extension": "Develops shape-sphere blow-up and symmetric binary regularization on the planar shape sphere. We provide explicit inhomogeneous complex rational charts zeta = q2/q1 with exact arbitrary-(E, L) Routh-Coriolis ODEs, orientation quadrature, and a globalized bounded H_LC = 0 polynomial/algebraic flow on R^5 used directly for 256-bit validated Lohner integration."
+      },
+      {
+        "source": "T. Wazewski (1947), Ann. Soc. Polon. Math. 20, 279-313; C. Conley (1978), 'Isolated Invariant Sets and the Morse Index', CBMS Regional Conf. Ser. Math. 38.",
+        "hypothesis_matching_and_extension": "Wazewski's Retract Principle and Conley index apply on compact blocks N with immediate exit set N^-. Our Stage 2 certificate verifies strict Lyapunov/boundary inequalities on N = {|u_E| <= 0.0035, ||v_E||_2 <= 0.0027}, matching all compactness and immediate-exit hypotheses without numerical root-finding assumptions."
+      },
+      {
+        "source": "T. Kapela and C. Simo (2007/2017, cf. arXiv:1105.3235) and R. J. Lohner (1987), 'Enclosing the solutions of ordinary initial and boundary value problems'.",
+        "hypothesis_matching_and_extension": "Inspires QR-preconditioned rigorous Taylor integration for N-body ODEs. Our X08 proof is a brand-new heteroclinic manifold-to-equilibrium computer-assisted proof coupling a Cauchy-Banach degree-38 unstable-manifold jet (plus variational psi-derivative truncation bound) at L_- to a quadratic cone-certified Conley block at E_+."
+      },
+      {
+        "source": "J. Chazy (1922), Ann. Sci. Ecole Norm. Sup. 39, 29-130; C. Marchal and D. G. Saari (1975), Celestial Mechanics 12, 115-129.",
+        "hypothesis_matching_and_extension": "Qualitative classification of hyperbolic-elliptic final motions as t -> infinity. Our Theorem X10 provides fully explicit, finite-time t0 checkable inequalities (C1)-(C3) simultaneously certifying permanent escape, non-collision r(t) >= r_min > 0, and explicit exp(M/(V^2*R))*O(b^2*(R-b)^-3) LRL velocity convergence."
+      }
+    ]
+  },
+  "counterexample_search": {
+    "adversarial_tests_performed": [
+      "1. Direct adversarial audit of proposed asset A08: We tested the exact Kepler pericenter identity 0.5*r_dot^2 + ell^2/(2*r^2) - m_b/r = eps_b at r_dot = 0, discovering that r_min = ell^2 / (m_b + sqrt(m_b^2 + 2*eps_b*ell^2)) satisfies r_min > ell^2/(2*m_b) IF AND ONLY IF eps_b < 0! Setting eps_b > 0 immediately yielded Counterexample 1 (violating A08 by 0.06804 with all stated A08 assumptions certified in Arb).",
+      "2. Adversarial audit of the bootstrap r(t) <= b under eps_b(0) < 0: Even with eps_b(0) < 0 and a pure 2-body circular orbit r(0) = 0.998 < b = 1.0, placing the escaping body at R0 = 2.5 yielded Counterexample 2, where positive tidal work pushes eps_b(t) above -m_b/(2*b) and drives r(0.21) > 1.0 = b while Rdot(t) > V holds throughout.",
+      "3. Search for hidden collisions along the X08 heteroclinic candidate: Because Levi-Civita regularization could theoretically mask a physical B12 binary collision (xi = 0) along a regularized connection, we tracked min |xi(s)|^2 continuously across every rough-enclosure box of the Lohner integration, certifying min r12 >= 0.0213744 > 0 and min{r13, r23} >= 0.5774409 > 0. Thus no binary collision occurs on the certified L_- -> E_+ connection.",
+      "4. Spatial 3D collinearity test against planar X02 extrapolation: For spatial 3D motion with L != 0, collinear configurations have a 1D rotational stabilizer SO(2) around the collinearity axis, forcing the angular momentum L to be orthogonal to the line (L . u_axis = 0) and creating singular Marsden-Weinstein reduced spaces when L = 0 vs L != 0. Hence we explicitly restrict X02's global nonsingular Routh reduction to planar motion and formulate X10 directly in unreduced 3D Jacobi vectors where collinearity poses zero singularity."
+    ]
+  },
+  "limitations": [
+    "1. Scope of X04/X08/P02: Certified strictly for planar motion with equal masses m = (1, 1, 1) at E = 0, L = 0, and for the single primary heteroclinic intersection psi_* in Psi_* near 57.05395 deg (plus its 5 exact D3 x Z2 symmetry images at 60*k +/- psi_* mod 360 deg). It does NOT prove global finiteness of all escape-label boundaries on [0, 360] deg (P09/X09 remain open).",
+    "2. Scope of X02: Covers all planar three-body motions for arbitrary m1, m2, m3 > 0 and arbitrary (E, L) in R^2 without collinearity singularities, and regularizes binary collisions (via 3 cyclic Hopf-Levi-Civita charts), but does NOT extend as a nonsingular 2D shape-sphere Routh reduction to spatial 3D motion with nonzero non-planar angular momentum (X11), nor does it uniformize essential transcendental spiralling at triple collision (X01/X05).",
+    "3. Scope of X10: Applies to spatial 3D arbitrary positive masses and arbitrary (E, L) on the open hyperbolic-elliptic escape region defined by (C1)-(C3); it does not cover parabolic escape (V = 0, e_infinity = 0) or hierarchical triples with bound outer body (e_out < 0).",
+    "4. Non-integrability boundary: None of these theorems claim a universal finite closed-form solution of the three-body problem; X02 is a global nonsingular reduction/regularization and X10 is an asymptotic scattering certificate."
+  ],
+  "next_experiment": {
+    "title": "Rigorous Global Covering-Relation Census of Gamma([0, 60] deg) on M0 (Resolving P09 / X09) and Unequal-Mass Continuation of psi_*(m1, m2, m3)",
+    "protocol": "Subdivide the fundamental domain psi in [0, 60] deg of W^u(L_-) into rigorous Arb intervals; push intervals outward under the nonsingular X02/Hopf-Levi-Civita flow until either: (a) they enter the certified spatial/planar X10 + LRL hyperbolic escape region (rigorously certifying permanent escape label j in {1, 2, 3} on the entire interval!), or (b) they enter the certified Conley blocks around E_1+, E_2+, E_3+. Because lambda_u(E_+) > 0 expands transverse arcs exponentially while nu' = 0.5*|s'|^2 >= 0 prevents recurrence below nu(E_+) = 50^(1/4) = 2.65915 > nu(L_+) = sqrt(6) = 2.44949 (already forbidding any trajectory near E_+ with nu > sqrt(6) from ever entering W^s(L_+)!), test whether every interval outside a finite set of certified transverse E_+ intersections reaches the X10 escape certificate or passes nu > sqrt(6) (rigorously excluding L_- -> L_+ connections on [0, 60] deg). In parallel, apply the implicit function theorem in Arb to our transverse cone certificate to continue psi_*(m) rigorously across unequal mass ratios toward the X13 resonance locus Lambda_+ = 2*Lambda_-."
+  },
+  "new_representation": {
+    "name": "Inhomogeneous Complex Hopf / Fubini-Study Routh Reduction with Bounded Algebraic Levi-Civita Regularization + Nonsingular LRL Asymptotic Velocity Operator",
+    "explicit_coordinates_and_equations": {
+      "planar_regular_chart_X02": "zeta = u + i*v = q2/q1 in C \\ {zeta_31, zeta_32}, P = 1 + u^2 + v^2, rho = sqrt(|q1|^2 + |q2|^2), nu = sqrt(rho)*rho_dot, wu = u'/P, wv = v'/P (dt = rho^(3/2)*d_tau).",
+      "globalized_bounded_B12_regularization": "tilde_zeta = 1/zeta = (xi1 + i*xi2)^2, d_tau = (2*|xi|^2/(1 + |xi|^4))*ds, conserving H_LC = 0.5*(p1^2 + p2^2) + 0.5*|xi|^2*nu^2 - V_LC(xi1, xi2) = 0 on R^5.",
+      "spatial_LRL_asymptotic_operator_X10": "V_Kep(R_vec, Rdot_vec) = v_k * (v_k*(L_out x A_out) - M*A_out) / (M^2 + v_k^2*|L_out|^2) with v_k = sqrt(2*e_out), exact invariant of pure Kepler flow."
+    },
+    "complexity_vs_newton_and_gram": "Eliminates the 4 redundant rotational/translational coordinates in planar motion (6D vs 12D Cartesian and 6D unconstrained vs 9D/13D constrained Gram matrix S) WITHOUT any det(Q) = 0 collinearity blow-up; converts unbounded Levi-Civita time d_tau = |xi|^2 d_sigma into bounded global time d_tau = (2*|xi|^2/(1+|xi|^4))*ds; and reduces finite-radius asymptotic velocity estimation error from O(R^-1) to O(b^2*(R-b)^-3) (10,878x accuracy gain at R0 = 12)."
+  },
+  "transferable_mechanism": [
+    "1. Polar-Sector Cauchy + DFT Manifold Certification: For any analytic equilibrium with non-resonant unstable spectrum of multiplicity >= 2, sampling the recursive 1D ray jet at M = 2*N + 1 exact Fourier angles recovers exact bivariate homogeneous polynomials without 2D interval wrapping, and Cauchy's integral formula on |z| = R_hol bounds the degree-(N+1) PDE residual without catastrophic polynomial subtraction cancellation.",
+    "2. Quadratic Unstable Cone + Endpoint FTC Curve Enclosure: Certifying d/ds(|du|^2 - ||dv||_2^2) > 0 on a compact linear-modal box around any saddle equilibrium simultaneously proves Wazewski/Conley topological existence, Lipschitz graph structure of W^s_loc, uniqueness, and codimension-1 transversality, while anchoring subinterval enclosures at certified endpoints via hull(0, d_psi * w_y) eliminates ball-multiplication cross-term overshoot.",
+    "3. Nonlinear Reference-Flow Variational Gronwall Method: Pushing a perturbed dynamical system forward through an exact invariant operator I_0(z) of the leading integrable flow reduces d/dt I_0(z(t)) = DI_0(z(t)) * F_pert(t), where ||DI_0|| is bounded analytically via a nondecreasing Gronwall majorant on the linearized integrable flow."
+  ],
+  "proof_gap": {
+    "within_claimed_theorems": "NONE: X02, P02 (at r0=0.025, N=24), X04/X08/P05 (for psi_* in Psi_* at m=(1,1,1), E=0, L=0), the two A08 counterexamples, and X10 (in spatial 3D for arbitrary positive masses under (C1)-(C3)) are completely proved with zero unverified assumptions.",
+    "open_frontier_beyond_claimed_theorems": "Global finiteness of the escape boundary B across all psi in [0, 360] deg (P09/X09), rigorous CAP certification of the subleading expansion coefficients in P08 as epsilon -> 0+, nonsingular spatial 3D shape-space reduction across collinearity for L != 0 (X11), and differential Galois obstruction classes along our certified collision-free heteroclinic orbit (X01)."
+  },
+  "exact_mass_domain": {
+    "X02": "All positive mass triples (m1, m2, m3) in R_+^3.",
+    "P02_X04_X08_P05": "Equal positive masses m1 = m2 = m3 > 0 (normalized by scale symmetry A05 to m = (1, 1, 1)).",
+    "X10_and_LRL_operator": "All positive mass triples (m1, m2, m3) in R_+^3.",
+    "A08_counterexamples": "Constructed explicitly at m = (1, 1, 1) (and persist on an open neighborhood of mass triples by continuity)."
+  },
+  "estimated_complexity": {
+    "X02_reduced_ODE_step": "O(1) elementary algebraic/square-root operations per step (3 square roots for pairwise distances, zero matrix inversions, 6 scalar state variables).",
+    "P02_global_certificate_runtime": "12.22 seconds on 1 CPU core in 256-bit Arb (M = 49 exact ray jets of degree N = 24 + 120 rigorous polar-sector Banach contractions).",
+    "X04_X08_full_CAP_runtime": "1102.46 seconds (18.37 minutes) on 1 CPU core in 256-bit Arb (1220 Lohner QR order-24 Taylor + variational steps across 2 endpoints and 2 rigorous subintervals).",
+    "X10_certificate_evaluation": "O(1) closed-form algebraic operations at initial time t0 (3 scalar inequalities + 1 cross-product LRL evaluation); 52.22 seconds for the full Arb counterexample + spatial 3D + P08 verification suite."
+  },
+  "code": [
+    {
+      "path": "C:/Users/[REDACTED]/.gemini/antigravity/scratch/three_body_round7/verify_x02_global_atlas.py",
+      "bytes": 10028,
+      "sha256": "fc5e320d6b4b43811d622aabea0ac43af1a60f7f9f2275df1949e30b52a75a5c",
+      "purpose": "Verifies X02 single-chart Fubini-Study Routh reduction and orientation quadrature across 8 collinear syzygy crossings for unequal masses m=(1.3, 2.7, 0.9), E != 0, L != 0."
+    },
+    {
+      "path": "C:/Users/[REDACTED]/.gemini/antigravity/scratch/three_body_round7/certify_heteroclinic_cap.py",
+      "bytes": 53592,
+      "sha256": "01c1384dd39418d421eb03695e95f0ee92c54ad0fc72976bb862e8135b1b8503",
+      "purpose": "256-bit python-flint Arb computer-assisted proof of global P02 degree-24 manifold truncation, E_+ Conley block & quadratic cone (X04), and Lohner QR + variational transverse heteroclinic intersection W^u(L_-) pitchfork W^s(E_+) (X08, P05, T7_01)."
+    },
+    {
+      "path": "C:/Users/[REDACTED]/.gemini/antigravity/scratch/three_body_round7/verify_x10_a08_p08.py",
+      "bytes": 27933,
+      "sha256": "66193b1e9c725faee7f1d88773c2b6456dd926b0d0850113d81b6e3ca8a6f8e9",
+      "purpose": "192-bit Arb computer-assisted refutation of A08 (Counterexamples 1 & 2), spatial 3D unequal-mass verification of closed Theorem X10 and LRL asymptotic operator, and P08 quadrupole scaling diagnostics."
+    }
+  ],
+  "certificate": [
+    {
+      "path": "C:/Users/[REDACTED]/.gemini/antigravity/scratch/three_body_round7/x02_atlas_verification.json",
+      "bytes": 498,
+      "sha256": "71f11880a56744701d9c27631c31aa98bde37780f1400f5d633abec2fa51658c"
+    },
+    {
+      "path": "C:/Users/[REDACTED]/.gemini/antigravity/scratch/three_body_round7/cap_certificate_x04_x08.json",
+      "bytes": 3026,
+      "sha256": "7a3ae61de3d182c3f39c92bf57c9b0fc807b690f1f7b4f9fe17c324435af9461"
+    },
+    {
+      "path": "C:/Users/[REDACTED]/.gemini/antigravity/scratch/three_body_round7/x10_a08_p08_certificate.json",
+      "bytes": 2089,
+      "sha256": "286ae691b4b16014060d6ebf121478653bbc1555aa6435c5c3f506a3479f55df"
+    }
+  ],
+  "new_problem_proposal": {
+    "id": "X14",
+    "perspective": "Computer-assisted global symbolic dynamics & differential Galois theory",
+    "priority": "HIGH",
+    "title": "Complete Interval-Certified Partition of W^u(L_-) on [0, 60] deg and Morales-Ramis-Simo Galois Obstruction Along the Certified L_- -> E_+ Heteroclinic Orbit",
+    "problem": "(Part A) Using our global P02 boundary circle at r0 = 0.025, bounded X02/Hopf-Levi-Civita flow, E_+ Conley blocks, and spatial/planar X10 escape criteria, cover the entire fundamental sector psi in [0, 60] deg by finitely many validated Arb intervals that either enter the X10 permanent-escape domain or cross W^s(E_+) transversely inside the quadratic cone, thereby turning P09/X09 (exact cardinality of the zero-energy escape boundary B and absence of L_- -> L_+ connections) into a theorem. (Part B) Using the newly certified collision-free algebraic/analytic heteroclinic connection Gamma(psi_*) from L_- to E_+, compute the local monodromy interplay between the irrational spiral eigenvalues -0.66479 +/- 2.12316*i at E_+ and the real algebraic eigenvalues (sqrt(6) +/- sqrt(78))/4 at L_- to test higher-order Morales-Ramis-Simo meromorphic non-integrability on M0 (linking X08 directly to X01).",
+    "falsifier": "Discovery of a certified secondary heteroclinic tangency, an infinite accumulation of E_+ homoclinic/heteroclinic bounces with nu < sqrt(6), or a commuting meromorphic invariant surviving both local monodromy groups."
+  },
+  "mandatory_questions": {
+    "1_What_is_demonstrably_true": "Four results are demonstrably true with full proof: (1) A single complex rational chart zeta = q2/q1 in C \\ {zeta_31, zeta_32} covers all collision-free planar 3-body shapes for arbitrary positive masses and yields a globally nonsingular 6D Routh-reduced flow for arbitrary E, L across all collinear configurations (X02). (2) The degree-24 unstable manifold polynomial at L_- for m=(1,1,1), E=0, L=0 approximates the true analytic manifold on |a| <= 0.025 within <= 1.5543e-18 across all psi in [0, 360] deg (P02). (3) W^u(L_-) intersects W^s(E_+) transversely on M0 at a unique angle psi_* in [57.053946835490960202 deg, 57.053946835490960267 deg] along a genuinely collision-free Newtonian orbit with min r_ij >= 0.02137 (X04, X08, P05). (4) Proposed asset A08 is false as stated (refuted by two Arb-certified counterexamples), whereas our three t0-checkable conditions (C1)-(C3) rigorously guarantee global collision-free continuation, permanent escape, and exp(M/(V^2*R))*O(b^2*(R-b)^-3) LRL velocity convergence in spatial 3D for arbitrary positive masses (X10).",
+    "2_Which_previous_assumption_is_unnecessary": "Three previous assumptions are unnecessary: (1) Using two or more charts (or singular Gram inverses Q^(-1)) to cover collision-free planar configurations including collinearity—because B12 itself sits at the north pole q1 = 0 of CP^1, ONE chart zeta = q2/q1 covers the entire collision-free planar shape space globally (X02). (2) Trusting floating-point angle bisection near 57.0539468355 deg to establish existence of a L_- -> E_+ connection—Wazewski's Principle / Conley index CH_1(N, N^-) = Z on our certified isolating block N proves topological existence from exit-cap linking alone (X04). (3) Integrating out to gigantic radii R ~ 10^6 - 10^8 to suppress O(R^-1) monopole velocity/energy errors in A07/P08—evaluating the exact Kepler Laplace-Runge-Lenz asymptotic operator V_Kep cancels the entire O(R^-1) monopole tail analytically and achieves O(b^2*(R-b)^-3) accuracy already at moderate radii R0 ~ 10 - 20.",
+    "3_Which_previous_assumption_is_false": "Proposed conditional lemma A08 ('if |ell_0| > m_k*b^2/(V*(R0-b)^2), R(t) >= R0 + V*(t-t0), and r(t) <= b, then r(t) > (|ell_0| - Delta_ell)^2/(2*m_b)') is demonstrably FALSE for two distinct physical reasons: (a) Without requiring negative binary Kepler energy eps_b(t) < 0, a hyperbolic/parabolic inner pair with eps_b > 0 satisfies r_min = ell^2/(m_b + sqrt(m_b^2 + 2*eps_b*ell^2)) << ell^2/(2*m_b) even when r(t) < b on the finite approach interval (certified in Counterexample 1: r(0.09) = 0.17889 < 0.24692); and (b) even when r(0) < b and eps_b(0) < 0 initially on a circular binary orbit, 3-body tidal work breaks the unclosed assumption r(t) <= b (certified in Counterexample 2: r(0.21) = 1.00015 > 1.0 = b) unless initial binary energy satisfies the explicit tidal buffer eps_max < -m_b/b (Condition C2). Additionally, the tacit assumption in Round 6's P08 test that finite-epsilon deviations at rho(0) = 1 follow a pure single power law c_1*epsilon^alpha without O(epsilon^1) analytic interference (1 - alpha = 0.1315) is false.",
+    "4_Does_the_result_apply_to_arbitrary_positive_masses": "Strictly separated by theorem: YES for X02 (global planar nonsingular shape-space atlas, arbitrary-(E,L) Routh reduction, and 3-chart binary collision regularization apply to ALL m1, m2, m3 > 0) and YES for X10 + LRL quadrupole asymptotics (apply to ALL m1, m2, m3 > 0 in spatial 3D). NO for P02/X04/X08/P05: those computer-assisted proofs are certified specifically for equal positive masses m1 = m2 = m3 > 0 (where L_- has exact D3 symmetry and non-resonant double eigenvalue lambda_+); extending X08 to unequal masses requires continuing psi_*(m) up to the X13 resonance locus Lambda_+(m) = 2*Lambda_-(m).",
+    "5_Does_the_result_extend_beyond_E_eq_0_and_L_eq_0": "Strictly separated by theorem: YES for X02 (the global regular reduced equations in (u, v, rho, nu, wu, wv) hold verbatim for ALL E in R and ALL planar L in R, verified across 8 collinear crossings at E = -3.3845, L = +4.4693) and YES for X10 + LRL asymptotics (hold in full spatial 3D for ALL total E in R and ALL angular momentum vectors L in R^3 satisfying (C1)-(C3), verified at m=(1,2,3) with inclined 3D L != 0 and E != 0). NO for the scale-decoupled 4D manifold structure of P02/X04/X08: when E != 0 or L != 0, rho no longer decouples from shape/velocity via rho' = nu*rho (terms +rho*E and +L^2/(2*rho) couple rho back into nu' and +/- (2*L/sqrt(rho))*(wv, -wu) couple rho into (wu', wv')), although triple-collision blow-up rho -> 0 still converges on the collision boundary {rho = 0} to the E = 0, L = 0 McGehee manifold whenever L = 0 (by Painleve-Sundman).",
+    "6_Is_the_new_representation_simpler_or_merely_equivalent": "Provably simpler in analytic singularity structure, dimensionality, and asymptotic truncation order—while NOT a closed-form integration of the chaotic flow: (1) Relative to 12D Cartesian Newton or 9D/13D Gram coordinates, X02 reduces planar motion for arbitrary (E, L) to 6 unconstrained variables with ZERO collinearity (Q^-1) singularities and 1 decoupled quadrature for orientation, and its bounded Levi-Civita-Hopf chart turns B12 into a globally bounded real-analytic vector field on R^5; (2) Relative to naive relative velocity Rdot_vec in A07, the LRL operator V_Kep quotiented by exact two-body Kepler motion improves asymptotic velocity convergence by two full multipole orders from O(R^-1) to O(b^2*(R-b)^-3) with zero extra ODE integration cost.",
+    "7_What_explicit_observation_would_falsify_the_conclusion": "Each claim admits a concrete, independently checkable falsifier: (1) X02 would be falsified by any collision-free planar 3-body configuration with q1 = 0, or any trajectory with r_ij > 0 where reconstructed Cartesian positions from (u, v, rho, nu, wu, wv, theta) fail to satisfy Newton's equations. (2) P02/X04/X08 would be falsified if re-running certify_heteroclinic_cap.py in independent interval arithmetic (e.g. CAPD, Julia IntervalArithmetic, or higher-precision Arb) produced kappa >= 1, failed N^- cone straddling, contained 0 in |du_E/dpsi| - ||dv_E/dpsi||_2 on Psi_*, or hit r12 = 0. (3) X10 would be falsified by a single spatial 3D initial condition satisfying (C1)-(C3) at t0 that subsequently experiences a collision r_ij(t) = 0, radial turnaround Rdot(t) <= V, binary escape r(t) >= b, or |V_infinity - V_Kep(t0)| > Delta_V_LRL(t0).",
+    "8_What_new_mathematical_problem_does_the_result_unlock": "It unlocks two concrete, previously inaccessible theorems (formalized as Problem X14): (1) Replacing finite-grid heuristic scans of zero-energy scattering (P09/X09) with a complete interval-certified subdivision of psi in [0, 60] deg on W^u(L_-) by combining our P02 r0=0.025 manifold circle, bounded Hopf-Levi-Civita flow, E_+ Conley blocks, and X10/LRL escape certificates to determine rigorously whether B consists of a single point in (0, 60) deg; and (2) Applying Morales-Ramis-Simo differential Galois theory along our newly certified, collision-free heteroclinic orbit Gamma(psi_*) connecting the real algebraic saddle L_- to the spiral saddle-focus E_+ to establish rigorous meromorphic non-integrability obstructions directly on the zero-energy manifold M0 (connecting X08 to X01)."
+  }
+}

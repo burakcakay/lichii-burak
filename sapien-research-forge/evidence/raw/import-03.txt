@@ -1,0 +1,455 @@
+#!/usr/bin/env python3
+"""
+uc_cisim_tur4_hakem.py -- Tur 4 capraz hakemlik + P7 (olcekli uclu carpisma sacilma haritasi).
+
+Ayni klasorde gerekli: uc_cisim_tur4_yapi_koruyan.py, uc_cisim_tur3_dogrulama.py (karsi taraf),
+                       uc_cisim_tur2.py (benim tur 2).
+Calistir:  python3 uc_cisim_tur4_hakem.py            (hepsi; ~20 dk)
+           python3 uc_cisim_tur4_hakem.py --quick    (yalniz A ve B; ~30 sn)
+           python3 uc_cisim_tur4_hakem.py c1         (yalniz C1 ~3 dk;  c2 ~11 dk;  c3 ~6 dk)
+
+A  Yapi-koruyan integrator
+   A1  ENERJIYI DE koruyan surum: w_k = 2G / (d_k d_k' (d_k + d_k'))   (d: adim basi, d': adim sonu mesafe)
+       Gerekce: donmus-w adimi T + (1/2) sum mu_k w_k d_k^2'yi tam korur; bu secim onu Newton enerjisine esitler.
+   A2  Uclu sicrama ile 4. mertebe (ayni korunumlar)
+   A3  Kirilma: sabit adimla yakin gecis (Pisagor 3-4-5)
+B  H5'in iki uzayda ayrimi: fiziksel varyete (det S = 0) ve genisletilmis varyete (det S serbest)
+C  P7: S_eps(phi) = (kacan, yon, r_min * e_inf) limitinin varligi
+   C1  Esit kutle: limit, SIFIR ENERJILI problemin Lagrange parabolik cokusunden cikan yorungesinin sonucu mu?
+       (limiti eps'siz, dogrudan hesapla; sonra |S_eps - S_0| ~ eps^delta egimini olc; ongoru delta = 4/(1+sqrt(13)))
+   C2  Esit kutle: S_0(psi) haritasi (D3 simetrisiyle tum cember). Sonuc olcutu ASIMPTOTIK:
+       bagli ikili + pozitif enerjili uzaklasan ucuncu cisim + ayrilik >= 40 a_b; yon = hiperbol asimptotu.
+       (10 r_min olcutu sinir yakininda yaniltici: orada iki-cisim enerjisi negatif cikiyor.)
+   C3  Farkli kutle (1,2,3): limit haritasi iki degerli mi?  (guclu mod baskin; yakinsama ~ eps^(1 - lam-/lam+))
+"""
+import sys
+import time
+from itertools import combinations_with_replacement
+import numpy as np
+from scipy.linalg import expm
+from scipy.integrate import solve_ivp
+import mpmath as mp
+import uc_cisim_tur4_yapi_koruyan as K4
+import uc_cisim_tur3_dogrulama as K3
+import uc_cisim_tur2 as B
+
+RESULTS = []
+
+
+def verdict(name, ok, detail):
+    RESULTS.append((name, ok))
+    print(f"  => {'PASS' if ok else 'FAIL'}  {name}: {detail}")
+
+
+# =================================================================== A
+def dists(S):
+    Q = S[:2, :2]
+    return np.sqrt(np.array([Q[0, 0], Q[1, 1], Q[0, 0] + 2 * Q[0, 1] + Q[1, 1]]))
+
+
+def step_E(S, m, h, G=1.0, maxit=60):
+    """Donmus-w ustel adimi; w, enerjiyi tam koruyacak ayrik-gradyan ortalamasi."""
+    d0 = dists(S)
+    w = G / d0 ** 3
+    for it in range(1, maxit + 1):
+        T = expm(h * K4.Kmat(m, w))
+        d1 = dists(T.T @ S @ T)
+        wn = 2 * G / (d0 * d1 * (d0 + d1))
+        done = np.abs(wn - w).max() <= 1e-15 * max(1.0, np.abs(wn).max())
+        w = wn
+        if done:
+            break
+    else:
+        raise RuntimeError("enerji-korumali w iterasyonu yakinsamadi")
+    T = expm(h * K4.Kmat(m, w))
+    Sn = T.T @ S @ T
+    return (Sn + Sn.T) / 2
+
+
+GAM = 1 / (2 - 2 ** (1 / 3))
+
+
+def step_E4(S, m, h):
+    for c in (GAM, 1 - 2 * GAM, GAM):
+        S = step_E(S, m, c * h)
+    return S
+
+
+def run(stepper, S, m, T, n):
+    for _ in range(n):
+        S = stepper(S, m, T / n)
+    return S
+
+
+def part_a():
+    print("[A1] Enerji-korumali surum (ayni deney: m = 1, 2.5, 0.7; T = 1)")
+    m, G = np.array([1.0, 2.5, 0.7]), 1.0
+    r0 = np.array([[-1.0, .2, .3], [1., 0., .7], [0., 1.5, -.4]])
+    v0 = np.array([[.1, .4, .2], [-.2, .1, -.1], [.3, -.2, .15]])
+    S0 = K4.gram_from_cart(r0, v0)
+    E0, L20 = K4.kinetic_potential(S0, m, G), K4.L2_from_gram(S0, m)
+    z = solve_ivp(K4.cart_rhs, [0, 1.0], np.r_[r0.ravel(), v0.ravel()], args=(m, G), rtol=1e-13, atol=1e-13, method="DOP853").y[:, -1]
+    ref = K4.gram_from_cart(z[:9].reshape(3, 3), z[9:].reshape(3, 3))
+    ok, prev = True, None
+    for n in (50, 100, 200, 400):
+        S = run(step_E, S0, m, 1.0, n)
+        err, dE = np.abs(S - ref).max(), abs(K4.kinetic_potential(S, m, G) - E0)
+        dL, dd = abs(K4.L2_from_gram(S, m) - L20), abs(np.linalg.det(S))
+        print(f"   n = {n:4d}: errS = {err:.4e}  oran = {(prev / err) if prev else float('nan'):.3g}  dE = {dE:.2e}  dL2 = {dL:.2e}  detS = {dd:.2e}")
+        ok = ok and dE < 1e-11 and dL < 1e-11 and dd < 1e-11
+        prev = err
+    verdict("A1 E, L^2, det S birlikte korunuyor", ok, "w_k = 2G/(d d'(d+d')) ile enerji hatasi yuvarlama duzeyinde; mertebe 2")
+    print("[A2] Uclu sicrama (4. mertebe)")
+    errs = []
+    for n in (25, 50, 100):
+        S = run(step_E4, S0, m, 1.0, n)
+        errs.append(np.abs(S - ref).max())
+        print(f"   n = {n:4d}: errS = {errs[-1]:.4e}  dE = {abs(K4.kinetic_potential(S, m, G) - E0):.2e}  dL2 = {abs(K4.L2_from_gram(S, m) - L20):.2e}")
+    verdict("A2 4. mertebe", 12 < errs[1] / errs[2] < 20, f"hata oranlari = {errs[0] / errs[1]:.1f}, {errs[1] / errs[2]:.1f} (beklenen 16)")
+    print("[A3] Kirilma: Pisagor problemi (m = 3,4,5), T = 2 (yakin gecis t ~ 1.88, d_min ~ 0.01), sabit adim")
+    m = np.array([3.0, 4.0, 5.0])
+    r0 = np.array([[1.0, 3, 0], [-2, -1, 0], [1, -1, 0]])
+    v0 = np.zeros((3, 3))
+    S0 = K4.gram_from_cart(r0, v0)
+    E0 = K4.kinetic_potential(S0, m)
+    z = solve_ivp(K4.cart_rhs, [0, 2.0], np.r_[r0.ravel(), v0.ravel()], args=(m, 1.0), rtol=1e-13, atol=1e-13, method="DOP853").y[:, -1]
+    ref = K4.gram_from_cart(z[:9].reshape(3, 3), z[9:].reshape(3, 3))
+    broke = False
+    for n in (400, 3200, 25600):
+        out = []
+        for name, st in (("orta-nokta", lambda S, m, h: K4.step(S, m, h)[0]), ("enerji-korumali", step_E)):
+            try:
+                S = run(st, S0, m, 2.0, n)
+                out.append(f"{name}: errS/|S| = {np.abs(S - ref).max() / np.abs(ref).max():.1e}, dE = {abs(K4.kinetic_potential(S, m) - E0):.1e}")
+                broke = broke or np.abs(S - ref).max() / np.abs(ref).max() > 1e-2
+            except (RuntimeError, FloatingPointError) as ex:
+                out.append(f"{name}: DURDU ({type(ex).__name__})")
+                broke = True
+        print(f"   n = {n:6d}: " + " | ".join(out))
+    verdict("A3 sabit adim yakin geciste kiriliyor", broke, "adim ~ d^(3/2) ile kuculmeli; enerji korunsa da konum hatasi buyuk")
+
+
+# =================================================================== B
+def poly_count(d, dim, seed=1):
+    """dim = 3: fiziksel varyete (det S = 0);  dim = 4: genisletilmis (4B cisimler, det S serbest)."""
+    m = np.array([1.0, 2.5, 0.7])
+    exps = []
+    for deg in range(d + 1):
+        for combo in combinations_with_replacement(range(13), deg):
+            e = np.zeros(13)
+            for c in combo:
+                e[c] += 1
+            exps.append(e)
+    exps = np.array(exps)
+    nm = len(exps)
+    npts = int(1.25 * nm) + 60
+    rng = np.random.default_rng(seed)
+    Y, F = np.zeros((npts, 13)), np.zeros((npts, 13))
+    k = 0
+    while k < npts:
+        r, v = rng.normal(size=(3, dim)), rng.normal(size=(3, dim))
+        X = np.stack([r[2] - r[1], r[0] - r[2], r[1] - r[0]], axis=1)
+        Xd = np.stack([v[2] - v[1], v[0] - v[2], v[1] - v[0]], axis=1)
+        dd = np.linalg.norm(X, axis=0)
+        if dd.min() < 0.6 or dd.max() > 3.0:
+            continue
+        Bm, W = X[:, :2], Xd[:, :2]
+        Q, D, P = Bm.T @ Bm, Bm.T @ W, W.T @ W
+        Y[k] = np.r_[Q[0, 0], Q[0, 1], Q[1, 1], D.ravel(), P[0, 0], P[0, 1], P[1, 1], 1 / dd]
+        F[k] = K3.reduction13(0, Y[k], m)
+        k += 1
+    Ev, Mm = np.zeros((npts, nm)), np.zeros((npts, nm))
+    for s in range(0, npts, 200):
+        blk = Y[s:s + 200]
+        vals = np.prod(blk[:, None, :] ** exps[None, :, :], axis=2)
+        Ev[s:s + 200] = vals
+        Mm[s:s + 200] = vals * ((F[s:s + 200] / blk) @ exps.T)
+    scale = np.linalg.norm(Ev, axis=0)
+    nulls = []
+    for A in (Ev, Mm):
+        sv = np.linalg.svd(A / scale, compute_uv=False)
+        nulls.append(int((sv / sv[0] < 1e-13).sum()))
+    return nulls[0], nulls[1]
+
+
+def part_b():
+    print("[B] Polinom integral sayimi, derece <= 4: iki uzay")
+    n0, n1 = poly_count(4, 3)
+    e3 = sum(1 for a in range(5) for b in range(5) if a + 2 * b <= 4)
+    print(f"   fiziksel (det S = 0):     varyetede sifirlanan = {n0}, L_F J = 0 = {n1}  ->  integral sinifi = {n1 - n0}  (E^a L2^b sayisi = {e3})")
+    m0, m1 = poly_count(4, 4)
+    e4 = sum(1 for a in range(5) for b in range(5) for c in range(2) if a + 2 * b + 4 * c <= 4)
+    print(f"   genisletilmis (det S serbest): sifirlanan = {m0}, L_F J = 0 = {m1}  ->  integral sinifi = {m1 - m0}  (E^a L2^b detS^c sayisi = {e4})")
+    verdict("B iki uzay ayrimi", n1 - n0 == e3 and m1 - m0 == e4 and n0 == m0 + 1,
+            "genisletilmis sistemde tam bir fazla integral (det S); fiziksel varyetede o sifira esdeger")
+
+
+# =================================================================== C
+def shape_geom(m):
+    """Eskenar (kenar 1) merkezi konfigurasyon, H matrisi, kutle-metrigi izdusumu."""
+    ang = np.array([np.pi / 2, 7 * np.pi / 6, 11 * np.pi / 6])
+    s = np.stack([np.cos(ang), np.sin(ang)], axis=1) / np.sqrt(3)
+    s = s - (m[:, None] * s).sum(0) / m.sum()
+    H = np.zeros((6, 6))
+    for i in range(3):
+        for j in range(3):
+            if i != j:
+                e = s[j] - s[i]
+                blk = m[j] * (np.eye(2) - 3 * np.outer(e, e))
+                H[2 * i:2 * i + 2, 2 * j:2 * j + 2] += blk
+                H[2 * i:2 * i + 2, 2 * i:2 * i + 2] -= blk
+    return s, H
+
+
+def ip(m, a, b):
+    return (m[:, None] * a * b).sum()
+
+
+def shape_part(m, s, p):
+    """p'den oteleme, donme ve olcek bilesenlerini (kutle metrigi) cikar."""
+    Js = np.stack([-s[:, 1], s[:, 0]], axis=1)
+    basis = [np.tile([1.0, 0.0], (3, 1)), np.tile([0.0, 1.0], (3, 1)), Js, s]
+    q = p.copy()
+    for b in basis:
+        q = q - ip(m, q, b) / ip(m, b, b) * b
+    return q
+
+
+def encounter(m_f, r0, v0, tol, want_asym=False, max_steps=20000):
+    """Verilen baslangictan uclu yakin gecis. r_min (I'nin minimumu) ve cikis ani (r_h = 10 r_min)
+    adim icinde Taylor polinomu uzerinde ikiye bolmeyle bulunur. Doner: r_min, kacan, hiz yonu, e_rel*r_min."""
+    G = mp.mpf(1)
+    m = [mp.mpf(float(x)) for x in m_f]
+    Mt = mp.fsum(m)
+    r = [[mp.mpf(float(r0[i][k])) for k in range(2)] for i in range(3)]
+    v = [[mp.mpf(float(v0[i][k])) for k in range(2)] for i in range(3)]
+    for k in range(2):                                   # kutle merkezi cercevesi
+        c = mp.fsum(m[i] * r[i][k] for i in range(3)) / Mt
+        w = mp.fsum(m[i] * v[i][k] for i in range(3)) / Mt
+        for i in range(3):
+            r[i][k] -= c
+            v[i][k] -= w
+    c_eta = mp.mpf("1.25") / mp.mpf("0.4375") ** mp.mpf("1.5")
+    mstar = max(Mt - mi for mi in m)
+    size = lambda rr: mp.sqrt(mp.fsum(m[i] * rr[i][k] ** 2 for i in range(3) for k in range(2)))
+    dilf = lambda rr, vv: mp.fsum(m[i] * rr[i][k] * vv[i][k] for i in range(3) for k in range(2))
+
+    def bisect(f, h):                                    # f(0) < 0 <= f(h)
+        lo, hi = mp.mpf(0), h
+        for _ in range(90):
+            mid = (lo + hi) / 2
+            if f(mid) < 0:
+                lo = mid
+            else:
+                hi = mid
+        return hi
+
+    def split(rr, vv):
+        """En yakin cift = ikili adayi; ucuncu cisim = kacan adayi. Iki-cisim buyuklukleri."""
+        dist = [B.vnorm([rr[j][k] - rr[i][k] for k in range(2)]) for i, j in B.PAIRS]
+        i, j = B.PAIRS[dist.index(min(dist))]
+        e = 3 - i - j
+        mb = m[i] + m[j]
+        x = [rr[e][k] - (m[i] * rr[i][k] + m[j] * rr[j][k]) / mb for k in range(2)]
+        u = [vv[e][k] - (m[i] * vv[i][k] + m[j] * vv[j][k]) / mb for k in range(2)]
+        bx = [rr[j][k] - rr[i][k] for k in range(2)]
+        bu = [vv[j][k] - vv[i][k] for k in range(2)]
+        rho_e, v2 = B.vnorm(x), u[0] ** 2 + u[1] ** 2
+        mu = m[e] * mb / Mt
+        erel = mu * v2 / 2 - m[e] * mb / rho_e
+        ebin = (m[i] * m[j] / mb) * (bu[0] ** 2 + bu[1] ** 2) / 2 - m[i] * m[j] / B.vnorm(bx)
+        return e, x, u, rho_e, v2, erel, ebin, m[i] * m[j]
+
+    def asym_gap(rr, vv):
+        """> 0 ise: bagli ikili + uzaklasan, pozitif enerjili ucuncu cisim, ayrilik >= 40 a_b."""
+        e, x, u, rho_e, v2, erel, ebin, mm = split(rr, vv)
+        if ebin >= 0 or erel <= 0 or x[0] * u[0] + x[1] * u[1] <= 0:
+            return mp.mpf(-1)
+        return rho_e - 40 * mm / (2 * abs(ebin))
+
+    def outcome(rr, vv, asymptotic):
+        e, x, u, rho_e, v2, erel, ebin, mm = split(rr, vv)
+        if not asymptotic:
+            return e + 1, float(mp.degrees(mp.atan2(u[1], u[0]))), float(erel * rmin)
+        xu, hz = x[0] * u[0] + x[1] * u[1], x[0] * u[1] - x[1] * u[0]
+        ev = [((v2 - Mt / rho_e) * x[k] - xu * u[k]) / Mt for k in range(2)]
+        th = mp.atan2(ev[1], ev[0]) + mp.sign(hz) * mp.acos(-1 / B.vnorm(ev))
+        return e + 1, float((mp.degrees(th) + 180) % 360 - 180), float(erel * rmin)
+
+    rmin, steps, proxy, final = None, 0, None, None
+    while steps < max_steps:
+        d = min(B.vnorm([r[j][k] - r[i][k] for k in range(2)]) for i, j in B.PAIRS)
+        V0 = max(B.vnorm(v[i]) for i in range(3))
+        A = c_eta * G * mstar / d ** 2
+        rho = (-V0 + mp.sqrt(V0 ** 2 + A * d / 2)) / (2 * A)
+        h = rho / 2
+        N = max(2, int(mp.ceil(mp.log(max(d / 8, A * rho) / (tol / 2)) / mp.log(2))) - 1)
+        R, V = B.taylor(G, m, r, v, N)
+        at = lambda t: ([[B.horner(R[i][k], t) for k in range(2)] for i in range(3)],
+                        [[B.horner(V[i][k], t) for k in range(2)] for i in range(3)])
+        rn, vn = at(h)
+        steps += 1
+        if rmin is None and dilf(rn, vn) >= 0 and dilf(r, v) < 0:
+            ts = bisect(lambda t: dilf(*at(t)), h)
+            rmin = size(at(ts)[0])
+        if rmin is not None and proxy is None and size(rn) >= 10 * rmin:
+            te = bisect(lambda t: size(at(t)[0]) - 10 * rmin, h)
+            proxy = outcome(*at(te), False)
+            if not want_asym:
+                break
+        if proxy is not None and asym_gap(rn, vn) > 0 and asym_gap(r, v) <= 0:
+            te = bisect(lambda t: asym_gap(*at(t)), h)
+            final = outcome(*at(te), True)
+            break
+        r, v = rn, vn
+    res = dict(rmin=float(rmin), esc=proxy[0], th=proxy[1], es=proxy[2], steps=steps)
+    if final is not None:
+        res.update(esc_inf=final[0], th_inf=final[1], es_inf=final[2])
+    return res
+
+
+def rest_start(m, s, p, eps):
+    return s + eps * p, np.zeros((3, 2))
+
+
+def zero_energy_start(m, s, e, lam, delta):
+    """Lagrange parabolik cokusu (a0 = 1) + buyuyen sekil modu; E = 0'a olceklenir."""
+    M = m.sum()
+    tau0 = np.sqrt(2.0 / (9 * M))
+    adot = -(2.0 / 3.0) / tau0
+    p = (1 - np.sqrt(1 + 8 * lam / (9 * M))) / 2
+    r = s + delta * e
+    v = adot * s - p * delta * e / tau0
+    r = r - (m[:, None] * r).sum(0) / M
+    v = v - (m[:, None] * v).sum(0) / M
+    T = 0.5 * (m[:, None] * v * v).sum()
+    U = sum(m[i] * m[j] / np.linalg.norm(r[i] - r[j]) for i in range(3) for j in range(i + 1, 3))
+    return r, v * np.sqrt(U / T)
+
+
+def angdiff(a, b):
+    return (a - b + 180) % 360 - 180
+
+
+def part_c1(tol):
+    print("[C1] Esit kutle, cisim 1 bozmasi phi = 40 derece: limit = sifir enerjili yorunge mu?")
+    m = np.ones(3)
+    s, _ = shape_geom(m)
+    ph = np.pi / 2 + np.deg2rad(40)
+    p = np.array([[np.cos(ph), np.sin(ph)], [0, 0], [0, 0]])
+    e = shape_part(m, s, p)
+    e = e / np.linalg.norm(e, axis=1).max()
+    lam = m.sum() / 2
+    zs = []
+    for dl in (1e-4, 1e-5, 1e-6):
+        o = encounter(m, *zero_energy_start(m, s, e, lam, dl), tol)
+        zs.append(o)
+        print(f"   E = 0, delta = {dl:.0e}: kacan = {o['esc']}, yon = {o['th']:.6f}, r_min*e = {o['es']:.8f}")
+    S0 = dict(th=zs[-1]['th'] + (zs[-1]['th'] - zs[-2]['th']) / 9, es=zs[-1]['es'] + (zs[-1]['es'] - zs[-2]['es']) / 9)
+    print(f"   S_0 (delta -> 0 Richardson): yon = {S0['th']:.6f}, r_min*e = {S0['es']:.8f}")
+    rows = []
+    for eps in (1e-2, 1e-3, 1e-4, 1e-5, 1e-6):
+        o = encounter(m, *rest_start(m, s, p, eps), tol)
+        rows.append((eps, abs(angdiff(o["th"], S0["th"])), abs(o["es"] - S0["es"])))
+        print(f"   duragan baslangic, eps = {eps:.0e}: kacan = {o['esc']}, yon = {o['th']:.6f}, r_min*e = {o['es']:.8f}"
+              f"   |fark| = {rows[-1][1]:.2e} derece, {rows[-1][2]:.2e}")
+    za = encounter(m, *zero_energy_start(m, s, e, lam, 1e-6), tol, want_asym=True)
+    ra = encounter(m, *rest_start(m, s, p, 1e-6), tol, want_asym=True)
+    print(f"   asimptotik olcut:  E = 0: kacan = {za['esc_inf']}, yon_inf = {za['th_inf']:.5f}, r_min*e_inf = {za['es_inf']:.7f}")
+    print(f"                      eps = 1e-6: kacan = {ra['esc_inf']}, yon_inf = {ra['th_inf']:.5f}, r_min*e_inf = {ra['es_inf']:.7f}")
+    sl_th = [np.log10(rows[i][1] / rows[i + 1][1]) for i in range(1, 4)]
+    sl_es = [np.log10(rows[i][2] / rows[i + 1][2]) for i in range(1, 4)]
+    alpha = 4 / (1 + np.sqrt(13))
+    print(f"   yakinsama egimleri: yon = {np.round(sl_th, 3)}, r_min*e = {np.round(sl_es, 3)};  ongoru = {alpha:.4f}")
+    same = za["esc_inf"] == ra["esc_inf"] and abs(angdiff(za["th_inf"], ra["th_inf"])) < 5e-3 and abs(za["es_inf"] - ra["es_inf"]) < 1e-5
+    verdict("C1 limit var ve sifir enerjili problemin sonucuna esit", rows[-1][1] < 2e-3 and rows[-1][2] < 1e-5 and same,
+            f"eps = 1e-6'da fark: yon {rows[-1][1]:.1e} derece, r_min*e {rows[-1][2]:.1e}")
+    return sl_th, sl_es
+
+
+def part_c2(tol):
+    print("[C2] Esit kutle: S_0(psi) haritasi (E = 0, delta = 1e-5; ASIMPTOTIK olcut: bagli ikili + ayrilik >= 40 a_b)")
+    print("     psi = 0: cisim 1 disari;  psi = 60: cisim 2 iceri;  psi = 120: cisim 3 disari")
+    m = np.ones(3)
+    s, _ = shape_geom(m)
+    eA = shape_part(m, s, np.array([[0.0, 1.0], [0, 0], [0, 0]]))
+    eB = shape_part(m, s, np.array([[-1.0, 0.0], [0, 0], [0, 0]]))
+    eA, eB = eA / np.sqrt(ip(m, eA, eA)), eB / np.sqrt(ip(m, eB, eB))
+    lam = m.sum() / 2
+    out = {}
+    for psi in (2, 20, 40, 50, 56, 57, 58, 59, 59.7, 59.97, 61, -20, 140):
+        e = np.cos(np.deg2rad(psi)) * eA + np.sin(np.deg2rad(psi)) * eB
+        o = encounter(m, *zero_energy_start(m, s, e, lam, 1e-5), tol, want_asym=True)
+        out[psi] = o
+        if "esc_inf" in o:
+            print(f"   psi = {psi:6.2f}: kacan = {o['esc_inf']}, yon_inf = {o['th_inf']:9.3f}, r_min*e_inf = {o['es_inf']:.5f}"
+                  f"   | 10 r_min'de: aday = {o['esc']}, r_min*e = {o['es']:+.5f} | adim = {o['steps']}", flush=True)
+        else:
+            print(f"   psi = {psi:6.2f}: adim sinirinda ayrisma YOK | 10 r_min'de: aday = {o['esc']}, r_min*e = {o['es']:+.5f}", flush=True)
+    g = lambda q, key: out[q].get(key)
+    mirror = g(-20, "esc_inf") == g(20, "esc_inf") == 1 and abs(angdiff(180 - g(-20, "th_inf"), g(20, "th_inf"))) < 1e-3
+    rot = g(140, "esc_inf") == 3 and abs(g(140, "es_inf") - g(20, "es_inf")) < 1e-6
+    refl = g(61, "esc_inf") == {1: 3, 2: 2, 3: 1}.get(g(59, "esc_inf")) and abs(g(61, "es_inf") - g(59, "es_inf")) < 1e-6
+    arc = all(g(q, "esc_inf") == 1 for q in (2, 20, 40, 50))
+    bad_proxy = [q for q in out if out[q]["es"] < 0]
+    verdict("C2 harita: buyuk yaylarda surekli, sinir yakininda pencere", mirror and rot and refl and arc,
+            f"simetriler (ayna, 120, 59<->61): {mirror}, {rot}, {refl}; 10 r_min olcutunun negatif enerji verdigi yonler: {bad_proxy}")
+
+
+def part_c3(tol):
+    print("[C3] m = (1,2,3): limit haritasi iki degerli mi?")
+    m = np.array([1.0, 2.0, 3.0])
+    s, H = shape_geom(m)
+    lam, vec = np.linalg.eig(H)
+    lam, vec = lam.real, vec.real
+    M = m.sum()
+    keep = sorted([k for k in range(6) if min(abs(lam[k]), abs(lam[k] - 2 * M), abs(lam[k] + M)) > 1e-6], key=lambda k: -lam[k])
+    ep, em = vec[:, keep[0]].reshape(3, 2), vec[:, keep[1]].reshape(3, 2)
+    ep, em = ep / np.sqrt(ip(m, ep, ep)), em / np.sqrt(ip(m, em, em))
+    lp, lm = lam[keep[0]], lam[keep[1]]
+    k = ((m[0] - m[1]) ** 2 + (m[0] - m[2]) ** 2 + (m[1] - m[2]) ** 2) / (2 * M ** 2)
+    Lp, Lm = 1 + np.sqrt(13 + 12 * np.sqrt(k)), 1 + np.sqrt(13 - 12 * np.sqrt(k))
+    slow = 1 - Lm / Lp
+    S0 = {}
+    for sg in (+1, -1):
+        o = encounter(m, *zero_energy_start(m, s, sg * ep, lp, 1e-5), tol, want_asym=True)
+        S0[sg] = o
+        print(f"   E = 0, {'+' if sg > 0 else '-'}e+ dali: kacan = {o.get('esc_inf')}, yon_inf = {o.get('th_inf', float('nan')):.3f}, "
+              f"r_min*e_inf = {o.get('es_inf', float('nan')):.5f}  | 10 r_min'de: aday = {o['esc']}, yon = {o['th']:.4f}, r_min*e = {o['es']:.6f}", flush=True)
+    ok, slopes = True, []
+    for phi in (40, 100, 220):
+        ph = np.pi / 2 + np.deg2rad(phi)
+        p = np.array([[np.cos(ph), np.sin(ph)], [0, 0], [0, 0]])
+        q = shape_part(m, s, p)
+        ap, am = ip(m, q, ep), ip(m, q, em)
+        sg = 1 if ap > 0 else -1
+        diffs = []
+        for eps in (1e-2, 1e-4, 1e-6, 1e-8):
+            o = encounter(m, *rest_start(m, s, p, eps), tol)
+            diffs.append(abs(angdiff(o["th"], S0[sg]["th"])))
+            print(f"   duragan, phi = {phi:3d} (a+ = {ap:+.3f}, a- = {am:+.3f}), eps = {eps:.0e}: aday = {o['esc']}, yon = {o['th']:.4f}, "
+                  f"r_min*e = {o['es']:.6f}  |  {'+' if sg > 0 else '-'}e+ dalina yon farki = {diffs[-1]:.3f}", flush=True)
+            ok = ok and (eps > 1e-5 or o["esc"] == S0[sg]["esc"])
+        slopes.append(np.log10(diffs[2] / diffs[3]) / 2)
+        ok = ok and diffs[3] < diffs[2] < diffs[1]          # 1e-2 dogrusal rejimin disinda: olcute alinmadi
+    print(f"   olculen yakinsama usleri (1e-6 -> 1e-8) = {np.round(slopes, 3)};  ongoru 1 - lam-/lam+ = {slow:.4f}")
+    two = S0[1]["esc"] != S0[-1]["esc"]
+    verdict("C3 farkli kutlede limit iki degerli, yakinsama yavas", ok and two and all(0.1 < x < 0.3 for x in slopes),
+            "genel phi icin S_eps, a+ isaretine gore +e+ ya da -e+ dalinin sonucuna gidiyor")
+
+
+if __name__ == "__main__":
+    only = [a for a in sys.argv[1:] if a in ("c1", "c2", "c3")]
+    if not only:
+        part_a()
+        part_b()
+    if "--quick" not in sys.argv:
+        mp.mp.dps = 30
+        tol = mp.mpf(10) ** -18
+        t0 = time.time()
+        for name, fn in (("c1", part_c1), ("c2", part_c2), ("c3", part_c3)):
+            if not only or name in only:
+                fn(tol)
+        print(f"   C suresi = {time.time() - t0:.0f} s")
+    print("\nOZET: " + "  ".join(f"{n.split()[0]}={'PASS' if ok else 'FAIL'}" for n, ok in RESULTS))
+    sys.exit(0 if all(ok for _, ok in RESULTS) else 1)

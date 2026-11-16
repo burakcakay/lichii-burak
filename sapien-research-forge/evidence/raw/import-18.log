@@ -1,0 +1,29 @@
+   [A] psi = 58.0, t0 = 0.1, N = 150, 640 bit: ||A||_inf <= 12.484, K <= 2.419e-03, xi_N <= 0.1211, Y <= 1.302e-110
+       daralma K g'(xi_N + rho) <= 0.1947 (< 1/2: True);  kuyruk siniri rho = 6.301e-113;  |F(L-)| <= 3e-191, |(A - Lam) V| <= 3e-190
+       adim 200: sigma = 0.2712, nu = -2.42861, |zeta|^2 = 0.8192, R = 0.02, rho_P = 0.00610, N = 158, yaricap = 1.06e-110, sure = 37 s
+       adim 400: sigma = 0.4872, nu = -2.39519, |zeta|^2 = 0.8769, R = 0.02, rho_P = 0.00473, N = 156, yaricap = 3.41e-109, sure = 72 s
+       adim 600: sigma = 0.6533, nu = -2.33442, |zeta|^2 = 0.9333, R = 0.02, rho_P = 0.00365, N = 154, yaricap = 8.89e-108, sure = 106 s
+       adim 800: sigma = 0.7854, nu = -2.24191, |zeta|^2 = 0.9767, R = 0.02, rho_P = 0.00304, N = 152, yaricap = 2.03e-106, sure = 142 s
+       adim 1000: sigma = 0.9055, nu = -2.10752, |zeta|^2 = 0.9983, R = 0.02, rho_P = 0.00313, N = 150, yaricap = 4.64e-105, sure = 175 s
+       adim 1200: sigma = 1.0284, nu = -1.92314, |zeta|^2 = 0.9823, R = 0.02, rho_P = 0.00276, N = 148, yaricap = 9.35e-104, sure = 207 s
+       adim 1400: sigma = 1.1346, nu = -1.74578, |zeta|^2 = 0.9298, R = 0.02, rho_P = 0.00271, N = 147, yaricap = 1.04e-102, sure = 240 s
+       adim 1600: sigma = 1.2603, nu = -1.53750, |zeta|^2 = 0.8301, R = 0.04, rho_P = 0.00387, N = 145, yaricap = 1.63e-101, sure = 270 s
+       adim 1800: sigma = 1.5082, nu = -1.16342, |zeta|^2 = 0.5800, R = 0.04, rho_P = 0.01101, N = 143, yaricap = 4.06e-100, sure = 299 s
+       adim 2000: sigma = 3.6391, nu = +0.85525, |zeta|^2 = 0.4501, R = 0.04, rho_P = 0.01735, N = 140, yaricap = 5.06e-98, sure = 329 s
+       adim 2200: sigma = 3.9535, nu = +1.34128, |zeta|^2 = 0.7840, R = 0.04, rho_P = 0.00425, N = 138, yaricap = 1.68e-96, sure = 358 s
+       adim 2400: sigma = 4.0846, nu = +1.57636, |zeta|^2 = 0.9043, R = 0.04, rho_P = 0.00267, N = 136, yaricap = 2.54e-95, sure = 386 s
+       adim 2600: sigma = 4.1853, nu = +1.76375, |zeta|^2 = 0.9680, R = 0.02, rho_P = 0.00249, N = 134, yaricap = 3.16e-94, sure = 411 s
+       adim 2800: sigma = 4.2956, nu = +1.95868, |zeta|^2 = 0.9979, R = 0.02, rho_P = 0.00293, N = 133, yaricap = 4.62e-93, sure = 437 s
+       adim 3000: sigma = 4.4134, nu = +2.12727, |zeta|^2 = 0.9863, R = 0.02, rho_P = 0.00294, N = 131, yaricap = 8.73e-92, sure = 461 s
+       adim 3200: sigma = 4.5413, nu = +2.24986, |zeta|^2 = 0.9441, R = 0.04, rho_P = 0.00358, N = 130, yaricap = 1.72e-90, sure = 485 s
+       adim 3400: sigma = 4.7099, nu = +2.33887, |zeta|^2 = 0.8779, R = 0.02, rho_P = 0.00499, N = 127, yaricap = 4.68e-89, sure = 507 s
+       adim 3600: sigma = 4.9381, nu = +2.39266, |zeta|^2 = 0.8019, R = 0.02, rho_P = 0.00643, N = 125, yaricap = 1.55e-87, sure = 530 s
+       adim 3800: sigma = 5.2272, nu = +2.42005, |zeta|^2 = 0.7339, R = 0.01, rho_P = 0.00808, N = 122, yaricap = 7.27e-86, sure = 552 s
+       adim 4000: sigma = 5.5848, nu = +2.43625, |zeta|^2 = 0.6754, R = 0.005, rho_P = 0.00986, N = 119, yaricap = 4.64e-84, sure = 574 s
+       adim 4200: sigma = 5.9922, nu = +2.45121, |zeta|^2 = 0.6198, R = 0.01, rho_P = 0.01035, N = 117, yaricap = 3.56e-82, sure = 594 s
+       adim 4400: sigma = 6.4252, nu = +2.47201, |zeta|^2 = 0.5555, R = 0.01, rho_P = 0.01155, N = 114, yaricap = 2.75e-80, sure = 612 s
+       adim 4600: sigma = 6.9211, nu = +2.51051, |zeta|^2 = 0.4600, R = 0.02, rho_P = 0.01319, N = 112, yaricap = 2.37e-78, sure = 631 s
+       adim 4800: sigma = 7.5502, nu = +2.60619, |zeta|^2 = 0.2903, R = 0.04, rho_P = 0.02044, N = 109, yaricap = 2.11e-76, sure = 648 s
+   [B] ok = True, label = 2, sigma = 7.755701756469391, steps = 4845, Nmax = 160, hmin = 0.0004935254819729305, rad0 = 3.584711572087625e-112, rad = 6.20776271667335e-76, nu_lower = 2.660222895097513, nuE = 2.6591479484724942, Gamma = 1.2094237105470663e-75, norm = 8.230926507337124e-76, time = 651.5313484668732
+   [C] psi = 58.0: nu >= 2.660223 > nu_E = 2.659148;  mesafeler (kacan adayina gore) = {2: 0.31527877218566464, 3: 1.331762535264968, 1: 1.0616062572694853}
+   => KESIN: Gamma(58.0 derece) icin kacan cisim = 2

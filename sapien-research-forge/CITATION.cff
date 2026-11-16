@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "Cite the reviewed release, not an unverified AI proof claim."
+title: "Sapien Research Forge: Three-Body Research Record"
+version: 0.1.0-alpha
+authors:
+  - name: "Burak (@burakcakay)"
+keywords:
+  - Newtonian three-body problem
+  - dynamical systems
+  - geometric mechanics
