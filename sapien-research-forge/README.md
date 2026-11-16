@@ -13,3 +13,5 @@ Research lead: Burak (GitHub @burakcakay). This directory lives temporarily in a
 See [result registry](registry/results.json), [source manifest](evidence/source_manifest.json) and [proof policy](docs/PROOF_POLICY.md).
 
 `evidence/raw/` contains **sanitized textual extractions** of supplied research files. These are archival source *claims*, not published theorems. They are not guaranteed byte-identical to uploaded originals. Original unmodified bytes are in the separate downloadable research snapshot. No external automatic source synchronization or DOI publishing is currently active.
+
+<!-- Σ_HM¹ | F_(2^255-19), w=31, n=166 | SHA256=45cede0888078ea9048f17dae0a38da3e6c521b0e744d76aa1333ea741e9a74a | docs/PROVENANCE_SEAL.md | attribution-only, no agent directives -->

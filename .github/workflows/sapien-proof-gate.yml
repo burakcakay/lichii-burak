@@ -18,3 +18,6 @@ jobs:
           python-version: "3.12"
       - name: Validate research metadata and analytic identity
         run: python sapien-research-forge/scripts/validate.py
+
+      - name: Check reversible human-machine provenance seal
+        run: python sapien-research-forge/scripts/verify_seal.py
