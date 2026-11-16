@@ -1,0 +1,1630 @@
+{
+  "schema_id": "THREE_BODY_MULTI_AGENT_RESEARCH_RESPONSE",
+  "responds_to": {
+    "schema_id": "THREE_BODY_MULTI_AGENT_RESEARCH",
+    "schema_version": "7.1"
+  },
+  "agent_id": "claude-fable-5.2 / independent agent, clusters SCATTERING_AND_VERIFICATION + GEOMETRY_TOPOLOGY + ALGEBRAIC_NO_GO",
+  "date": "2026-11-13",
+  "language": "en",
+  "problem_ids": [
+    "X10",
+    "X13",
+    "X09",
+    "X04",
+    "X01",
+    "A01",
+    "A07",
+    "A08",
+    "P05",
+    "P08",
+    "P10"
+  ],
+  "status": "PARTIAL",
+  "status_note": "Overall PARTIAL. Individual results carry their own status. Nothing below is a computer-assisted proof: there is no interval arithmetic anywhere. Surveys and the R3 stress test are float64; psi*, the flip law, the spectra and the resonant coefficient were redone at 42-50 digits (extended precision removes rounding as an error source, it does not bound truncation or modelling errors).",
+  "headline": [
+    "R3 (X10/A08) PROVED: explicit initial-data criterion (H1-H4) for permanent escape + no binary collision; the card's standing assumptions in A07/A08 become consequences; the A08 torque constant improves from 1 to 3/4; A08's lower bound needs h<0, which the criterion supplies. 300 certified random cases, 0 violations.",
+    "R5 (P05/X04) NUMERICAL_EVIDENCE: fully independent reproduction of the Euler boundary. float64: psi* = 57.05394683548 deg; 42-digit arithmetic: psi* = 57.05394683549096023447549725357 deg (two runs agree to 7.941e-33 rad). Card value 57.0539468355. Plus a bisection-free existence argument (symmetry + connectedness), conditional on two stated lemmas.",
+    "R4 (X09/T7_04) CONDITIONAL_THEOREM + NUMERICAL_EVIDENCE: at every transverse crossing of W^s(E+) with kappa>1/8 the sense of rotation of the final binary flips infinitely often, at offsets d_n with d_(n+1)/d_n -> exp(-pi/omega) = 3.0620447e-3 (equal masses). In 42-digit arithmetic: ten flips per side located between 2.5e-4 and 5.8e-27 rad, 10/10 certified sign changes per side, ratio of the underlying rotation law matching the prediction to 7 digits. So the orientation-refined scattering boundary is NOT finite, and the scattering map on Gamma is not definable in any o-minimal structure (no finite exp-log-algebraic-restricted-analytic formula).",
+    "R2 (X13) PROVED/NUMERICAL: the L=0 resonance Lam+ = 2 Lam- holds exactly on sigma = (1064-32 sqrt(129))/5625 = 0.124542198...; the resonant coefficient c is non-zero for generic masses on that curve (c = -/+1.7765 for (1,2,18.4704)) and vanishes by parity when two masses are equal. Including the angular-momentum direction, the only other resonances of the unstable spectrum at L- are sigma = 8/27 and 2/9, which together with 1/3 are exactly Tsygvintsev's three exceptional values.",
+    "R1 PROVED: one formula Lam = (nu0/4)(-1 +/- sqrt(9-8 lambda)) ties the McGehee exponents to the Morales-Ramis eigenvalues lambda; the card's kappa is lambda_perp - 1 at the Euler point; alpha, gamma, beta, omega of P08/P10 are reproduced in closed form.",
+    "R6 (X01): Morales-Ramis obstruction holds for all positive masses via lambda = 1+kappa > 1 (known result, new dictionary), but it is blind on E=0: every homothetic orbit there is a rest point of the scaled flow and all its variational equations are abelian. A spectral bound (<= 1 generalized-rational first integral near E+, generic masses) is the obstruction that does apply on the E=0, L=0 leaf.",
+    "R7 (P08) HYPOTHESIS: the failed last-decade slope is what a two-term law a*eps^alpha + b*eps predicts; the exponents differ by only 1-alpha = 0.1315, so local slopes converge like eps^0.13."
+  ],
+  "conventions": {
+    "coordinates": "mass-weighted Jacobi q in R^4 (planar), rho=|q|, s=q/rho, y=sqrt(rho) dq/dt, nu=s.y, dt=rho^(3/2) dtau (card).",
+    "scaled_flow": "s' = y - nu s,  y' = grad U(s) + (nu/2) y",
+    "rest_points": "s0 central configuration (grad U(s0) = -U0 s0, U0=U(s0)), y0 = nu0 s0, nu0 = +/- sqrt(2 U0). L+/- Lagrange, E+/-(j) Euler with body j in the middle; subscript = sign of nu0.",
+    "units": "eigenvalues are quoted in units of nu0/4 (|nu0|/4 at L-).",
+    "sigma_k": "sigma = (m1 m2 + m2 m3 + m3 m1)/M^2 in (0,1/3],  k = sqrt(1-3 sigma) in [0,1); k=0 iff equal masses.",
+    "kappa": "card A01 Euler parameter kappa_j (body j in the middle).",
+    "reduced_flow": "E=0, L=0, planar, modulo rotation: an analytic 4-dimensional flow; it coincides with the flow on the triple-collision manifold.",
+    "psi": "Gamma is parameterised by the angle psi of delta s = cos(psi) e1 + sin(psi) e2 in the shape tangent plane at the Lagrange point, (e1,e2) orthonormal for the mass metric, e1 = isosceles direction with apex body 3 (side 1-2 growing). The card's psi equals this angle up to the D3 symmetry (reflection/60-degree shift): psi_card = 60 - psi or psi - 60 near the first two boundary points."
+  },
+  "results": [
+    {
+      "result_id": "R3",
+      "title": "Permanent binary escape with collision exclusion from initial data only",
+      "problem_ids": [
+        "X10",
+        "A07",
+        "A08",
+        "P07"
+      ],
+      "status": "PROVED",
+      "precise_claim": [
+        "Setting: masses m_i,m_j,m_k>0, m_b=m_i+m_j, M=m_b+m_k, G=1, space dimension 2 or 3. x=r_j-r_i, X=r_k-(m_i r_i+m_j r_j)/m_b, r=|x|, R=|X|, h=|x'|^2/2-m_b/r, ell=x cross x'. Subscript 0 = value at t0.",
+        "Hypotheses, for some b>0:  (H1) R0 > b.  (H2) R'0 > 0 and R'0^2 > 2M/(R0-b).  Put V=sqrt(R'0^2-2M/(R0-b)), S=|X'0|+M/(V(R0-b)), eta=m_k b^2 (2+S/V)/(R0-b)^3.  (H3) h0 + eta < -m_b/b.  (H4) |ell0| > delta := (3/4) m_k b^2/(V (R0-b)^2).",
+        "Conclusion under H1-H4: the solution of the ordinary Newton equations exists for all t>=t0, has no collision of any kind, and (C1) r(t) < b; (C2) R'(t) > V, R(t) >= R0+V(t-t0); (C3) |h(t)-h0| <= eta, in particular h(t) < -m_b/b < 0; (C4) |ell(t)-ell0| <= delta; (C5) r(t) >= (|ell0|-delta)^2/(2 m_b) > 0.",
+        "Asymptotics with explicit tails (the card's 'infinity observables'): V_inf = lim X', h_inf = lim h, ell_inf = lim ell exist and for all t>=t0: |V_inf - X'(t)| <= M/(V(R(t)-b));  |h_inf - h(t)| <= m_k b^2 (1+S/V)/(R(t)-b)^3;  |ell_inf - ell(t)| <= (3/4) m_k b^2/(V(R(t)-b)^2); angle(X'(t), V_inf) <= arcsin(min(1, M/(V(R(t)-b)|X'(t)|))).  Exact energy split: E = mu_b h_inf + (mu_k/2)|V_inf|^2, mu_b=m_i m_j/m_b, mu_k=m_k m_b/M; so for E=0 the escaper's limiting energy is mu_b |h_inf| > 0.",
+        "Without H4: C1-C4 and the tails hold as long as the pair does not collide (and, I expect, for the Levi-Civita continuation; that extension is not written out).",
+        "About the card: (a) A08's quantity m_k b^2/(V(R0-b)^2) is a valid bound for |ell-ell0| but not sharp: 3/4 of it suffices. (b) A08's lower bound r > (|ell0|-delta)^2/(2 m_b) is NOT implied by |ell| alone: it needs h(t) <= 0. In general only r >= ell^2/(m_b + sqrt(m_b^2 + 2 max(h,0) ell^2)) holds. (c) A07's three requirements (r<=b forever, R0>b, radial bound forever) are not needed as hypotheses: they follow from H1-H3 at one instant."
+      ],
+      "assumptions": [
+        "Point masses, Newtonian gravity, no restriction on E, L or the plane. H1-H4 are checked at a single instant."
+      ],
+      "derivation": [
+        "Step 0 (equations). a_i=m_i/m_b, a_j=m_j/m_b. r_k-r_i = X+a_j x, r_k-r_j = X-a_i x. x'' = -m_b x/r^3 + tau, tau = m_k[(X-a_i x)/|X-a_i x|^3 - (X+a_j x)/|X+a_j x|^3];  X'' = -(M/m_b)[m_i (X+a_j x)/|X+a_j x|^3 + m_j (X-a_i x)/|X-a_i x|^3]. If r<=b<R then both distances to k are >= R-b.",
+        "Step 1 (radial comparison). R'' = (|X'|^2-R'^2)/R + X.X''/R >= -|X''| >= -M/(R-b)^2. Hence G = R'^2/2 - M/(R-b) satisfies G' = R'(R''+M/(R-b)^2) >= 0 while R'>=0, so R'^2 >= V^2 + 2M/(R-b) > V^2: R' never reaches 0 and C2 holds as long as r<=b.",
+        "Step 2 (speed). |X'(t)| <= |X'0| + int M/(R0-b+Vs)^2 ds = S.",
+        "Step 3 (binary energy without a velocity bound). tau = grad_x W, W = m_k[(1/a_i)/|X-a_i x| + (1/a_j)/|X+a_j x|]. Subtract the x-independent part: Wt = m_k[(1/a_i) f(-a_i x) + (1/a_j) f(a_j x)], f(y) = 1/|X+y| - 1/|X| + y.X/|X|^3 (the linear terms cancel because a_i+a_j=1). Then d/dt (h - Wt) = -X'.grad_X Wt: the singular factor x' has disappeared. Taylor remainders with ||D^2(1/|.|)|| = 2/d^3 and ||D^3(1/|.|)|| = 6/d^4: |Wt| <= m_k r^2/(R-b)^3, |grad_X Wt| <= 3 m_k r^2/(R-b)^4. Integrating with Steps 1-2: |h(t)-h0| <= 2 m_k b^2/(R0-b)^3 + S m_k b^2/(V(R0-b)^3) = eta.",
+        "Step 4 (confinement). h<0 implies r <= m_b/|h|. By H3, h(t) <= h0+eta < -m_b/b, so r(t) < b with a margin.",
+        "Step 5 (torque). ell' = x cross tau = -m_k int_0^1 x cross DF(p_s) x ds with F(p)=p/|p|^3, p_s on the segment between the two bodies; x cross DF(p)x = -3 (p.x)(x cross p)/|p|^5, of norm <= (3/2) r^2/|p|^3. So |ell'| <= (3/2) m_k b^2/(R-b)^3 and integration gives delta. (The operator-norm estimate ||DF|| = 2/|p|^3 gives the card's constant 1 instead of 3/4; the quadrupole torque (3/2) m_k r^2 sin(2 theta)/R^3 shows 3/4 is optimal to leading order.)",
+        "Step 6 (pericentre). |x'|^2 >= ell^2/r^2 and h<0 give ell^2/(2r^2) < m_b/r, i.e. r > ell^2/(2 m_b) >= (|ell0|-delta)^2/(2 m_b).",
+        "Step 7 (bootstrap). Let T* be the supremum of times up to which the solution exists with r<b. On [t0,T*) Steps 1-6 hold, all three distances are bounded below by positive constants and velocities are bounded, so the solution extends past T*, and r(T*) < b strictly by Step 4. Hence T* = infinity.",
+        "Step 8 (tails). Repeat Steps 2, 3, 5 on [t, infinity) using R(s) >= R(t)+V(s-t); Wt -> 0."
+      ],
+      "verification": {
+        "analytical": "Complete derivation above; every inequality is elementary. Dimension-free.",
+        "numerical": "r7_escape_test.py: random masses (log-uniform in [0.1,10]), binaries with e in [0,0.97], outgoing third bodies with R0/a in [4,60]; half of the samples are deliberately marginal (R0/a in [4,12], radial speed within 25% of the threshold). Integrator: Gragg-Bulirsch-Stoer, rtol 1e-12, run until R = 40 R0. Each conclusion is monitored at every step as (actual)/(bound).",
+        "result": {
+          "sampled": 444,
+          "satisfying_H1_H3": 300,
+          "with_H4": 300,
+          "violations": 0,
+          "worst_ratios": {
+            "r_over_b": 0.7881904949107744,
+            "radial": 0.9999995157474324,
+            "dh": 0.1223903507555595,
+            "dl": 0.2710904888533887,
+            "dl_card": 0.20331786664004156,
+            "rmin_ratio": 1.031139455607302,
+            "dv": 0.9177666935795966
+          },
+          "reading": "all ratios must be <= 1 (rmin_ratio >= 1). C5 (1.031) and the velocity tail (0.918) are nearly attained, so those bounds are tight; dl_card is the same test with the card's constant 1 instead of 3/4."
+        },
+        "use_in_this_response": "H1-H4 is the stopping criterion of every scattering run in R4/R5 (it is scale invariant, so it can be evaluated on scaled states)."
+      },
+      "counterexample_search": "Adversarial sampling near the boundary of H2/H3 found no violation in 300 certified cases. For the literal A08 statement I did not construct an explicit initial condition; the gap is logical: with h(t)>0 at an instant the pericentre is ell^2/(m_b(1+e)) < ell^2/(2 m_b).",
+      "limitations": [
+        "Sufficient, not necessary. H2 compares the radial speed with escape from the total mass M at the shifted distance R0-b; H3 typically needs R0 of order 8-10 binary semi-major axes.",
+        "The certificate was applied in float64; for a theorem-level label the four inequalities must be evaluated in interval arithmetic (trivial cost).",
+        "The stress test is planar; the proof is not."
+      ],
+      "exact_mass_domain": "all positive masses, any energy, any angular momentum, planar or spatial",
+      "next_experiment": "Replace the card's finite-radius Kepler estimates by the tail bounds above and report V_inf, h_inf, ell_inf with these rigorous error bars; in interval arithmetic this makes every escape label a theorem.",
+      "transferable_mechanism": "The corrected energy h - Wt (binary energy minus the second-order Taylor remainder of the perturbing potential) has a derivative free of the binary velocity; this removes the usual difficulty that tidal work is unbounded near pericentre. It applies to any hierarchical N-body subsystem.",
+      "code": [
+        "r7_core.py: certificate()",
+        "r7_escape_test.py"
+      ]
+    },
+    {
+      "result_id": "R4",
+      "title": "The orientation-refined scattering boundary accumulates at every spiral Euler crossing; o-minimal obstruction",
+      "problem_ids": [
+        "X09",
+        "P09",
+        "P10",
+        "P14",
+        "T7_03",
+        "T7_04"
+      ],
+      "status": "CONDITIONAL_THEOREM",
+      "status_detail": "Mechanism = Shilnikov saddle-focus transit (standard). I give the argument and the hypotheses; two estimates are cited as standard rather than written out (see proof_gap). The equal-mass instance is supported by NUMERICAL_EVIDENCE.",
+      "precise_claim": [
+        "Setting: reduced E=0, L=0 planar scaled flow with binary collisions regularised. E+ = Euler rest point (nu0>0) with body j in the middle, kappa = kappa_j, A = sqrt(25+16 kappa), B = sqrt(8 kappa-1). C = collinear invariant manifold. W^s(E+) has dimension 3, W^u(E+) dimension 1 and lies in C; its two branches end in escape of the two outer bodies.",
+        "Hypotheses: (a) kappa > 1/8. (b) c(d), |d| small, is a C^1 curve crossing W^s(E+) transversally at c(0), and c(0) is not in C. (c) non-degeneracy: the derivative of the final binary angular momentum ell_inf with respect to the non-collinear displacement, along each branch of W^u(E+), is a non-zero linear functional.",
+        "Claim 1 (coarse label is locally finite): for small d the escaping body is one outer body for d>0 and the other for d<0.",
+        "Claim 2 (transit law): at a fixed exit section the non-collinear displacement is n(d) = |d|^beta [rho_pm Rot(omega ln(1/|d|) + phi_pm) n0 + o(1)], beta = 1/(A-1), omega = B/(A-1): exactly the card's P10 exponents.",
+        "Claim 3 (accumulation): ell_inf(c(d)) changes sign at offsets d_n^+ -> 0+ and d_n^- -> 0- with d_(n+1)/d_n -> exp(-pi/omega) = exp(-pi (A-1)/B). Since L=0, sign(ell_inf) is also the side on which the escaper passes the binary. Hence the boundary of the refined label (escaping body, sense of rotation of the final binary) is infinite and accumulates at c(0).",
+        "Claim 4 (function-class obstruction): the map d -> ell_inf(c(d)) is not definable in any o-minimal expansion of the real field. In particular, on no interval containing the crossing is the scattering map along the curve given by a finite expression built from algebraic functions, exp, log, real powers and restricted analytic functions (the structure R_an,exp), nor by Pfaffian functions.",
+        "Application: Gamma on W^u(L-) never meets C (L- is not collinear and C is invariant), so (b) reduces to transversality at psi*. For equal masses kappa = 7/5, omega = 0.5427138476, beta = 0.1699302972, predicted ratio exp(-pi/omega) = 3.0620447e-3.",
+        "Mass domain of (a): for every positive mass triple at least one Euler point has kappa >= 3/4 (R1(6)); kappa <= 1/8 needs a dominant middle mass, e.g. m > 55/4 for (1,m,1). For kappa < 1/8 there is no oscillation and no accumulation from this mechanism."
+      ],
+      "assumptions": [
+        "(a), (b), (c) above.",
+        "Regularised binary collisions depend continuously on initial data (card A02).",
+        "Escape after the exit section is certified by R3."
+      ],
+      "derivation": [
+        "Spectrum at E+ (R1): unstable A-1 (collinear), strong stable -(A+1) (collinear), stable pair -1 +/- iB (non-collinear), units nu0/4. W^s(E+) is a hypersurface; W^s(E+) intersect C is the strong stable manifold.",
+        "Claim 1: a transverse curve crosses the hypersurface W^s(E+) once; the two sides shadow the two branches of W^u(E+). Inside C the ordering is preserved and nu increases past the largest rest value, so each branch runs up a binary-collision arm: the outer body on the far side escapes (R3 certifies it for nearby non-collinear orbits).",
+        "Claim 2: because C is invariant, the non-collinear coordinate n in R^2 obeys n' = (N0 + O(dist to E+)) n along orbits, N0 with eigenvalues (nu0/4)(-1 +/- iB). An orbit entering at unstable distance |d| stays a time T = ln(1/|d|)/Lam_u + O(1) near E+, and the perturbation of N0 is integrable along it, so by Levinson-type asymptotics the normal transfer matrix is exp(-nu0 T/4) Rot(B nu0 T/4 + theta(d)) (m(d)) with theta, m continuous at d = 0+/-. Substituting T gives beta and omega. n0 != 0 because c(0) is not on the strong stable manifold.",
+        "Claim 3: ell_inf vanishes on C and is C^1 there (ell = 2 Im(conj(zeta) zeta') is smooth in Levi-Civita variables; its tail is controlled by R3). So ell_inf = L_inf . n_exit + O(|n_exit|^2), a non-zero functional applied to a vector whose argument tends to infinity like omega ln(1/|d|): a sign change every time the argument advances by pi.",
+        "Claim 4: in an o-minimal structure a definable function of one variable has finitely many isolated zeros on a bounded interval. ell_inf(c(d)) has infinitely many. R_an,exp is o-minimal (van den Dries-Macintyre-Marker) and Pfaffian functions generate an o-minimal structure (Wilkie)."
+      ],
+      "proof_gap": [
+        "Uniformity of the Levinson/Shilnikov estimate in Claim 2 as d -> 0 (standard for saddle-foci; not rewritten here).",
+        "C^1 dependence of ell_inf on initial data at the collinear, collision-bouncing reference orbit (uses A02 + R3 tails).",
+        "Hypothesis (c) is verified only numerically (the flips are observed); an analytic proof needs the linearised normal flow along the collinear escape orbit."
+      ],
+      "verification": {
+        "numerical": "r7_gamma.py flips. Equal masses, boundary point psi* = 117.0539468355 deg of Gamma (my convention; = the card's 57.0539468355 after the D3 shift). 456 orbits at log-spaced offsets 1e-11 <= |d| <= 3e-2 rad (24 per decade, both sides), each run until the R3 certificate H1-H4 holds; 'certified sign' means |ell0| > delta at that moment. Flip positions refined by bisection in ln d.",
+        "labels": "escaping body constant on each side over 9.5 decades (1 below, 2 above): no hidden coarse transitions.",
+        "certified_sign_change_brackets_rad": {
+          "below": [
+            [
+              0.00027255527269550735,
+              0.0002249682627997379
+            ],
+            [
+              9.486832980505233e-07,
+              5.872025344463037e-07
+            ],
+            [
+              3.6345829758858296e-09,
+              1.2650895102857672e-09
+            ]
+          ],
+          "above": [
+            [
+              0.00027255527269550735,
+              0.0002249682627997379
+            ],
+            [
+              8.618954500061074e-07,
+              5.872025344463037e-07
+            ],
+            [
+              3.6345829758858296e-09,
+              1.2650895102857672e-09
+            ]
+          ]
+        },
+        "fit_of_exponents": {
+          "model": "ell_inf/sqrt(m_b a) = d^beta (A cos(omega ln d) + B sin(omega ln d)), 3e-11 < d < 3e-3, 192 points per side",
+          "below": {
+            "beta": 0.16868562500000003,
+            "omega": 0.541600625,
+            "rss": 0.027516903785783465,
+            "n": 192
+          },
+          "above": {
+            "beta": 0.1693428125,
+            "omega": 0.5422409375,
+            "rss": 0.015291780719294906,
+            "n": 192
+          },
+          "predicted": {
+            "beta": 0.16993029722464228,
+            "omega": 0.5427138475582909
+          }
+        },
+        "order_of_contact": "At a tangency of order k the distance to W^s(E+) scales like d^k (card A04), so the phase would be k*omega*ln(1/d), the fitted frequency k*omega and the flip ratio exp(-pi/(k omega)) (0.0553 for k = 2). The measured frequency 0.542 and ratio 3.0e-3 mean k = 1: numerical evidence that the crossing is transverse.",
+        "extended_precision": {
+          "part_1_rotation_law_of_the_exit_displacement": {
+            "method": "r7_hp.py scan/flips, 42-digit arithmetic. For offsets d = 10^(-k/4), k = 8..108 on both sides of psi*, integrate to the section nu = nu(E+)+0.02 and record n = (signed area, its tau-derivative). Zeros of a FIXED linear functional of n are located by bisection in ln d (34 steps). They test Claim 2 (the rotation of n) to high accuracy; the sign of ell_inf itself is tested in part 2.",
+            "fits_of_beta_omega_by_window": {
+              "below": {
+                "d<1e-4": {
+                  "a": {
+                    "beta": 0.169038979775,
+                    "omega": 0.541318401015,
+                    "rel_rss": 0.0014041791161945663,
+                    "n": 93
+                  },
+                  "da": {
+                    "beta": 0.17078663974500002,
+                    "omega": 0.5413185120374999,
+                    "rel_rss": 0.0015524741720341305,
+                    "n": 93
+                  }
+                },
+                "d<1e-8": {
+                  "a": {
+                    "beta": 0.16989649831500003,
+                    "omega": 0.5426451882575,
+                    "rel_rss": 1.406379420897553e-06,
+                    "n": 77
+                  },
+                  "da": {
+                    "beta": 0.1699479533375,
+                    "omega": 0.54256923475,
+                    "rel_rss": 5.7394936965570816e-06,
+                    "n": 77
+                  }
+                },
+                "d<1e-12": {
+                  "a": {
+                    "beta": 0.169926528965,
+                    "omega": 0.5427056375225001,
+                    "rel_rss": 1.2373054105674572e-08,
+                    "n": 61
+                  },
+                  "da": {
+                    "beta": 0.1699315758975,
+                    "omega": 0.5427080925200002,
+                    "rel_rss": 4.6930155803724295e-09,
+                    "n": 61
+                  }
+                }
+              },
+              "above": {
+                "d<1e-4": {
+                  "a": {
+                    "beta": 0.16904221553,
+                    "omega": 0.5413229006299999,
+                    "rel_rss": 0.0013901117134466725,
+                    "n": 93
+                  },
+                  "da": {
+                    "beta": 0.17078664559500004,
+                    "omega": 0.5413199571049999,
+                    "rel_rss": 0.0015478756117949823,
+                    "n": 93
+                  }
+                },
+                "d<1e-8": {
+                  "a": {
+                    "beta": 0.16989649896,
+                    "omega": 0.5426451899275001,
+                    "rel_rss": 1.406363417177571e-06,
+                    "n": 77
+                  },
+                  "da": {
+                    "beta": 0.1699479535,
+                    "omega": 0.542569236515,
+                    "rel_rss": 5.739384329066515e-06,
+                    "n": 77
+                  }
+                },
+                "d<1e-12": {
+                  "a": {
+                    "beta": 0.16992653057,
+                    "omega": 0.5427056388625001,
+                    "rel_rss": 1.237519779441451e-08,
+                    "n": 61
+                  },
+                  "da": {
+                    "beta": 0.16993157551000002,
+                    "omega": 0.5427080933900001,
+                    "rel_rss": 4.6936027848417545e-09,
+                    "n": 61
+                  }
+                }
+              }
+            },
+            "predicted": {
+              "beta": "0.169930297224642289842649911261977632643548037",
+              "omega": "0.542713847558290855669070502674567754131647106"
+            },
+            "zeros_rad_functional_from_float64_flip": {
+              "below": [
+                0.0005400000088796003,
+                8.022483096292679e-07,
+                2.1819983700732163e-09,
+                6.567815502456699e-12,
+                2.0062551122140814e-14,
+                6.141172253887183e-17,
+                1.8803657730478607e-19,
+                5.757726177979578e-22,
+                1.763039892856308e-24,
+                5.3985057553709496e-27
+              ],
+              "above": [
+                0.000528669419532432,
+                8.020684037339954e-07,
+                2.181570310263043e-09,
+                6.56652466916113e-12,
+                2.0058606810804463e-14,
+                6.139964842123358e-17,
+                1.8799960733877913e-19,
+                5.756594147576463e-22,
+                1.7626932608737323e-24,
+                5.397444869677663e-27
+              ]
+            },
+            "successive_ratios_functional_from_float64_flip": {
+              "below": [
+                0.0014856449934024707,
+                0.0027198541198317433,
+                0.00301000018723035,
+                0.003054676416326919,
+                0.0030610126381733437,
+                0.0030619003918309637,
+                0.003062024559533943,
+                0.003062041921338763,
+                0.0030620440168400323
+              ],
+              "above": [
+                0.0015171454487444426,
+                0.002719930494839137,
+                0.003009999099396146,
+                0.003054676228509005,
+                0.0030610126117114464,
+                0.003061900388240074,
+                0.003062024559021,
+                0.0030620419221595277,
+                0.003062044309968177
+              ]
+            },
+            "zeros_rad_functional_from_deep_true_flips": {
+              "below": [
+                0.0005758477469444654,
+                8.652550387443098e-07,
+                2.356769247042713e-09,
+                7.095227769876449e-12,
+                2.1674196870165826e-14,
+                6.634523500146963e-17,
+                2.0314260569335474e-19,
+                6.220276925108608e-22,
+                1.904674889911689e-24,
+                5.832198404224579e-27
+              ],
+              "above": [
+                0.000563064394635101,
+                8.651628026490024e-07,
+                2.356594625334979e-09,
+                7.0947013180692495e-12,
+                2.167258810177921e-14,
+                6.634031026955554e-17,
+                2.0312752653810906e-19,
+                6.219815197221613e-22,
+                1.9045335074061683e-24,
+                5.831766003370542e-27
+              ]
+            },
+            "successive_ratios_functional_from_deep_true_flips": {
+              "below": [
+                0.0015025760599663418,
+                0.0027237856371954148,
+                0.0030105738093704247,
+                0.003054757024458884,
+                0.00306102391700579,
+                0.0030619019691294318,
+                0.003062024780019885,
+                0.003062041952221336,
+                0.0030620440449524652
+              ],
+              "above": [
+                0.0015365255038185801,
+                0.002723874186591737,
+                0.0030105734952445506,
+                0.0030547569418577277,
+                0.003061023905313336,
+                0.003061901967487888,
+                0.0030620247798147163,
+                0.003062041953042145,
+                0.003062044317252769
+              ]
+            },
+            "kernel_angle_used": {
+              "below": 2.5040251067560093,
+              "above": 2.5039592594031475
+            },
+            "predicted_ratio": 0.0030620447448085793,
+            "reading": "ten zeros per side down to d = 5e-27 rad. The ratio of successive zeros converges to exp(-pi/omega) = 3.0620447e-3, the error shrinking by about 0.14 = exp(-2 pi beta/omega) per flip; the last ratios agree with the prediction to 7 significant digits whichever fixed functional is used."
+          },
+          "part_2_true_flips_of_ell_inf_by_direct_integration": {
+            "method": "r7_hp.py direct, 42-digit arithmetic through the near-collision pericentres (pair distance down to 1e-10 scaled units). Each flip is bisected in ln d on the sign of the binary angular momentum read when H1-H3 of R3 hold and R0 > 40 b (R about 100 semi-major axes). At the antinodes between consecutive flips the run continues until H4 of R3 holds, which certifies the sign (inequalities evaluated in float on 42-digit inputs; no interval arithmetic).",
+            "by_side": {
+              "below": {
+                "true_flip_offsets_rad": [
+                  0.00025673765132778965,
+                  7.585913333183079e-07,
+                  2.31499727505775e-09,
+                  7.062330395952883e-12,
+                  2.1669900539810004e-14,
+                  6.64093419659342e-17,
+                  2.030719131859646e-19,
+                  6.223319807891219e-22,
+                  1.9030175911167103e-24,
+                  5.831967052340057e-27
+                ],
+                "true_flip_offsets_deg": [
+                  0.014709983863183644,
+                  4.3464081774340916e-05,
+                  1.3263957344509523e-07,
+                  4.0464172521505573e-10,
+                  1.2415938433993776e-12,
+                  3.804975014889051e-15,
+                  1.1635163563202824e-17,
+                  3.5656995955233316e-20,
+                  1.090348763101401e-22,
+                  3.341470983584365e-25
+                ],
+                "relative_bracket_width": [
+                  0.0032344327021796015,
+                  0.0032344327021796015,
+                  0.004485506580257814,
+                  0.004485506580257592,
+                  0.004485506580257814,
+                  0.0021934856354441923,
+                  0.0021934856354441923,
+                  0.0021934856354441923,
+                  0.0021934856354441923,
+                  0.0021934856354441923
+                ],
+                "successive_ratios": [
+                  0.002954733477520899,
+                  0.003051705408933756,
+                  0.0030506862673420235,
+                  0.003068378187492912,
+                  0.0030645891449262953,
+                  0.0030578817252869903,
+                  0.003064589144926294,
+                  0.0030578817252869908,
+                  0.003064589144926295
+                ],
+                "direction_of_n_exit_at_true_flips_mod_pi": [
+                  2.0487793469016844,
+                  2.396266739583132,
+                  2.488329822564934,
+                  2.4999154125336847,
+                  2.503849262573229,
+                  2.5048825040618348,
+                  2.5037164307480837,
+                  2.504459120058409,
+                  2.5032534055343767,
+                  2.5039899175601223
+                ],
+                "norm_of_n_exit_at_true_flips": [
+                  0.24433320466570774,
+                  0.06210387614005464,
+                  0.021703609642923585,
+                  0.008053906368714066,
+                  0.0030037689423455306,
+                  0.0011224422027376394,
+                  0.00042005181822491117,
+                  0.00015699385586517516,
+                  5.875340118329121e-05,
+                  2.1959093188013442e-05
+                ],
+                "antinodes": [
+                  {
+                    "d": 0.004639634803667459,
+                    "label": 1,
+                    "certified": true,
+                    "ell_rel": 0.5109120682628788,
+                    "delta_rel": 0.08375633835346798,
+                    "R_over_a": 8.507472933908069,
+                    "steps": 8,
+                    "status": "event"
+                  },
+                  {
+                    "d": 1.3955606659466968e-05,
+                    "label": 1,
+                    "certified": true,
+                    "ell_rel": -0.19573158289920864,
+                    "delta_rel": 0.08674203019488334,
+                    "R_over_a": 8.40773665047957,
+                    "steps": 8,
+                    "status": "event"
+                  },
+                  {
+                    "d": 4.190628675406959e-08,
+                    "label": 1,
+                    "certified": true,
+                    "ell_rel": 0.07315565540268935,
+                    "delta_rel": 0.07274919977114841,
+                    "R_over_a": 8.90070735674597,
+                    "steps": 40,
+                    "status": "event"
+                  },
+                  {
+                    "d": 1.2786428595267893e-10,
+                    "label": 1,
+                    "certified": true,
+                    "ell_rel": -0.02731731040203607,
+                    "delta_rel": 0.01813198913949304,
+                    "R_over_a": 14.888153309180796,
+                    "steps": 72,
+                    "status": "event"
+                  },
+                  {
+                    "d": 3.9120326846739913e-13,
+                    "label": 1,
+                    "certified": true,
+                    "ell_rel": 0.01020884618101641,
+                    "delta_rel": 0.008485924161024049,
+                    "R_over_a": 20.480964258500144,
+                    "steps": 160,
+                    "status": "event"
+                  },
+                  {
+                    "d": 1.1996182039782594e-15,
+                    "label": 1,
+                    "certified": true,
+                    "ell_rel": -0.003816729156353718,
+                    "delta_rel": 0.0030889790483728656,
+                    "R_over_a": 32.177108428541715,
+                    "steps": 376,
+                    "status": "event"
+                  },
+                  {
+                    "d": 3.672311550841408e-18,
+                    "label": 1,
+                    "certified": true,
+                    "ell_rel": 0.0014269124996472936,
+                    "delta_rel": 0.0013606941284988782,
+                    "R_over_a": 47.150143787160395,
+                    "steps": 744,
+                    "status": "event"
+                  },
+                  {
+                    "d": 1.1241803501914536e-20,
+                    "label": 1,
+                    "certified": true,
+                    "ell_rel": -0.0005334769582425738,
+                    "delta_rel": 0.0004763761379183822,
+                    "R_over_a": 77.90502353370854,
+                    "steps": 1448,
+                    "status": "event"
+                  },
+                  {
+                    "d": 3.441378658265036e-23,
+                    "label": 1,
+                    "certified": true,
+                    "ell_rel": 0.00019946868328375253,
+                    "delta_rel": 0.0001886142301839477,
+                    "R_over_a": 122.3056261371029,
+                    "steps": 2728,
+                    "status": "event"
+                  },
+                  {
+                    "d": 1.0534863972266655e-25,
+                    "label": 1,
+                    "certified": true,
+                    "ell_rel": -7.458378226534866e-05,
+                    "delta_rel": 7.418297229835502e-05,
+                    "R_over_a": 193.51504364280834,
+                    "steps": 4992,
+                    "status": "event"
+                  },
+                  {
+                    "d": 3.22716245350882e-28,
+                    "label": 1,
+                    "certified": true,
+                    "ell_rel": 2.7891320245622587e-05,
+                    "delta_rel": 2.776615356917913e-05,
+                    "R_over_a": 314.70763312254763,
+                    "steps": 9168,
+                    "status": "event"
+                  }
+                ],
+                "antinode_signs_all_certified_by_H4": true,
+                "antinode_signs_alternate": true,
+                "number_of_certified_sign_changes": 10,
+                "antinode_amplitude_ratios": [
+                  0.3831022891369619,
+                  0.3737549879232348,
+                  0.37341351467178335,
+                  0.37371344509287796,
+                  0.37386489018230246,
+                  0.3738574159164291,
+                  0.37386802510626227,
+                  0.37390309028689755,
+                  0.3739122404455346,
+                  0.37395958475788893
+                ],
+                "stopping_rule_check": [
+                  {
+                    "index": 3,
+                    "eps": -0.015,
+                    "ell_rel_cap40": 0.00015402690792348678,
+                    "ell_rel_cap160": 0.00015627565908428158,
+                    "R_over_a_cap160": 137.49585271873272,
+                    "certified_cap160": true
+                  },
+                  {
+                    "index": 3,
+                    "eps": 0.015,
+                    "ell_rel_cap40": -0.00011742993158750794,
+                    "ell_rel_cap160": -0.00011450603095930996,
+                    "R_over_a_cap160": 159.9029198522992,
+                    "certified_cap160": true
+                  },
+                  {
+                    "index": 6,
+                    "eps": -0.015,
+                    "ell_rel_cap40": -7.287313582985564e-06,
+                    "ell_rel_cap160": -7.52133412495246e-06,
+                    "R_over_a_cap160": 400.79939641420293,
+                    "certified_cap160": false
+                  },
+                  {
+                    "index": 6,
+                    "eps": 0.015,
+                    "ell_rel_cap40": 6.914842376420649e-06,
+                    "ell_rel_cap160": 6.679034651175421e-06,
+                    "R_over_a_cap160": 401.0250888869876,
+                    "certified_cap160": false
+                  }
+                ]
+              },
+              "above": {
+                "true_flip_offsets_rad": [
+                  0.00025421259748531656,
+                  7.584425144802222e-07,
+                  2.3145431238046127e-09,
+                  7.060942371088908e-12,
+                  2.166564022247367e-14,
+                  6.631879796179468e-17,
+                  2.0323986833827606e-19,
+                  6.214834792413483e-22,
+                  1.9045915242340622e-24,
+                  5.836790510686333e-27
+                ],
+                "true_flip_offsets_deg": [
+                  0.014565308934966645,
+                  4.345555508300656e-05,
+                  1.326135524950299e-07,
+                  4.0456219724849073e-10,
+                  1.2413497451966191e-12,
+                  3.7997872255916416e-15,
+                  1.1644786684577747e-17,
+                  3.5608380397635565e-20,
+                  1.091250560350002e-22,
+                  3.344234621643353e-25
+                ],
+                "relative_bracket_width": [
+                  0.0032344327021796015,
+                  0.0032344327021796015,
+                  0.004485506580257814,
+                  0.004485506580257814,
+                  0.004485506580257814,
+                  0.004485506580257814,
+                  0.0021934856354441923,
+                  0.0021934856354441923,
+                  0.0021934856354441923,
+                  0.0021934856354441923
+                ],
+                "successive_ratios": [
+                  0.002983496970578062,
+                  0.003051705408933756,
+                  0.0030506851648035974,
+                  0.0030683779988325394,
+                  0.003061012611711446,
+                  0.003064589144926295,
+                  0.00305788172528699,
+                  0.003064589144926295,
+                  0.003064589144926295
+                ],
+                "direction_of_n_exit_at_true_flips_mod_pi": [
+                  2.04889131615815,
+                  2.3961441480743155,
+                  2.4881600992839035,
+                  2.4997422397434184,
+                  2.503674910815671,
+                  2.503671654443631,
+                  2.5044498943603997,
+                  2.5032491667548324,
+                  2.5039862796869956,
+                  2.504723650357353
+                ],
+                "norm_of_n_exit_at_true_flips": [
+                  0.24413546354477303,
+                  0.06210993817161571,
+                  0.02170616530703295,
+                  0.008054853513212081,
+                  0.0030041222536805203,
+                  0.0011233586178982793,
+                  0.0004198441544236662,
+                  0.00015712202059264566,
+                  5.872435745022328e-05,
+                  2.194823775931671e-05
+                ],
+                "antinodes": [
+                  {
+                    "d": 0.004594003289831902,
+                    "label": 2,
+                    "certified": true,
+                    "ell_rel": -0.5185383665196145,
+                    "delta_rel": 0.0848581779782067,
+                    "R_over_a": 8.4722219774028,
+                    "steps": 8,
+                    "status": "event"
+                  },
+                  {
+                    "d": 1.3885447117371198e-05,
+                    "label": 2,
+                    "certified": true,
+                    "ell_rel": 0.19559233663054731,
+                    "delta_rel": 0.08060743130675614,
+                    "R_over_a": 8.608260400819235,
+                    "steps": 8,
+                    "status": "event"
+                  },
+                  {
+                    "d": 4.1898065667656767e-08,
+                    "label": 2,
+                    "certified": true,
+                    "ell_rel": -0.07314950761561897,
+                    "delta_rel": 0.062396249982373156,
+                    "R_over_a": 9.367824012128299,
+                    "steps": 48,
+                    "status": "event"
+                  },
+                  {
+                    "d": 1.278391787074075e-10,
+                    "label": 2,
+                    "certified": true,
+                    "ell_rel": 0.027316685106879346,
+                    "delta_rel": 0.017610957864110068,
+                    "R_over_a": 15.065747534751681,
+                    "steps": 72,
+                    "status": "event"
+                  },
+                  {
+                    "d": 3.9112636966028313e-13,
+                    "label": 2,
+                    "certified": true,
+                    "ell_rel": -0.010209228000555116,
+                    "delta_rel": 0.008888290335426,
+                    "R_over_a": 20.074146095572672,
+                    "steps": 160,
+                    "status": "event"
+                  },
+                  {
+                    "d": 1.1986822834375937e-15,
+                    "label": 2,
+                    "certified": true,
+                    "ell_rel": 0.0038161973528671902,
+                    "delta_rel": 0.002981257680439564,
+                    "R_over_a": 32.70609680062405,
+                    "steps": 376,
+                    "status": "event"
+                  },
+                  {
+                    "d": 3.671324524760496e-18,
+                    "label": 2,
+                    "certified": true,
+                    "ell_rel": -0.0014267922269162927,
+                    "delta_rel": 0.001226563490101296,
+                    "R_over_a": 49.52316347078149,
+                    "steps": 752,
+                    "status": "event"
+                  },
+                  {
+                    "d": 1.1238781984513505e-20,
+                    "label": 2,
+                    "certified": true,
+                    "ell_rel": 0.000533452685187639,
+                    "delta_rel": 0.00048089059930779175,
+                    "R_over_a": 77.55051681694574,
+                    "steps": 1464,
+                    "status": "event"
+                  },
+                  {
+                    "d": 3.440453701206525e-23,
+                    "label": 2,
+                    "certified": true,
+                    "ell_rel": -0.0001994595794073126,
+                    "delta_rel": 0.00018993036287747229,
+                    "R_over_a": 121.88993076007509,
+                    "steps": 2736,
+                    "status": "event"
+                  },
+                  {
+                    "d": 1.054357706633901e-25,
+                    "label": 2,
+                    "certified": true,
+                    "ell_rel": 7.459426675270773e-05,
+                    "delta_rel": 7.384445029065948e-05,
+                    "R_over_a": 193.95232164671802,
+                    "steps": 4976,
+                    "status": "event"
+                  },
+                  {
+                    "d": 3.22983155015005e-28,
+                    "label": 2,
+                    "certified": true,
+                    "ell_rel": -2.78952317893284e-05,
+                    "delta_rel": 2.7782620479123284e-05,
+                    "R_over_a": 314.615100188414,
+                    "steps": 9152,
+                    "status": "event"
+                  }
+                ],
+                "antinode_signs_all_certified_by_H4": true,
+                "antinode_signs_alternate": true,
+                "number_of_certified_sign_changes": 10,
+                "antinode_amplitude_ratios": [
+                  0.37719935352777556,
+                  0.3739896402679132,
+                  0.3734363497075222,
+                  0.37373597713670087,
+                  0.3737988173699019,
+                  0.3738779981712197,
+                  0.3738825283205973,
+                  0.3739030375995836,
+                  0.37398187128621285,
+                  0.37395946101066563
+                ],
+                "stopping_rule_check": [
+                  {
+                    "index": 3,
+                    "eps": -0.015,
+                    "ell_rel_cap40": -0.00015579727031416688,
+                    "ell_rel_cap160": -0.00015786784746861117,
+                    "R_over_a_cap160": 133.45490938686663,
+                    "certified_cap160": true
+                  },
+                  {
+                    "index": 3,
+                    "eps": 0.015,
+                    "ell_rel_cap40": 0.00011564282550328616,
+                    "ell_rel_cap160": 0.00011270671172973766,
+                    "R_over_a_cap160": 160.88652101839642,
+                    "certified_cap160": true
+                  },
+                  {
+                    "index": 6,
+                    "eps": -0.015,
+                    "ell_rel_cap40": 6.8979434952835455e-06,
+                    "ell_rel_cap160": 7.132049427273813e-06,
+                    "R_over_a_cap160": 402.1686710216833,
+                    "certified_cap160": false
+                  },
+                  {
+                    "index": 6,
+                    "eps": 0.015,
+                    "ell_rel_cap40": -7.308236569226712e-06,
+                    "ell_rel_cap160": -7.07233061958353e-06,
+                    "R_over_a_cap160": 402.2486348241461,
+                    "certified_cap160": false
+                  }
+                ]
+              }
+            },
+            "predicted_ratio_of_flip_offsets": 0.0030620447448085793,
+            "predicted_ratio_of_antinode_amplitudes": 0.37393592634178613,
+            "reading": "Ten flips per side between d = 2.5e-4 and 5.8e-27 rad. All successive ratios lie within the bisection resolution (0.2-0.5 per cent) of the prediction. Eleven antinode signs per side are certified by H4 and alternate, i.e. ten certified sign changes per side over 25 decades. The antinode amplitudes of ell_inf/sqrt(m_b a) shrink by 0.3735-0.3740 per flip; predicted exp(-pi beta/omega) = exp(-pi/sqrt(8 kappa - 1)) = 0.37394. The direction of n at the true flips converges (2.049, 2.396, 2.488, 2.500, then 2.5040 +/- 0.001), which is the statement ell_inf = L.n + smaller terms of Claim 3. Moving the stopping radius from R0 > 40 b to R0 > 160 b shifts a flip by about 0.03-0.05 per cent."
+          },
+          "correction_of_the_float64_flip_positions": "The float64 'refined' flip offsets and the ratios computed from them (kept under float64_refined_estimates_SUPERSEDED) are biased by 5-6 per cent: next to a flip the binary is almost radial, the unregularised float64 run stalls at its pericentre, and the sign was then read at that early time, before the tidal torque had finished acting. The float64 certified brackets are valid and contain the true flips. Use part 2 for positions.",
+          "caution_for_reuse_of_the_R3_certificate": "Evaluate H1-H4 on scalars computed in the working precision. Near a pericentre at distance 1e-10 a float64 evaluation of the pair energy from rounded positions is wrong by orders of magnitude and produces spurious certificates (found and fixed during this run; the float64 runs have pericentres >= 1e-6 and are not affected)."
+        },
+        "float64_refined_estimates_SUPERSEDED": {
+          "flip_offsets_rad": {
+            "below": [
+              0.0002434046868803706,
+              7.157963655431866e-07,
+              2.1819983700824435e-09
+            ],
+            "above": [
+              0.0002410942048097277,
+              7.157758133569601e-07,
+              2.18157031029663e-09
+            ]
+          },
+          "flip_offsets_deg": {
+            "below": [
+              0.013946061271948555,
+              4.10121107364281e-05,
+              1.2501929751014868e-07
+            ],
+            "above": [
+              0.01381368040066007,
+              4.1010933182897555e-05,
+              1.2499477149104232e-07
+            ]
+          },
+          "successive_ratios": {
+            "below": [
+              0.002940766567469544,
+              0.003048350725316439
+            ],
+            "above": [
+              0.002968863618774465,
+              0.0030478402169879866
+            ],
+            "predicted_limit": 0.0030620447448085793
+          },
+          "note": "biased by 5-6 per cent, see extended_precision.correction_of_the_float64_flip_positions"
+        }
+      },
+      "counterexample_search": "Looked for coarse-label changes hidden near the boundary: none over 9.5 decades (float64) and at all 202 exit-section orbits down to 1e-27 rad (42 digits). Looked for a failure of the ratio law: 18 measured ratios of true flips, all between 2.9547e-03 and 3.0684e-03 (prediction 3.0620e-3, resolution 0.2-0.5 per cent); the fixed-functional zeros agree with the prediction to 7 digits.",
+      "limitations": [
+        "Ten flips per side are located and the sign alternation between them is certified by H4, but in 42-digit arithmetic without interval enclosures: strong evidence for, not a proof of, infinitely many flips.",
+        "Claim 4 excludes o-minimal formulas only. It does NOT exclude closed forms containing oscillatory terms such as Re(d^(beta + i omega)); that is the predicted leading term.",
+        "Statement is for E=0, L=0 planar. For small nonzero L the Lam_L direction is added and the Euler point keeps the same shape spectrum, but I have not analysed it.",
+        "o-minimal non-definability is automatic for bounded motions (any periodic solution is non-definable); the content here is that it already fails for the gradient-like E=0 scattering problem, where nothing recurs."
+      ],
+      "exact_mass_domain": "Euler points with kappa_j > 1/8; includes at least one Euler point for every positive mass triple.",
+      "next_experiment": "In the card's own pipeline, record the sign of the final binary angular momentum at psi* +/- d. Sign changes must appear at |d| = 1.457e-02, 4.346e-05, 1.326e-07, 4.046e-10 deg (both sides, within about 1 per cent; the two sides differ by 1 per cent at the first flip and by less than 0.1 per cent later), then every further factor 3.0620e-3. Read the sign only after the escaper is more than about 100 binary semi-major axes away, and use regularisation or extended precision: near a flip the binary is almost radial. Any other pattern falsifies R4.",
+      "new_representation": "Near a boundary point use the Shilnikov variables (u,v) = |d|^beta (cos, sin)(omega ln(1/|d|)). Hypothesis to test: on each side the scattering observables are smooth functions of (u, v, |d|^gamma'), i.e. a Dulac-type expansion in complex powers of d rather than a power series in d.",
+      "transferable_mechanism": "Saddle-focus transit + o-minimal finiteness: whenever a codimension-one stable manifold of a saddle-focus separates outcomes and the unstable manifold lies in an invariant symmetry submanifold, any outcome that is odd in the normal coordinate has an accumulating boundary and the scattering map leaves every o-minimal class."
+    },
+    {
+      "result_id": "R5",
+      "title": "Euler heteroclinic boundary: independent reproduction and an existence argument without bisection",
+      "problem_ids": [
+        "P05",
+        "X04",
+        "X08",
+        "T7_01",
+        "P09",
+        "P02"
+      ],
+      "status": "NUMERICAL_EVIDENCE",
+      "status_detail": {
+        "reproduction_of_psi_star": "NUMERICAL_EVIDENCE (independent method, 11 significant digits agree with the card)",
+        "existence_argument": "CONDITIONAL_THEOREM (conditional on Lemma D and on a validated version of check (iii))"
+      },
+      "precise_claim": [
+        "(1) Equal masses. On Gamma (psi in [0,360)) the escaping body is constant on six arcs: three long arcs of length 114.1078936710 deg centred on the isosceles directions psi = 60, 180, 300 and three short windows of length 5.8921063290 deg centred on psi = 0, 120, 240; on each arc the escaper is the apex of the central isosceles orbit. The six boundary points are psi = 120 n +/- 2.9460531645 deg.",
+        "(2) In the card's convention this is psi* = 57.05394683548 deg (mean of the six independently bisected copies, spread 4.6e-11 deg). Card: 57.0539468355.",
+        "(3) The boundary orbits shadow the Euler rest point whose middle body is the one that does not escape on either side (3->1 through body 2, 1->2 through body 3), reaching nu = 2.65909 against nu(E+) = 2.659148.",
+        "(4) On every sampled orbit (1-degree grid of the full circle, 0.02-degree grid of the fundamental domain, all bisection orbits) sup_tau nu exceeds nu(L+) = sqrt(6): no sampled orbit of Gamma can converge to L+.",
+        "(5) Existence without root finding. Let U_j be the set of psi whose orbit satisfies H1-H3 of R3 at some time with escaper j. Then U_1,U_2,U_3 are open and pairwise disjoint; the cyclic relabelling symmetry rotates Gamma by 120 deg and permutes them; so if one U_j is non-empty all are, and since a circle is connected their complement B is non-empty, closed, D3-invariant and has at least 3 points. Under Lemma D every point of B lies in W^s(E+(j)) for some j or in W^s(L+). If in addition sup nu > nu(L+) along every orbit of Gamma, then W^u(L-) meets W^s(E+) in at least three orbits. No angle estimate is used.",
+        "(6) Extended precision: two independent 42-digit bisections (degree 30 / start radius 0.04 / rtol 1e-33 and degree 26 / 0.03 / 1e-31) agree to 7.941e-33 rad. Common digits, card convention: psi* = 57.05394683549096023447549725357 deg. The float64 value above is consistent with it (off by 6e-12 deg)."
+      ],
+      "assumptions": [
+        "Equal masses for (1)-(4) and for the symmetry step of (5).",
+        "Lemma D (dichotomy): in the regularised reduced E=0, L=0 flow every forward orbit either converges to a rest point or satisfies H1-H3 at some time. I believe this is the classical gradient-like picture of the collision manifold (McGehee 1974 collinear; Moeckel planar) but I did not verify a precise published statement.",
+        "(iii) sup nu > nu(L+) on all of Gamma is checked on finite grids only."
+      ],
+      "derivation": [
+        "Gamma: for equal masses the unstable eigenvalue at L- is double and every direction of the shape tangent plane is an eigen-direction, so each orbit of W^u(L-) is z(t) = L- + sum_n t^n P_n(psi) with t' = Lam t. The P_n solve (n Lam - J) P_n = [F(z_<n)]_n; n Lam is never an eigenvalue for n >= 2 (ambient spectrum {4.606 (x2), -2.606 (x2), 0, 2, 8, -4} in units |nu0|/4). I use degree 24 and t = 0.1 (root-test radius about 0.65).",
+        "Openness of U_j: H1-H3 are strict inequalities at a finite time. Disjointness: R3 makes the escape of k permanent. Symmetry: cyclic relabelling composed with a rotation fixes the oriented triangle L- and commutes with the flow.",
+        "Why L+ is the only alternative: nu is non-decreasing and nu(E-) < nu(L-) < 0 < nu(L+) < nu(E+); from L- only L+ and the E+(j) are reachable. An orbit converging to L+ has nu < nu(L+) forever.",
+        "W^s(L+) has codimension 2 in the 4D flow, W^u(L-) has dimension 2: a connection L- -> L+ is a codimension-one accident, so it is not expected but must be excluded."
+      ],
+      "verification": {
+        "method": "r7_core.py + r7_gamma.py: Jacobi coordinates, Taylor-series manifold, Gragg-Bulirsch-Stoer integration of the scaled flow (rtol 1e-13) with re-projection onto |s|=1, E=0, L=0 after every step, R3 certificate as stopping rule, bisection on the certified label. No code, coordinates or integrator shared with the card's artifacts.",
+        "manifold_quality": "invariance residual sup|F(z) - Lam t z'(t)| = 8e-16 at t = 0.1 (1.7e-15 at 0.05); |J v - Lam v| = 5e-15.",
+        "boundaries_deg_my_convention": [
+          2.9460531645147814,
+          117.05394683550018,
+          122.94605316451394,
+          237.0539468354933,
+          242.94605316454596,
+          357.0539468354898
+        ],
+        "bisection_brackets_rad": [
+          6.938893903907228e-18,
+          4.440892098500626e-16,
+          4.440892098500626e-16,
+          8.881784197001252e-16,
+          8.881784197001252e-16,
+          8.881784197001252e-16
+        ],
+        "psi_star_card_convention_deg": [
+          57.05394683548522,
+          57.053946835500184,
+          57.05394683548606,
+          57.05394683549329,
+          57.05394683545404,
+          57.053946835489796
+        ],
+        "label_sequence": "1-degree grid: 3 | 1 (3.5..116.5) | 2 (117.5..122.5) | 3 (123.5..236.5) | 1 (237.5..242.5) | 2 (243.5..356.5) | 3",
+        "closest_approach_to_E_plus": [
+          {
+            "transition": "3->1",
+            "end": "lo",
+            "min_shape_speed": 0.002246648249144385,
+            "nu": 2.659089607990611,
+            "area": 0.00684604620191559,
+            "middle": 2
+          },
+          {
+            "transition": "3->1",
+            "end": "hi",
+            "min_shape_speed": 0.008810467285508727,
+            "nu": 2.6590942684633343,
+            "area": 0.006850570967762731,
+            "middle": 2
+          },
+          {
+            "transition": "1->2",
+            "end": "lo",
+            "min_shape_speed": 0.004609047215953785,
+            "nu": 2.6590901609506727,
+            "area": 0.006714266478298037,
+            "middle": 3
+          },
+          {
+            "transition": "1->2",
+            "end": "hi",
+            "min_shape_speed": 0.010928448639980524,
+            "nu": 2.659090719433589,
+            "area": 0.006217256423932865,
+            "middle": 3
+          }
+        ],
+        "min_over_grid_of_sup_nu": {
+          "one_degree_grid_360_orbits": 2.794625,
+          "nu_L_plus": 2.449489742783178,
+          "nu_E_plus": 2.6591479484724942
+        },
+        "fine_grid": {
+          "step_deg": 0.02,
+          "runs": [
+            [
+              3,
+              0.01,
+              2.93
+            ],
+            [
+              1,
+              2.95,
+              59.99
+            ]
+          ],
+          "min_sup_nu": 2.78019834156924,
+          "n": 3000,
+          "undecided": 0,
+          "reduced_tolerance_orbits": 16,
+          "reduced_tolerance_psi_range": [
+            59.69,
+            59.99
+          ],
+          "loosest_rtol_used": 1e-09
+        },
+        "extended_precision": {
+          "method": "r7_hp.py bisect: Taylor manifold and Gragg-Bulirsch-Stoer integration in 42-digit decimal arithmetic; label read at the section nu = nu(E+)+0.02 (closest pair = future binary). Two runs with different truncation degree, start radius and tolerance.",
+          "run_A": {
+            "N": 30,
+            "t0": "0.04",
+            "rtol": "1E-33",
+            "psi_lo": "2.04297677473371459277489822348306909179644101",
+            "psi_hi": "2.04297677473371459277489822348306975354240042",
+            "psi_star_rad": "2.042976774733714592774898223483069422669",
+            "psi_star_deg": "117.0539468354909602344754972535713258391",
+            "psi_star_card_convention_deg": "57.05394683549096023447549725357132583913"
+          },
+          "run_B": {
+            "N": 26,
+            "t0": "0.03",
+            "rtol": "1E-31",
+            "psi_lo": "2.04297677473371459277489822348306115084492808",
+            "psi_hi": "2.04297677473371459277489822348306181259088749",
+            "psi_star_rad": "2.042976774733714592774898223483061481718",
+            "psi_star_deg": "117.0539468354909602344754972535708708561",
+            "psi_star_card_convention_deg": "57.05394683549096023447549725357087085612"
+          },
+          "difference_between_runs_rad": "7.941e-33",
+          "psi_star_card_convention_deg": "57.05394683549096023447549725357132583913"
+        }
+      },
+      "counterexample_search": "Searched for extra label windows: 1-degree survey of the full circle, the fine survey of the fundamental domain reported under fine_grid, and 9.5 decades of log-spaced offsets on both sides of one boundary (R4). None found beyond the six symmetric points.",
+      "limitations": [
+        "No interval arithmetic: the 30-digit value of psi* is the agreement of two runs with different truncation and tolerance, not a rigorous enclosure. The float64 surveys have an empirical spread of a few 1e-11 deg.",
+        "My integrator has no binary-collision regularisation. Within about 0.3 deg of the tall-isosceles directions (psi = 60, 180, 300) the orbit passes within 1e-6 scaled units of a binary collision at tau = 0.6 and the run stalls at rtol 1e-13; those orbits were redone at rtol 1e-11 or 1e-9 (see fine_grid.reduced_tolerance_orbits). Their labels are less reliable than the rest, and the collision orbits themselves are not computed.",
+        "Transversality is supported (R4, order of contact 1) but not bounded away from zero rigorously.",
+        "A narrow hidden window below the grid resolution is not excluded by sampling; only a validated cover of Gamma can do that.",
+        "For unequal masses the symmetry step fails; replace it by showing two different labels occur on Gamma."
+      ],
+      "exact_mass_domain": "equal masses",
+      "certificate": null,
+      "next_experiment": "X08 with a much cheaper certificate than root isolation: cover Gamma by interval boxes; for each box validate either H1-H3 for one j, or passage through a small isolating block around E+(j). Boxes of the second kind are where W^s(E+) is; the count of label changes then proves existence, and R4's order-of-contact test gives the cone condition to verify for transversality.",
+      "estimated_complexity": "about 1e3 validated orbits of scaled length < 10 for the open-condition part (the six windows are 5.9 deg wide, so boxes of 0.1 deg suffice away from the boundary points).",
+      "code": [
+        "r7_core.py",
+        "r7_gamma.py",
+        "r7_gamma_fine.py"
+      ]
+    },
+    {
+      "result_id": "R2",
+      "title": "Exceptional masses: complete resonance list of the unstable spectrum at L-, resonant coefficient, corrected laws",
+      "problem_ids": [
+        "X13",
+        "P02",
+        "P11",
+        "X01"
+      ],
+      "status": "PARTIAL",
+      "status_detail": {
+        "resonance_loci": "PROVED",
+        "normal_form": "PROVED (Poincare-Dulac, Poincare domain)",
+        "values_of_c": "NUMERICAL_EVIDENCE (three independent computations agree to 6 digits)",
+        "scattering_correction": "CONDITIONAL_THEOREM (entry-scaling hypothesis stated)",
+        "Tsygvintsev_coincidence": "PROVED as an arithmetic identity; its conceptual explanation is a HYPOTHESIS"
+      },
+      "precise_claim": [
+        "(1) At L- the unstable eigenvalues of the planar E=0 scaled flow modulo rotation are (units |nu0|/4): Lam_L = 2 (angular-momentum direction; absent on the L=0 leaf), Lam_- = 1+sqrt(13-12k) in (2, 1+sqrt13], Lam_+ = 1+sqrt(13+12k) in [1+sqrt13, 6).",
+        "(2) The complete list of resonances Lam_a = sum n_i Lam_i (n_i >= 0 integers, sum n_i >= 2) for positive masses is: Lam_- = 2 Lam_L iff sigma = 8/27; Lam_+ = Lam_- + Lam_L iff sigma = 2/9; Lam_+ = 2 Lam_- iff k = k* = (48+sqrt(129))/75, i.e. sigma = sigma* = (1064 - 32 sqrt(129))/5625 = 0.124542198376672. Together with the 1:1 coincidence Lam_+ = Lam_- (sigma = 1/3, equal masses) there are exactly four special values of sigma. On the L=0 leaf only sigma* (and 1/3) matter.",
+        "(3) {1/3, 8/27, 2/9} is exactly Tsygvintsev's set of exceptional values for the parabolic Lagrangian orbit. sigma* is a fourth special value, invisible there.",
+        "(4) The positive mass triples at the card's resonance are exactly the curve {sigma(m) = sigma*} in the mass simplex; it needs one dominant mass (examples: (1,1,12.384181259), (1,2,18.470390201), (2,3,30.897150855), (1,5,36.290714646)).",
+        "(5) On W^u(L-) (L=0) at sigma* there are analytic coordinates with a-' = Lam_- a-, a+' = 2 Lam_- a+ + c a-^2. With eigenvectors normalised to |delta s| = 1 (mass metric): |c| = 1.7764972 for (1,2,18.4703902), 1.9501543 for (2,3,30.8971509), 10.4825076 for (1,5,36.2907146); c = 0 for (1,1,12.3841813).",
+        "(6) c vanishes whenever two masses are equal: for m1=m2<m3 the weak mode is even and the strong mode odd under the reflection exchanging bodies 1,2, so the even quadratic term a-^2 cannot feed a+. Hence the falsifier 'c = 0' is realised exactly at the three symmetric points of the curve.",
+        "(7) For c != 0: orbits on W^u(L-) are a- = 0 and a+ = a-^2 (K + (c/Lam_-) ln|a-|), K real. No linearising (card P02-type) parameterisation F(P(a)) = DP(a) Lam a exists, even at C^2 level; near the curve the coefficient of a-^2 along v+ grows like c/(Lam_+ - 2 Lam_-). Gamma must be parameterised by K, not by an angle: the angle of an orbit depends on the radius logarithmically.",
+        "(8) Conditional scattering law: if a family enters a neighbourhood of L- with unstable coordinates (a-, a+) = (A eps, B eps)(1+O(eps)), A,B != 0, then at the exit section |a+| = r the weak amplitude is a-_exit = A sqrt(r eps/B) [1 - (c A^2/(4 B Lam_-)) eps ln(1/eps) + O(eps)]. The strong-mode dominance exponent 1 - Lam_-/Lam_+ = 1/2 is unchanged; the logarithm survives at relative order eps ln(1/eps). If B = 0 (entry along the weak direction) the logarithm is leading: a+/a-^2 = c T with T the transit time."
+      ],
+      "assumptions": [
+        "Positive masses; planar; E=0 scaled flow (equivalently the collision manifold).",
+        "(8) only: the stated entry scaling. I do not know the card's exact definition of S_eps; map it onto (A,B) before using (8)."
+      ],
+      "derivation": [
+        "(1) is R1(3),(4) with nu0<0.",
+        "(2): the sum of any three unstable eigenvalues is >= 6 > Lam_+, so only |n| = 2 can occur. Lam_- = 4 gives sqrt(13-12k) = 3, k = 1/3. Lam_+ = Lam_- + 2 gives 6k-1 = sqrt(13-12k), k^2 = 1/3. Lam_+ = 2 Lam_- gives 15k-10 = sqrt(13-12k), 225k^2-288k+87 = 0, root with k >= 2/3: k* = (48+sqrt129)/75. Lam_+ = 4 is impossible (Lam_+ >= 1+sqrt13). sigma = (1-k^2)/3.",
+        "(5),(7): W^u(L-) is an analytic 2-manifold on which L- is a node with eigenvalues (Lam_-, 2 Lam_-); Poincare-Dulac gives the normal form with the single resonant monomial. Order-2 homological equation in the ambient space: (J - 2 Lam_-) P02 = c v+ - (1/2) D^2F(v-,v-); 2 Lam_- = Lam_+ is a simple ambient eigenvalue, so solvability forces c = <l+, (1/2) D^2F(v-,v-)>/<l+, v+>.",
+        "(8): a+(T) = (B eps + c A^2 eps^2 T) exp(2 Lam_- T) = r gives exp(Lam_- T) = sqrt(r/(B eps)) (1 - c A^2 eps T/(2B) + ...), T = ln(r/(B eps))/(2 Lam_-) + o(1)."
+      ],
+      "verification": {
+        "loci": {
+          "Lam+ = Lam-          k=0": {
+            "sigma": 0.3333333333333333,
+            "vanishing": [
+              "Lp-Lm"
+            ]
+          },
+          "Lam- = 2 Lam_L       k=1/3": {
+            "sigma": 0.2962962962962963,
+            "vanishing": [
+              "Lm-2LL"
+            ]
+          },
+          "Lam+ = Lam- + Lam_L  k=1/sqrt3": {
+            "sigma": 0.22222222222222218,
+            "vanishing": [
+              "Lp-Lm-LL"
+            ]
+          },
+          "Lam+ = 2 Lam-        k=(48+sqrt129)/75": {
+            "sigma": 0.12454219837667242,
+            "vanishing": [
+              "Lp-2Lm"
+            ]
+          }
+        },
+        "c_route_a": "analytic third derivative of U in mass-weighted coordinates (r7_spectrum.py): {\"1,1\": {\"m3\": 12.384181259350207, \"ratio\": 2.0, \"abs_c\": 3.671181320155779e-15, \"Lam_minus\": 5.9623468383972025}, \"1,2\": {\"m3\": 18.470390200596476, \"ratio\": 2.0, \"abs_c\": 1.7764971969385817, \"Lam_minus\": 9.836955885361698}, \"2,3\": {\"m3\": 30.8971508546718, \"ratio\": 1.9999999999999996, \"abs_c\": 1.9501542724154592, \"Lam_minus\": 18.701902015134486}, \"1,5\": {\"m3\": 36.29071464632602, \"ratio\": 2.0, \"abs_c\": 10.482507591347643, \"Lam_minus\": 22.9544600905362}}",
+        "c_route_b_and_c": [
+          {
+            "m": [
+              1.0,
+              2.0,
+              18.470390200596476
+            ],
+            "c_series": -1.776497196938578,
+            "c_integration": -1.7764912762734697,
+            "Lam_minus": 9.836955885361702
+          },
+          {
+            "m": [
+              2.0,
+              3.0,
+              30.8971508546718
+            ],
+            "c_series": -1.9501542724154806,
+            "c_integration": -1.950161233256275,
+            "Lam_minus": 18.701902015134486
+          },
+          {
+            "m": [
+              1.0,
+              1.0,
+              12.384181259350207
+            ],
+            "c_series": 2.2079254388879862e-16,
+            "c_integration": -1.751893263999111e-11,
+            "Lam_minus": 5.9623468383972025
+          }
+        ],
+        "c_route_b": "truncated power-series arithmetic in Jacobi coordinates (r7_resonance_check.py).",
+        "c_route_c": "derivative-free: integrate the scaled flow from L- + 1e-5 v- and fit a+/a-^2 = K0 + c tau + O(a-) on 3e-5 < a- < 3e-3. Agrees with (a),(b) to 6 digits.",
+        "divergence_check": "for (1,2,m3*+dm): (Lam_+ - 2 Lam_-) <l+,P02>/<l+,v+> = -/+1.77758, 1.77661, 1.77651 for dm = 1e-2, 1e-3, 1e-4 -> |c| = 1.77650.",
+        "parity": "for m1=m2, m3 = 12.384 and 5.0: weak mode has |odd part| < 1e-15, strong mode |even part| < 1e-15.",
+        "extended_precision": {
+          "method": "r7_spectrum_mp.py: eigenvectors by inverse iteration with the closed-form eigenvalues, analytic third derivative, 50 digits",
+          "sigma_star": "0.124542198376672442471624954493242522269680505",
+          "resonant_c": {
+            "1,1": {
+              "m3": "12.3841812593502052081692534879942673308560214",
+              "abs_c": "4.040402133865454555969788329142448257324e-122",
+              "abs_c_over_Lam_minus": "6.776529852046640391712845323164416813778e-123",
+              "eigen_residual": "1.2096e-49"
+            },
+            "1,2": {
+              "m3": "18.4703902005964786222213345741044162245382415",
+              "abs_c": "1.776497196938587033302218608016564579864",
+              "abs_c_over_Lam_minus": "0.1805942018691147006685626080139685296906",
+              "eigen_residual": "4.937e-49"
+            },
+            "2,3": {
+              "m3": "30.8971508546718063171997692945092235763861607",
+              "abs_c": "1.950154272415455409936593446119926917789",
+              "abs_c_over_Lam_minus": "0.1042757186321100330436035279905674098273",
+              "eigen_residual": "7.12e-49"
+            },
+            "1,5": {
+              "m3": "36.290714646326024862466635599664053901809183",
+              "abs_c": "10.48250759134765092111045704802517255434",
+              "abs_c_over_Lam_minus": "0.4566653953089247293233653754688462029133",
+              "eigen_residual": "1.7298e-48"
+            }
+          },
+          "scan_along_the_resonance_arc": {
+            "t_grid": [
+              1.0,
+              2000.0,
+              400
+            ],
+            "value_at_t1": 6.157275682980338e-16,
+            "min_for_t_gt_1": 0.004866086823994867,
+            "argmin_t": 1.0192324875332806,
+            "monotone_increasing": true,
+            "value_t2": 0.1805942018691142,
+            "value_t10": 0.7263155266153891,
+            "value_t100": 2.5253712672950646,
+            "value_t2000": 11.40150648391588,
+            "note": "float64 scan of |c|/Lam_- for masses (1, t, m3(t)), t = m2/m1 on a 400-point log grid in [1, 2000]: zero at t = 1 only, strictly increasing afterwards."
+          }
+        }
+      },
+      "counterexample_search": "Looked for c = 0 on the resonance arc m = (1, t, m3(t)): |c|/Lam_- is 0 at the symmetric point t = 1 and strictly increasing on a 400-point log grid up to t = 2000 (0.1806 at t = 2, 0.726 at t = 10, 2.53 at t = 100). By the S3 symmetry this covers all three arcs. No other zero found; a zero between grid points is not excluded rigorously.",
+      "limitations": [
+        "The sign of c depends on the orientation of v+; |c| scales like |v-|^2/|v+| under renormalisation; c != 0 is invariant.",
+        "The explanation of (3) is a hypothesis: the parabolic Lagrange orbit is the heteroclinic connection L- -> L+ along the Lam_L direction of this flow (nu' = (2U0 - nu^2)/2), so its normal variational equation is Fuchsian with local exponents Lam_i/Lam_L at the rest points and integer-exponent conditions are resonance conditions. I verified the arithmetic coincidence and the published list of exceptional values, not his exponent computation.",
+        "Resonances involving stable eigenvalues (relevant for full transit maps) are not classified here; note Lam_i^u + Lam_i^s = 2 for both shape modes always."
+      ],
+      "exact_mass_domain": "sigma(m) = (1064-32 sqrt(129))/5625 for the L=0 resonance; sigma = 8/27, 2/9 when the angular-momentum direction is included.",
+      "next_experiment": "Rerun the card's degree-24 manifold code at (1,2,18.4703902006): the a-^2 coefficient solve must be singular. Then switch to the resonant inner dynamics and parameterise Gamma by K; measure a+/a-^2 against tau on W^u(L-): slope must be 1.7765 in the stated normalisation.",
+      "new_representation": "At resonant masses the orbit space of W^u(L-) is the K-line compactified by the strong orbit, K = a+/a-^2 - (c/Lam_-) ln|a-|."
+    },
+    {
+      "result_id": "R1",
+      "title": "Spectral dictionary: McGehee exponents <-> Morales-Ramis eigenvalues <-> card constants",
+      "problem_ids": [
+        "A01",
+        "P08",
+        "P10",
+        "X01",
+        "X13"
+      ],
+      "status": "PROVED",
+      "precise_claim": [
+        "(1) Let (s0, nu0 s0) be a rest point and e a unit vector with e.s0 = 0 and D^2U(s0) e = d e. Then span{(e,0),(0,e)} is invariant under the linearisation and carries the eigenvalues Lam = (nu0/4)(-1 +/- sqrt(9 - 8 lambda)), lambda := -d/U0. lambda is exactly the Morales-Ramis eigenvalue of V=-U at the Darboux point c = U0^(1/3) s0 (V'(c)=c).",
+        "(2) Euler point, body j in the middle: lambda = -2(1+kappa_j) (collinear mode), 1 (rotation), 1+kappa_j (perpendicular mode); equivalently kappa_j = w/U0 - 1 where w is the second eigenvalue of the mass-weighted collinear matrix W (W s0 = U0 s0). Reduced 4D spectrum (units nu0/4): -1 +/- sqrt(25+16 kappa_j), -1 +/- sqrt(1-8 kappa_j).",
+        "(3) Lagrange point: lambda = -1/2 +/- (3/2) k; reduced 4D spectrum: -1 +/- sqrt(13 + 12k), -1 +/- sqrt(13 - 12k).",
+        "(4) In the ambient 8D (s,y) system the four extra eigenvalues are 0 (rotation), -2 (angular momentum s^T J y), -8 (|s|^2-1), +4 (energy), same units.",
+        "(5) Card constants in closed form: P10 gamma = 4/(sqrt(25+16 kappa)-1), beta = 1/(sqrt(25+16 kappa)-1), omega = sqrt(8 kappa-1)/(sqrt(25+16 kappa)-1); P08 alpha = 4/(1+sqrt(13)) = (sqrt(13)-1)/3 for equal masses. Interpretation: gamma = nu0/Lam_u(E+), beta = |Re Lam_spiral|/Lam_u(E+), omega = Im Lam_spiral/Lam_u(E+), alpha = |nu0|/Lam_u(L-).",
+        "(6) kappa_j >= 3/4 whenever body j is a lightest body, for all positive masses. For masses (1,m,1) with m in the middle kappa = 7/(1+4m), so the Euler eigenvalues are real iff m >= 55/4."
+      ],
+      "assumptions": [
+        "Newtonian potential, G=1, positive masses, planar problem. No restriction on E or L for (1)-(4) at the rest points themselves (they lie on rho*E=0)."
+      ],
+      "derivation": [
+        "Linearise s'=y-nu s, y'=grad U+(nu/2)y at (s0,nu0 s0). For delta s, delta y orthogonal to s0: delta nu = 0, so delta s' = -nu0 delta s + delta y, delta y' = D^2U(s0) delta s + (nu0/2) delta y. D^2U(s0) is symmetric and maps s0 to 2 U0 s0, so it preserves the orthogonal complement of s0. On an eigenvector e the 2x2 block [[-nu0,1],[d,nu0/2]] has characteristic polynomial Lam^2 + (nu0/2) Lam - (nu0^2/2 + d), and nu0^2 = 2 U0 gives (1).",
+        "Darboux point: -grad U(alpha s0) = alpha^-2 U0 s0 = alpha s0 iff alpha^3 = U0; V''(c) = -D^2U(s0)/U0. Trivial eigenvalue k-1 = -2 on s0.",
+        "Collinear configuration on the x-axis: d^2(1/r)/dx^2 = 2/r^3, d^2(1/r)/dy^2 = -1/r^3, so D^2U = diag(2W, -W) in (x-block, y-block). W s0 = U0 s0 (central configuration); let w be the other eigenvalue. Then d in {2U0, 2w, -U0, -w}; the card's identities mu_plus + 2 mu_minus = 3U and kappa = mu_plus/(2U) - 3/2 = -mu_minus/U are satisfied by mu_plus = U0+2w, mu_minus = U0-w, kappa = w/U0-1.",
+        "Equilateral configuration: W is the scalar U0 on centred vectors (all sides equal), the planar Hessian is 3N - W with N the projector-weighted matrix of trace 2U0; eigenvalues of N/U0 are 1 (radial), 0 (rotation) and (1 +/- k)/2, giving lambda = 1 - 3(1 +/- k)/2.",
+        "(4): d/dtau (1-|s|^2) = -2 nu (1-|s|^2); d/dtau (|y|^2/2 - U) = nu (|y|^2/2 - U); d/dtau (s^T J y) = -(nu/2) s^T J y; rotation invariance.",
+        "(6): with N,D the numerator/denominator of the card's kappa formula, N >= 3(m_l+m_r) r^2 and N >= min(m_l,m_r)(1+3r+6r^2+3r^3+r^4) >= m_mid (1+r)^2 (1+r^2) when m_mid <= min(m_l,m_r); hence N >= (3/4) D for every r>0."
+      ],
+      "verification": {
+        "numerical": "r7_spectrum.py (analytic Jacobian, float64). 5 mass triples x (L+, L-, three Euler points): max |numerical - closed form| over all 8 ambient eigenvalues = 1.4e-14 (units nu0/4). Card reference kappa values reproduced: |diff| <= 2e-11.",
+        "kappa_table": {
+          "equal": {
+            "r": 1.0,
+            "kappa_card_formula": 1.4,
+            "kappa_from_hessian": 1.4000000000000004,
+            "card_reference": 1.4,
+            "abs_diff_to_reference": 0.0,
+            "MR_eigenvalues": [
+              -4.800000000000001,
+              -2.0000000000000004,
+              1.0000000000000004,
+              2.4000000000000004
+            ]
+          },
+          "123_mid1": {
+            "r": 1.1381407229469875,
+            "kappa_card_formula": 2.6443379433168355,
+            "kappa_from_hessian": 2.6443379433168355,
+            "card_reference": 2.6443379433,
+            "abs_diff_to_reference": 1.6835421945415874e-11,
+            "MR_eigenvalues": [
+              -7.288675886633671,
+              -2.0000000000000004,
+              1.0000000000000004,
+              3.6443379433168355
+            ]
+          },
+          "123_mid2": {
+            "r": 1.280947927989485,
+            "kappa_card_formula": 1.2694858943927856,
+            "kappa_from_hessian": 1.2694858943927851,
+            "card_reference": 1.2694858944,
+            "abs_diff_to_reference": 7.214451258619192e-12,
+            "MR_eigenvalues": [
+              -4.538971788785572,
+              -1.9999999999999991,
+              1.0,
+              2.269485894392785
+            ]
+          },
+          "123_mid3": {
+            "r": 1.1212252205282063,
+            "kappa_card_formula": 0.7549818832400086,
+            "kappa_from_hessian": 0.7549818832400093,
+            "card_reference": 0.7549818832,
+            "abs_diff_to_reference": 4.0008552026904454e-11,
+            "MR_eigenvalues": [
+              -3.509963766480017,
+              -2.0000000000000004,
+              0.9999999999999998,
+              1.7549818832400093
+            ]
+          }
+        },
+        "card_constants": {
+          "gamma": 0.6797211888985691,
+          "beta": 0.16993029722464228,
+          "omega": 0.5427138475582909,
+          "alpha": 0.8685170918213297,
+          "flip_ratio_exp_minus_pi_over_omega": 0.0030620447448085793
+        },
+        "independent_method": "r7_core.py recomputes the Jacobian by truncated power-series arithmetic in non-mass-weighted Jacobi coordinates; |J v - Lam v| = 5e-15 at L-.",
+        "random_search_for_(6)": "2e5 random mass triples over 8 decades with a lightest body in the middle: min kappa found 1.4229 (bound proved: 3/4).",
+        "extended_precision": {
+          "method": "r7_spectrum_mp.py, mpmath at 50 digits, analytic Jacobian",
+          "kappa_50_digits": {
+            "equal": "1.4",
+            "123_mid1": "2.64433794331683514632850610270212451272010624",
+            "123_mid2": "1.26948589439278598369181796339825091589758793",
+            "123_mid3": "0.754981883240008590872180679388143379187239988"
+          },
+          "kappa_identity_residual": {
+            "equal": "5.3455e-51",
+            "123_mid1": "1.6037e-50",
+            "123_mid2": "5.3455e-51",
+            "123_mid3": "6.6819e-51"
+          },
+          "spectra_max_abs_error_units_nu0_over_4": {
+            "(1, 1, 1)": [
+              "3.2073e-50",
+              "1.4136e-49",
+              "1.4136e-49",
+              "3.2073e-50"
+            ],
+            "(1, 2, 3)": [
+              "1.7106e-49",
+              "1.9388e-49",
+              "1.0825e-49",
+              "2.0416e-49"
+            ],
+            "(3, 1, 7)": [
+              "5.8801e-50",
+              "1.8176e-49",
+              "6.1185e-49",
+              "1.8338e-49"
+            ]
+          },
+          "card_constants_45_digits": {
+            "gamma": "0.679721188898569159370599645047910530574192147",
+            "beta": "0.169930297224642289842649911261977632643548037",
+            "omega": "0.542713847558290855669070502674567754131647106",
+            "alpha": "0.868517091821329764373073755823498648750432191",
+            "flip_ratio": "0.0030620447448085764445402529590689105593841287"
+          }
+        }
+      },
+      "counterexample_search": "None found; see verification. The only place a sign could go wrong (which of mu_plus/mu_minus is collinear) is fixed by the equal-mass value 7/5.",
+      "limitations": [
+        "Planar problem. In the spatial problem the z-block adds lambda = 1 (twice) at L and lambda = 1, 1+kappa at E.",
+        "The identification of the card's alpha with |nu0|/Lam_u(L-) is inferred from the numerical value (0.868517), not from the card's definition."
+      ],
+      "exact_mass_domain": "all positive masses",
+      "next_experiment": "Use alpha_+/- = 4/(1+sqrt(13 +/- 12k)) as the unequal-mass prediction for P11 and test it at masses (1,2,3) (sigma = 11/36): alpha_+ = 0.790889 (strong mode), alpha_- = 0.978468 (weak mode).",
+      "transferable_mechanism": "For any homogeneous potential of degree -1, McGehee exponents at a central configuration and Morales-Ramis eigenvalues determine each other through Lam = (nu0/4)(-1 +/- sqrt(9-8 lambda))."
+    },
+    {
+      "result_id": "R6",
+      "title": "Differential-Galois obstruction in card variables, its blind spot at E=0, and the obstruction that does apply there",
+      "problem_ids": [
+        "X01",
+        "X05",
+        "X06",
+        "P14",
+        "T7_04"
+      ],
+      "status": "PARTIAL",
+      "status_detail": {
+        "(a)": "PROVED by a literature theorem with hypothesis matching; the conclusion itself is known",
+        "(b)": "PROVED (elementary)",
+        "(c)": "PROVED by a literature theorem with hypothesis matching"
+      },
+      "precise_claim": [
+        "(a) Reference solution: the Euler homothetic orbit q = phi(t) c with E != 0, body j in the middle; base field: meromorphic functions on that complex curve. The variational equation splits into blocks xi'' = -lambda phi^-3 xi with lambda in {-2, -2(1+kappa_j), 1, 1+kappa_j}. The Morales-Ramis list for degree -1 is {1 - p(p+1)/2 : p >= 0} = {1, 0, -2, -5, -9, ...}, all <= 1, and 1+kappa_j > 1 for all positive masses. Hence the identity component of the Galois group is not abelian and the planar three-body problem (4 degrees of freedom after removing the centre of mass) has no complete set of independent first integrals in involution that are meromorphic on a complex neighbourhood of that orbit. Excluded class: exactly this. No mass exception.",
+        "(b) Blind spot. On E=0 every homothetic orbit is q = (9/2)^(1/3) t^(2/3) c, a rest point of the scaled flow. Its variational equations of every order have solutions in C(t^(1/3))(t^(r_1),...,t^(r_n), log t), r_i = 1/2 +/- (1/6) sqrt(9 - 8 lambda_i); the Galois groups are subgroups of a torus times G_a, hence abelian. So neither the first-order Morales-Ramis test nor the higher-order Morales-Ramis-Simo test can give an obstruction from any homothetic orbit inside E=0. The orbits used in (a) lie outside E=0, and Tsygvintsev's parabolic Lagrange orbit has L != 0; I know of no Galois obstruction that applies to the leaf {E=0, L=0} by itself, and no explicit non-equilibrium solution on that leaf to linearise along.",
+        "(c) What does apply on the leaf. In the 4D reduced flow, near an Euler rest point with kappa_j > 1/8 the number of functionally independent generalized rational first integrals (quotients of analytic germs; includes analytic and meromorphic ones) is at most 1 if sqrt(25+16 kappa_j) is irrational and at most 2 otherwise; there is no non-constant analytic or formal first integral in the first case. Three would be needed to reduce the flow to quadratures. By R1(6) this covers every positive mass triple. Equal masses: sqrt(237/5) is irrational, so at most one. At L+/- the bound is 4 - dim_Q span{1, sqrt(13+12k), sqrt(13-12k)}: 1 generically, 2 for equal masses.",
+        "(d) Separation of classes. (a) and (c) exclude meromorphic/generalized-rational first integrals only. They do not exclude Liouvillian or elementary formulas: the linear saddle x' = x, y' = -sqrt(2) y has no meromorphic first integral near 0 and the closed-form solution (x0 e^t, y0 e^(-sqrt2 t)). On the open set of hyperbolic-elliptic escape orbits the three-body flow even has a full set of real-analytic first integrals (V_inf, h_inf, ell_inf, asymptotic phases, R3); they are flow-defined and are exactly the tautological coordinates the card warns about. The obstruction that separates them from genuine closed forms is their behaviour at the boundary of that set, which is what R4 measures."
+      ],
+      "assumptions": [
+        "(a): first integrals meromorphic on a complex neighbourhood of the orbit minus the collision point. U is algebraic, not meromorphic, on C^4, but it is single-valued and holomorphic near the orbit: along q = phi c each r_ij = phi r_ij(c) and a loop phi -> e^(i theta) phi returns sqrt(r_ij^2) to itself.",
+        "(c): the reduced flow is analytic near the rest point (true: the constraint manifold is analytic and the rotation action is free there)."
+      ],
+      "derivation": [
+        "(a): R1(2) gives the eigenvalues of V''(c); apply the Morales-Ramis theorem for homogeneous potentials (rows 'lambda = p + k p(p-1)/2' and 'lambda = ((k-1)/k + p(p+1)k)/2' with k=-1; both give the same set).",
+        "(b): phi'' = -phi^-2 with zero energy gives phi^3 = (9/2) t^2, so phi^-3 = (2/9) t^-2 and each block is a Cauchy-Euler equation. Higher variational equations are linear inhomogeneous with forcing polynomial in lower-order solutions times powers of t; integrating monomials t^a (log t)^m stays in the same field. Automorphisms act by t^(r_i) -> c_i t^(r_i), log t -> log t + c: commuting. In scaled variables this is the triviality that variational equations at a rest point have constant coefficients.",
+        "(c): reduced spectrum (units nu0/4): -1+A, -1-A, -1+iB, -1-iB. <k,lambda> = 0 forces k3 = k4 and A(k1-k2) = k1+k2+2k3. A irrational: lattice spanned by (1,1,-1,-1), rank 1, containing no non-negative non-zero vector. A rational: rank 2. Apply Cong-Llibre-Zhang Theorem 1 (generalized rational) and Poincare/Chen-Yi-Zhang (analytic).",
+        "The built-in resonance (1,1,-1,-1) is Lam_1+Lam_2 = Lam_3+Lam_4 = -nu0/2, the pairing rule of this conformally symplectic flow; it is why the bound is 1 and not 0."
+      ],
+      "verification": {
+        "literature": [
+          {
+            "source": "Morales-Ruiz & Ramis, Methods Appl. Anal. 8 (2001); statement checked in the restatement by Maciejewski, Przybylska, Yoshida, arXiv:nlin/0701057, Theorem 1.1",
+            "hypothesis_matching": "H = |p|^2/2 + V, V homogeneous of integer degree k = -1, Darboux point V'(c) = c, Liouville integrability with meromorphic first integrals. Original 2001 paper not re-read today."
+          },
+          {
+            "source": "Tsygvintsev, arXiv:math/0009218 and arXiv:math/0610951 (Celest. Mech. Dyn. Astron. 99 (2007) 23-29)",
+            "hypothesis_matching": "parabolic Lagrangian orbit (E=0, L != 0); exceptional values 1/3, 2^3/3^3, 2/3^2 confirmed from the 2007 abstract."
+          },
+          {
+            "source": "Morales-Ruiz & Simon, Discrete Contin. Dyn. Syst. 24 (2009) 1225-1273",
+            "hypothesis_matching": "abstract confirms a proof for the three-body problem with arbitrary masses; (a) is therefore not new."
+          },
+          {
+            "source": "Combot, arXiv:1509.08233",
+            "hypothesis_matching": "non-integrability of the collinear 3-body problem for all positive masses and of the planar n-body problem; abstract only."
+          },
+          {
+            "source": "Cong, Llibre, Zhang, J. Differential Equations 251 (2011) 2770-2788, arXiv:1407.7948, Theorem 1",
+            "hypothesis_matching": "analytic system near a singular point in (C^n,0); bound = dimension of the real span of {k in Z^n : <k,lambda> = 0}."
+          }
+        ],
+        "numerical": "eigenvalues used in (a) and (c) verified in r7_spectrum.py to 1e-14 (R1)."
+      },
+      "counterexample_search": "Looked for a mass triple with 1+kappa_j in the Morales-Ramis list: impossible since kappa_j > 0. Looked for masses where (c) gives no information: only Euler points with kappa < 1/8 and both sqrt(25+16 kappa), sqrt(1-8 kappa) rational (countably many kappa); the lightest-in-the-middle Euler point is never of this kind.",
+      "limitations": [
+        "(a) is a known theorem in new variables; the contribution is the one-line criterion lambda_perp = 1 + kappa > 1 and the scope statement.",
+        "(b) is a statement about one family of reference orbits, not a proof that the E=0, L=0 leaf has no Galois obstruction along some other orbit.",
+        "(c) is local at the rest points and class-specific; it says nothing about Liouvillian integrability."
+      ],
+      "exact_mass_domain": "all positive masses for (a), (b), (c); the sharper bound '<= 1' in (c) needs sqrt(25+16 kappa_j) irrational.",
+      "next_experiment": "X01 on the leaf needs a non-equilibrium reference orbit: use the L- -> E+ connection of R5 once it is validated (its variational equation has regular singular points at both ends with exponents given by R1), or work on E=0 with L != 0 along the parabolic Lagrange orbit, which is the connection L- -> L+ along the Lam_L direction.",
+      "transferable_mechanism": "Before running a Galois test, check whether the reference orbit is a relative equilibrium of a symmetry of the chosen leaf; if it is, the test is void at all orders."
+    },
+    {
+      "result_id": "R7",
+      "title": "Why the P08 last-decade slope test fails: two nearly degenerate exponents",
+      "problem_ids": [
+        "P08",
+        "T7_02",
+        "X03"
+      ],
+      "status": "HYPOTHESIS",
+      "precise_claim": [
+        "If the measured difference has the form D(eps) = a eps^alpha + b eps + higher terms (alpha = 4/(1+sqrt13) = 0.8685171 from the saddle passage, exponent 1 from the regular dependence of the flow on the perturbation rho*E), then the local slope is s(eps) = alpha + (1-alpha) x/(1+x), x = (b/a) eps^(1-alpha), and it converges to alpha only like eps^0.1315.",
+        "Fitting the card's two numbers at eps = 1e-7: energy slope 0.817 gives b/a = -2.34; direction slope 0.862 gives b/a = -0.39. Both are O(1): no anomaly is needed.",
+        "Prediction for the energy observable: s = 0.728, 0.788, 0.834, 0.845 at eps = 1e-5, 1e-6, 1e-8, 1e-9; for the direction: 0.8561, 0.8595, 0.8638, 0.8650.",
+        "Independently of the model: the energy difference 1.42e-7 at eps = 1e-7 is seven times below the stated relative tail tolerance 1e-6 if the energies are O(1), so the last decade is below the noise floor."
+      ],
+      "assumptions": [
+        "I do not have the definition of S_eps or of the two observables; the presence of an analytic O(eps) term is generic but unverified for them.",
+        "The 'last decade' slope is treated as a local slope at eps = 1e-7."
+      ],
+      "derivation": [
+        "d ln D/d ln eps for a two-term sum; solve for b/a from one slope value."
+      ],
+      "verification": {
+        "numerical": "none possible without the round-6 data; the arithmetic is in r7_build_response.py."
+      },
+      "counterexample_search": "The hypothesis is falsified if the slopes at eps = 1e-5 and 1e-6 are not markedly lower than at 1e-7 (energy: about 0.73 and 0.79), or if a two-parameter fit (a,b) with fixed exponents (alpha, 1) over 1e-6 <= eps <= 1e-2 leaves structured residuals.",
+      "limitations": [
+        "Hypothesis only. With b/a < 0 the model also predicts a sign change of D near eps = (a/|b|)^(1/(1-alpha)); for the energy fit that is about 1.5e-3, a strong but fragile prediction."
+      ],
+      "next_experiment": "Refit P08 with D = a eps^alpha + b eps (exponents fixed) on decades where the signal exceeds the tail tolerance by 100x; accept P08 if the residual is flat and a is stable. Use the R3 tail bounds to make the tolerance rigorous. At unequal masses replace alpha by 4/(1+sqrt(13 +/- 12k)).",
+      "exact_mass_domain": "equal masses as stated"
+    }
+  ],
+  "extended_precision_addendum": {
+    "why": "added after mpmath was installed; pushes the tests of R4/R5/R2/R1 below float64 resolution. Still not interval arithmetic.",
+    "available": [
+      "direct",
+      "flips",
+      "psi_star",
+      "spectrum_50_digits"
+    ]
+  },
+  "mandatory_questions": {
+    "What is demonstrably true?": [
+      "R3: H1-H4 at one instant imply permanent escape, a bound binary and no collision, with explicit tail bounds (proved; any masses, any E, L, dimension).",
+      "R1: the closed-form spectra and their link to kappa, sigma and the Morales-Ramis eigenvalues (proved; verified to 1e-14).",
+      "R2: the exact resonance loci (proved) and c != 0 at generic resonant masses, c = 0 at symmetric ones (three independent numerical routes).",
+      "R6(a),(b),(c) as stated.",
+      "Numerically: psi* is reproduced independently (float64 to 2e-11 deg, 42 digits to 1e-30 deg), and ten orientation flips per side sit where R4 predicts, down to offsets of 5.8e-27 rad."
+    ],
+    "Which previous assumption is unnecessary?": [
+      "A07/A08: 'binary separation bounded by b for all time' and 'radial lower bound valid for all time' need not be assumed; they follow from H1-H3.",
+      "A08: the factor 1 in the torque bound; 3/4 suffices.",
+      "X04/X08: numerical angle bisection is unnecessary for existence of the L- -> E+ intersection; symmetry plus connectedness gives it once two open conditions are validated."
+    ],
+    "Which previous assumption is false?": [
+      "A08's lower bound r > (|ell0| - delta)^2/(2 m_b) does not follow from the angular-momentum estimate alone; it requires h(t) < 0.",
+      "Any expectation that the zero-energy scattering boundary is finite for outcome labels finer than 'which body escapes': with the binary's sense of rotation included it accumulates at psi* (R4).",
+      "P02-type linear-dynamics parameterisations of W^u(L-) exist for all masses: false on sigma = sigma* when c != 0 (R2).",
+      "That a Morales-Ramis obstruction near homothetic orbits says something about the E=0 research subset: it does not (R6(b))."
+    ],
+    "Does the result apply to arbitrary positive masses?": "R1, R3, R6: yes. R2: it identifies the exceptional mass set exactly. R4: for Euler points with kappa > 1/8 (at least one per mass triple). R5 and the numerics of R4: equal masses only. R7: equal masses.",
+    "Does the result extend beyond E=0 and L=0?": "R3: yes, completely (any E, L, planar or spatial). R1: spectra at the rest points are those of the full collision manifold; the Lam_L direction covers L != 0. R6(a): E != 0. R2: includes the L != 0 direction. R4, R5, R6(b),(c), R7: E=0, L=0, planar only. Nothing here is a statement about the general spatial problem.",
+    "Is the new representation simpler or merely equivalent?": "No new closed form is claimed. The Shilnikov variables of R4 and the orbit label K of R2 are local normal-form coordinates: genuinely simpler near the rest points (they turn non-analytic behaviour into analytic dependence, if the R4 hypothesis holds), but they are not a global solution. The asymptotic integrals of R3 are tautological flow coordinates and are labelled as such.",
+    "What explicit observation would falsify the conclusion?": [
+      "R3: one initial condition satisfying H1-H4 whose orbit violates any of C1-C5.",
+      "R4: absence of sign changes of the final binary angular momentum at psi* +/- {1.457e-02, 4.346e-05, 1.326e-07, 4.046e-10} deg, or a ratio of successive offsets not tending to 3.0620e-3.",
+      "R5: an additional escape-label window on Gamma, or an orbit of Gamma whose nu stays below sqrt(6).",
+      "R2: a successful non-singular degree-2 linear-dynamics parameterisation at (1,2,18.4703902006), or a measured slope of a+/a-^2 different from 1.7765.",
+      "R7: slopes at eps = 1e-5, 1e-6 not following the two-term prediction."
+    ],
+    "What new mathematical problem does the result unlock?": [
+      "N1: prove hypothesis (c) of R4 (non-degeneracy of D ell_inf along the collinear escape orbit); with it R4 is a theorem for all kappa > 1/8.",
+      "N2: decide whether the scattering map near psi* is analytic in the Shilnikov variables (u, v) = |d|^beta (cos, sin)(omega ln 1/|d|); this would be a precise positive 'closed-form class' statement (Dulac-type transseries with complex exponents) complementing the negative o-minimal statement.",
+      "N3: validated version of R5 (interval cover of Gamma with R3 as certificate) -> theorem T7_01 without root isolation.",
+      "N4: is there a Galois obstruction on the leaf {E=0, L=0} along the L- -> E+ connection? Exponents at both ends are known (R1).",
+      "N5: explain Tsygvintsev's exceptional values as resonances of {Lam_L, Lam_-, Lam_+} and determine what sigma* does to the parabolic Lagrange normal variational equation.",
+      "N6: for kappa < 1/8 (dominant middle mass) the Euler point is a saddle-node type with real exponents: is the refined boundary finite there? Then the 'tameness' of zero-energy scattering would have a sharp mass threshold."
+    ]
+  },
+  "not_attempted": {
+    "X02": "no result",
+    "X03": "only R7 and the remark that for E=0 the renormalisation flow is the scaled flow itself, with fixed points L+/-, E+/- and spectra R1",
+    "X05": "no result beyond R6(d)",
+    "X06": "no result beyond R6(c),(d)",
+    "X07": "no result",
+    "X08": "no interval arithmetic available; R5 gives the float reproduction and a cheaper certificate design",
+    "X11": "no result; R3 is valid in space, nothing else is",
+    "X12": "no result"
+  },
+  "code": {
+    "files": [
+      "r7_core.py",
+      "r7_spectrum.py",
+      "r7_resonance_check.py",
+      "r7_escape_test.py",
+      "r7_gamma.py",
+      "r7_gamma_fine.py",
+      "r7_spectrum_mp.py",
+      "r7_hp.py",
+      "r7_build_response.py"
+    ],
+    "outputs": [
+      "r7_spectrum_out.json",
+      "r7_resonance_check_out.json",
+      "r7_escape_test_out.json",
+      "r7_gamma_survey.json",
+      "r7_gamma_boundaries.json",
+      "r7_gamma_flips_1.json",
+      "r7_gamma_closest.json",
+      "r7_gamma_fine.json",
+      "r7_spectrum_mp_out.json",
+      "r7_hp_bisect.json",
+      "r7_hp_scan.json",
+      "r7_hp_flips.json",
+      "r7_hp_direct_below.json",
+      "r7_hp_direct_above.json"
+    ],
+    "how_to_run": [
+      "python r7_spectrum.py",
+      "python r7_resonance_check.py",
+      "python r7_escape_test.py 300",
+      "python r7_gamma.py series",
+      "python r7_gamma.py survey 1.0",
+      "python r7_gamma.py bisect",
+      "python r7_gamma.py flips 1",
+      "python r7_gamma_fine.py closest",
+      "python r7_gamma_fine.py fine 0.02",
+      "python r7_spectrum_mp.py",
+      "python r7_hp.py check",
+      "python r7_hp.py bisect",
+      "python r7_hp.py scan",
+      "python r7_hp.py flips",
+      "python r7_hp.py direct below",
+      "python r7_hp.py direct above",
+      "python r7_build_response.py"
+    ],
+    "environment": "Python 3.12, numpy 2.x (float64 runs, own Gragg-Bulirsch-Stoer integrator); mpmath 1.4.1 (50 digits) and the standard-library decimal module (42 digits) for the extended-precision runs. No scipy/sympy, no interval arithmetic.",
+    "prior_artifacts_used": "none (uc_cisim_tur2..tur6 were not attached); every number here was computed from the equations on the card."
+  },
+  "certificate": null,
+  "sources": [
+    "https://arxiv.org/abs/math/0009218",
+    "https://arxiv.org/abs/math/0610951",
+    "https://arxiv.org/abs/nlin/0701057",
+    "https://arxiv.org/abs/1407.7948",
+    "https://arxiv.org/abs/1509.08233",
+    "https://researchportal.port.ac.uk/en/publications/on-the-meromorphic-non-integrability-of-some-n-body-problems/"
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "as_of": "2026-11-16",
+  "kind": "sanitized_text_extracts",
+  "not_byte_identical": true,
+  "files": [
+    {
+      "path": "sapien-research-forge/evidence/raw/import-01.py",
+      "original_filename": "uc_cisim_tur3_dogrulama.py",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-02.py",
+      "original_filename": "uc_cisim_tur4_yapi_koruyan.py",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-03.txt",
+      "original_filename": "Yapıştırılan metin(20261113-041841).txt",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-04.txt",
+      "original_filename": "Yapıştırılan metin (2)(3).txt",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-05.txt",
+      "original_filename": "Yapıştırılan metin(20261113-042323).txt",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-06.txt",
+      "original_filename": "Yapıştırılan metin(20261113-052307).txt",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-07.txt",
+      "original_filename": "Yapıştırılan metin (2)(4).txt",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-08.txt",
+      "original_filename": "Yapıştırılan metin(20261113-053524).txt",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-09.txt",
+      "original_filename": "Yapıştırılan metin(20261113-133136).txt",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-10.txt",
+      "original_filename": "Yapıştırılan metin (2)(5).txt",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-11.txt",
+      "original_filename": "Yapıştırılan metin (3).txt",
+      "description": "Sanitized text extracted from user-supplied round-7 Claude report; byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-12.txt",
+      "original_filename": "Yapıştırılan metin (4).txt",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-13.py",
+      "original_filename": "uc_cisim_tur7.py",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-14.json",
+      "original_filename": "uc_cisim_tur7_yanit.json",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-15.log",
+      "original_filename": "cert_57.log",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-16.log",
+      "original_filename": "cert_57.05.log",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-17.log",
+      "original_filename": "cert_57.06.log",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-18.log",
+      "original_filename": "cert_58.log",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
+      "path": "sapien-research-forge/evidence/raw/import-19.txt",
+      "original_filename": "Yapıştırılan metin(20261113-141823).txt",
+      "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    }
+  ]
+}

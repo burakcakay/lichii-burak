@@ -1,0 +1,235 @@
+{
+ "project": "THREE_BODY_CLASSICAL_SOLUTION",
+ "version": "6.0",
+ "response_to": "problems P01..P14",
+ "date": "2026-11-13",
+ "certificate_script": "uc_cisim_tur6.py  (numpy+scipy, ~3 min; 13/13 checks PASS; raw output is the authority, not this summary)",
+ "status_legend": "PROVED = complete argument given here (classical theorems used are named); 'conditional' hypotheses are listed explicitly; floating-point checks are never called proofs",
+ "corrections_to_previous_rounds": [
+  "Round 5 said the scattering boundaries are 'finite, no fractal'. That was overstated: nu-monotonicity alone does not give it. P09 replaces it by a conditional theorem.",
+  "Round 5 said a literature closed form for kappa was wrong. The error was my transcription (the formula I typed is not reflection-invariant). P01 derives the correct closed form from first principles.",
+  "Rounds 4-5 used the escape test 'R >= 40 a_b, E_bin<0, E_rel>0, R.V>0'. P07 shows this is not sufficient in general (counterexample) and replaces it by criterion (C). At E=0 the old numbers are unaffected to ~1e-5 (P03 cross-check).",
+  "psi* with linear seeds carried an O(delta) bias (57.0539071 at delta=1e-5). Exact-manifold value: 57.0539468355 deg (P05)."
+ ],
+ "answers": [
+  {
+   "problem_id": "P01",
+   "result": "PROVED",
+   "derivation": [
+    "Put the Euler configuration on the x-axis and split q=(xi_x, xi_y), xi_x, xi_y in R^2 (x- and y-components of the two Jacobi vectors). Each r_i-r_j = a_ij . xi with |a_ij|^2 = 1/m_i + 1/m_j (dual mass norm).",
+    "For f=1/|x| at a point of the x-axis: f_xx = 2/|x|^3, f_yy = -1/|x|^3, f_xy = 0. Hence Hess U(s_E) = diag(2A, -A) with A = sum_{i<j} m_i m_j a_ij a_ij^T / d_ij^3 (2x2, symmetric positive definite).",
+    "Homogeneity: Hess U . s = -2 grad U = 2U s, so A xi_E = U xi_E. The second eigenvalue of A is a = tr A - U, with tr A = sum_{i<j} (m_i+m_j)/d_ij^3 (at |q|=1).",
+    "Directions orthogonal to s_E: rotation (0, xi_E): Hess+U = 0; collinear shape (xi_perp, 0): mu_plus = 2a + U; normal shape (0, xi_perp): mu_minus = U - a.",
+    "Therefore mu_plus + 2 mu_minus = 3U identically, which is exactly kappa_plus = kappa_minus. Common value: kappa = a/U - 1 = I * [sum (m_i+m_j)/d_ij^3] / U - 2 (scale-free, I = sum m_i |r_i|^2).",
+    "Closed form. Let l, m, r be left/middle/right bodies, d_lm = 1, d_mr = rho, rho the positive root of Euler's quintic (m_l+m_m) rho^5 + (3m_l+2m_m) rho^4 + (3m_l+m_m) rho^3 - (m_m+3m_r) rho^2 - (2m_m+3m_r) rho - (m_m+m_r) = 0. Using the three relative central-configuration equations: kappa = [ m_r (1+3rho+3rho^2) + m_l rho^2 (3+3rho+rho^2) ] / [ (m_l+m_r) rho^2 + m_m (1+rho)^2 (1+rho^2) ]. It is invariant under (l<->r, rho->1/rho).",
+    "Positivity: a - U = m_r (d_mr^-2 - d_lr^-2)/d_lm + m_l (d_lm^-2 - d_lr^-2)/d_mr + (m_l+m_r)/d_lr^3 > 0, so kappa > 0 for all masses and all three orderings.",
+    "Spectrum at E_plus on the reduced manifold (|s|=1, H=0, L=0, mod rotation; 4-dimensional), from lambda^2 + (nu_E/2) lambda - mu = 0: lambda_u = (nu_E/4)(sqrt(25+16 kappa) - 1) > 0; lambda_ss = -(nu_E/4)(sqrt(25+16 kappa) + 1); lambda_pm = (nu_E/4)(-1 +- sqrt(1 - 8 kappa)). Complex pair iff kappa > 1/8, then Re = -nu_E/4, Omega = (nu_E/4) sqrt(8 kappa - 1). At E_minus all signs flip.",
+    "Ambient (non-reduced) extra eigenvalues: nu_E (energy H), -nu_E/2 (angular momentum), 0 (rotation).",
+    "The unstable direction is the collinear one, so W^u(E_plus) lies in the collinear invariant subsystem."
+   ],
+   "parameter_domain": "all m_i > 0, all three orderings; kappa in (0, 7) numerically (sup 7 approached for m_middle -> 0 with equal outer masses; the bound 7 is not proved); spiral iff kappa > 1/8",
+   "computational_certificate": "45 mass triples x 3 orderings: max |mu_+ + 2 mu_- - 3U|/U = 4.4e-15; closed form vs Hessian: 4.1e-13; predicted eigenvalues vs exact Jacobian (complex-step, no finite differences): 2.6e-13. m=(1,2,3): kappa = 2.6443379433, 1.2694858944, 0.7549818832 for middle body 1,2,3; equal masses: 1.4."
+  },
+  {
+   "problem_id": "P02",
+   "result": "PARTIAL",
+   "derivation": [
+    "Linearization at L_minus (nu = -nu_L, nu_L = sqrt(2U(s_L))): shape Hessian eigenvalues mu = (3U/2)(1 +- sqrt(k)), k = sum_{i<j}(m_i-m_j)^2/(2M^2). Eigenvalues (nu_L/4)(1 +- sqrt(13 +- 12 sqrt(k))). Unstable: Lam_pm = (nu_L/4)(1 + sqrt(13 +- 12 sqrt k)); stable: (nu_L/4)(1 - sqrt(13 +- 12 sqrt k)).",
+    "Dimension: dim W^u(L_minus) = 2 inside the 4-dimensional reduced manifold. Eigenvector for a shape mode sigma: (delta s, delta y) = (sigma, (Lam - nu_L) sigma).",
+    "Resonances for a linear conjugacy R(a) = diag(Lam_+, Lam_-) a: n_+ Lam_+ + n_- Lam_- = Lam_j with |n|>=2. Since Lam_+/Lam_- in [1,3), the only one is Lam_+ = 2 Lam_-, i.e. sqrt(k) = (48 + sqrt(129))/75 = 0.791438 (k = 0.626373). There R needs the term c a_-^2 in its first component. Equal masses (ratio 1) and (1,2,3) (ratio 1.23717) are non-resonant.",
+    "Construction: polynomial embedding (s, y, u_k = 1/d_k), 11 variables, polynomial vector field of degree 7. Solve order by order (DF(L_minus) - (n.Lam) I) P_n = -[F o P_<|n|]_n. The solution exists and is unique at every order because n.Lam is not an eigenvalue of DF (smallest divisor found: 0.742 equal masses, 0.240 for (1,2,3)).",
+    "Invariance: by construction F(P_N(a)) - DP_N(a) Lam a = O(|a|^(N+1)); the constraints |s|=1, H=0, s^T J4 y=0 hold to the same order because the constraint set is invariant and tangent at first order.",
+    "Analyticity/convergence of the full series: follows from the standard non-resonant parametrization theorem for analytic vector fields (Poincare domain: both eigenvalues positive). I did not re-derive that theorem.",
+    "NOT done: a rigorous (interval-arithmetic) truncation bound and a rigorous radius. What is given is a floating-point a-posteriori residual."
+   ],
+   "error_bound": "non-rigorous: for N=24 and |a| <= 0.10, max invariance residual 1.6e-15 (equal masses), 7.1e-15 (1,2,3); constraint violation <= 7e-15; last-term size S_N r^N = 2e-16 / 3e-14 at r=0.1; root-test radius estimate 0.45 / 0.37",
+   "computational_certificate": "flow test |phi_tau(P(a)) - P(e^(Lam tau) a)| = 2.5e-14; Lam matches the closed formula to 1e-9; psi* computed from seeds at r=0.02, 0.05, 0.10 agrees to 1.7e-12 deg (P05)"
+  },
+  {
+   "problem_id": "P03",
+   "result": "PROVED",
+   "derivation": [
+    "Chart c for binary (i,j), third body k: mass-weighted Jacobi s=(s1,s2) in C^2, s1 ~ r_j - r_i. Put s1 = zeta^2, omega = conj(zeta) y1, d tau = |zeta|^2 d sigma. U = k1/|s1| + U_reg(s1,s2), k1 = m_i m_j sqrt(mu_ij).",
+    "Transformed equations: d zeta/d sigma = (omega - nu |zeta|^2 zeta)/2;  d omega/d sigma = zeta (|omega|^2/2 - k1)/|zeta|^2 + |zeta|^2 conj(zeta) grad_1 U_reg;  d s2/d sigma = |zeta|^2 (y2 - nu s2);  d y2/d sigma = |zeta|^2 (grad_2 U_reg + nu y2/2);  nu = Re(conj(zeta) omega) + Re(conj(s2) y2).",
+    "Energy relation H = rho E gives (|omega|^2/2 - k1)/|zeta|^2 = U_reg - |y2|^2/2 + rho E. Substituting: d omega/d sigma = zeta (U_reg - |y2|^2/2 + rho E) + |zeta|^2 conj(zeta) grad_1 U_reg. The substituted field coincides with the pulled-back Newton field on the energy surface, which is invariant for both.",
+    "Regularity: U_reg = m_i m_k/|c2 s2 + a s1| + m_j m_k/|c2 s2 - b s1| is real-analytic in (zeta, s2) near zeta = 0 because |s2| = 1 there. So F_regular is analytic on the chart domain {other two pair distances > 0}. Existence, uniqueness and analytic dependence follow from the Cauchy theorem for analytic ODE.",
+    "Crossing: at zeta = 0, |omega|^2 = 2 k1 != 0 and d zeta/d sigma = omega/2, so orbits cross the collision set transversally; d nu/d sigma -> k1 > 0 there, so nu stays strictly increasing through binary collisions (E=0).",
+    "Equivalence: (zeta, sigma) -> (zeta^2, tau) is a 2:1 orbit equivalence with the scaled Newton flow off collision (d tau/d sigma > 0).",
+    "Three charts c in {12, 13, 23}; transition rule: kinematic rotation between Jacobi systems (through Cartesian), zeta' = sqrt(s1') (either branch), omega' = conj(zeta') y1'. Two pairs cannot collide simultaneously on |s| = 1, so the charts cover everything except triple collision (rho = 0, handled by the scaling).",
+    "Hypotheses: fixed energy level (any E; h = rho E enters analytically), planar problem. This is the classical Levi-Civita regularization combined with McGehee scaling; only the explicit form in these variables is mine."
+   ],
+   "computational_certificate": "against round-4 high-precision non-regularized results: psi=40: (1, -80.024, 0.39399), psi=57: (1, -3.834, 0.00122), psi=59: (2, -162.183, 0.00920) all reproduced; max |Gamma| (energy constraint) 5e-13; exact binary collisions on the isosceles axes now pass: S_0(0) = (1, -90.000000, 0.57687614), S_0(60) = (2, -150.000000, 0.00982791), continuous to 8 digits at psi +- 1e-5"
+  },
+  {
+   "problem_id": "P04",
+   "result": "PROVED",
+   "derivation": [
+    "At E=0, nu' = |s'|^2/2. Hypotheses: K compact subset of the (regularized) E=0, L=0 manifold on which F is analytic; the orbit segment from Z in Sigma_a stays in K with |s'|^2 >= c > 0 until nu = b.",
+    "Time bound: Delta tau = integral d nu/nu' <= 2(b-a)/c.",
+    "Existence and uniqueness: nu is strictly increasing with speed >= c/2, so the orbit meets Sigma_b exactly once. T_ab is defined on the open set D_ab of such points.",
+    "Analyticity: the flow is analytic and Sigma_b is transverse (nu' >= c/2 > 0); implicit function theorem.",
+    "Invertibility onto the image: T_ab^-1 is the same construction for the reversed flow from Sigma_b to Sigma_a; T_ab is an analytic diffeomorphism D_ab -> T_ab(D_ab).",
+    "Derivative: DT_ab = Pi o D Phi_{Delta tau}, Pi = I - F grad(nu)^T/(grad nu . F) the projection onto T Sigma_b along F.",
+    "Where it fails: only at rest points and at isolated radial instants s' = 0 (there nu' = nu'' = 0, nu''' = |s''|^2 > 0: nu still increases but the section is tangent, T_ab need not be analytic)."
+   ],
+   "error_bound": "with L_F = sup_K ||DF||, M_F = sup_K |F|, N = sup_K |grad nu| = sup sqrt(1 + 2U):  Delta tau <= 2(b-a)/c;  ||DT_ab|| <= (1 + 2 M_F N / c) exp(2 L_F (b-a)/c);  the same bound holds for ||DT_ab^-1||"
+  },
+  {
+   "problem_id": "P05",
+   "result": "NUMERICAL_EVIDENCE",
+   "derivation": [
+    "Exact section: Gamma_r(psi) = P(r cos psi, r sin psi) with P from P02. For equal masses Lam_+ = Lam_-, orbits on W^u are rays in the linearizing coordinates, so psi is an exact orbit label independent of r.",
+    "Result: the boundary persists on the exact manifold. psi* = 57.0539468355 deg, label 1 below, label 2 above. Three radii r = 0.02, 0.05, 0.10 give the same value to 1.7e-12 deg. (Linear seeds were biased by O(delta).)",
+    "Existence (conditional proof): label sets are open (P07) and disjoint; the arc [57,58] is connected; hence some psi in between has no label. At E=0 Chazy's list, the Lagrange-Jacobi identity and the energy balance leave only hyperbolic-elliptic or parabolic final motion, and a parabolic orbit converges to one rest point. So a heteroclinic orbit from L_minus to E_plus or L_plus exists in (57,58). Condition: the two endpoint labels, which are floating-point evaluations of criterion (C), not interval-certified.",
+    "Which rest point: nu plateau and exponents identify E_plus with body 3 in the middle (the body that is neither escape candidate), as the local theory requires (P09).",
+    "Transversality (numerical): the label changes across psi*, so the contact order is odd; the dwell slope equals 1/lambda_u (not k/lambda_u, k>=3), so the order is 1."
+   ],
+   "computational_certificate": "bisection brackets of width 7e-15 deg at each radius; dwell slope 0.25605 / 0.25607 vs 1/lambda_u = 0.25562",
+   "open": "a certified interval needs validated integration from Gamma to a neighbourhood of E_plus plus cone conditions; not done"
+  },
+  {
+   "problem_id": "P06",
+   "result": "PROVED",
+   "derivation": [
+    "Hypotheses: F is C^2 near a hyperbolic rest point with one-dimensional unstable direction (rate lambda_u); the family crosses W^s transversally; N is a small fixed neighbourhood.",
+    "Straighten W^s = {u=0}. Invariance gives u' = u g(u,x), g(0,0) = lambda_u, g of class C^1. Along the orbit in N: d ln|u|/d tau = lambda_u + O(|u| + |x|).",
+    "Entry: |u_0| = |c d| (1 + O(d)) with c != 0 (transversality). Exit at |u| = r_0.",
+    "tau_stay = (1/lambda_u) ln(r_0/|u_0|) + integral (1/g - 1/lambda_u) d ln|u|. The integrand is O(|u| + |x|); |x| decays exponentially while |u| grows exponentially to r_0, so the integral is bounded uniformly in d.",
+    "Hence tau_stay(d) = ln(1/|d|)/lambda_u + O(1), and the limit of the ratio is 1/lambda_u. The O(1) term converges to a side-dependent constant.",
+    "Degenerate case: contact of order k (u_0 ~ c d^k) gives tau_stay = k ln(1/|d|)/lambda_u + O(1). So the law as stated is false for tangent intersections; the slope measures the contact order."
+   ],
+   "error_bound": "|tau_stay - ln(1/|d|)/lambda_u| <= (1/lambda_u)|ln(r_0/|c|)| + C_N, with C_N = sup_N |grad(1/g)| * (r_0/lambda_u' + |x_0|/alpha'), lambda_u', alpha' any rates strictly inside the spectral gaps",
+   "computational_certificate": "equal masses: slope 0.25605, 0.25607 over d = 1e-2.5..1e-9.5 (prediction 0.25562); (1,2,3), round 5: 0.0941-0.0944 / 0.1194-0.1198 / 0.1357-0.1363 vs 0.0938 / 0.1193 / 0.1357"
+  },
+  {
+   "problem_id": "P07",
+   "result": "PROVED",
+   "derivation": [
+    "Notation: binary (i,j), m_b = m_i+m_j, mu_b = m_i m_j/m_b, x = r_j - r_i, r = |x|, eps_b = |x'|^2/2 - m_b/r < 0; R = vector from the binary centre of mass to body k, R = |R|.",
+    "Criterion (C) at time t0. Put b = (5/4) m_b/|eps_b|, u0 = R - b. Require: (i) R > b and dR/dt > 0; (ii) V^2 := (dR/dt)^2 - 2M/u0 > 0; (iii) delta_eps := m_k sqrt(2 m_b b)/(V u0^2) < |eps_b|/5.",
+    "Claim: for all t >= t0, r(t) <= b and R(t) >= R(t0) + V (t - t0). So the binary is permanent and body k escapes.",
+    "Proof. While r <= b both distances from k to the binary members are >= R - b, so |R''_vec| <= M/(R-b)^2 and d^2R/dt^2 >= -M/u^2 with u = R - b. Then e_u = u'^2/2 - M/u is non-decreasing while u' > 0, which gives u' >= V for all later times.",
+    "Tidal change of the binary energy: |d eps_b/dt| <= |x'| * 2 m_k r/u^3, and r|x'| <= sqrt(2 m_b b) because eps_b < 0. Integrating with du >= V dt: |Delta eps_b| <= delta_eps. Then r <= m_b/(|eps_b| - delta_eps) < b by (iii). A continuity (bootstrap) argument closes the loop.",
+    "Energy bound: the perturbing force on R is the second-order Taylor remainder of y/|y|^3, bounded by 3 m_k mu_b b^2/u^4. With S = |R'_vec(t0)| + M/(V u0) bounding the speed: |E_rel(t) - E_rel(t0)| <= B_E.",
+    "Direction bound: the eccentricity vector of the osculating relative hyperbola (central mass M) drifts by at most Delta_e; the outgoing asymptote direction is theta = arg(e) + sgn(h) arccos(-1/e).",
+    "Finite distance threshold alone is NOT sufficient. Conditions 'E_bin < 0, E_rel > 0, R.V > 0, R >= k a_b' do not control the mean quadrupole energy <W> = -m_k mu_b a_b^2/(4R^3) (coplanar circular binary). Choosing E_rel = |<W>|/2 satisfies all four conditions for any k, yet the asymptotic relative energy is about -|<W>|/2 < 0.",
+    "At E=0 exactly the situation is better: E_rel = -E_bin - W, so E_rel is comparable to |E_bin| and a threshold costs only a relative error ~ (a_b/R)^3. That is why earlier E=0 numbers are unaffected."
+   ],
+   "error_bound": "B_E = m_k mu_b b^2 S/(V u0^3);  Delta_e = (6 S mu_b b^2/(m_b V)) (1/(2 u0^2) + b/(3 u0^3));  B_theta = (pi/2) Delta_e/(e - Delta_e) + Delta_e/((e - Delta_e) sqrt((e - Delta_e)^2 - 1)), valid when e - Delta_e > 1. B_E ~ (a_b/R)^3, B_theta ~ (a_b/R)^2; B_theta degrades for near-parabolic escape (e -> 1)",
+   "counterexample": "m=(1,1,1), circular binary a_b=1, third body radially outgoing at R = k a_b with E_rel = +|<W>|/2. k=10: E_rel(300)/|<W>| = -0.528, -0.258, -0.472, -0.742 for binary phase 0, 45, 90, 135 deg; k=20: -0.504, -0.413, -0.497, -0.587. E_rel changes by < 1.2e-7 between R=10k and R=30k (tail scale 2e-8). Numerical, with the analytic scaling <W> ~ k^-3; the actual return of the body was not integrated.",
+   "computational_certificate": "E=0, four orbits: stopping at B_E/E = 1e-6 (R/a_b = 188) vs 1e-9 (R/a_b = 1846): |de|/e = 5e-8..2.4e-7 <= 1e-6; |dtheta| <= 4e-6 deg <= B_theta = 0.03..0.19 deg (B_theta is very conservative)"
+  },
+  {
+   "problem_id": "P08",
+   "result": "PARTIAL",
+   "derivation": [
+    "Setting: rest-start family X_eps(psi) = equilateral shape + eps p(psi), E < 0. In McGehee variables the homothetic orbit lies in W^s(L_minus), which is 3-dimensional in the 5-dimensional reduced flow (rho, s, y); W^u(L_minus) is 2-dimensional and sits in rho = 0. L_minus is hyperbolic in the full reduced space (eigenvalues -nu_L, two unstable, two stable).",
+    "Transversality of the 2-disc {(eps, psi)} to W^s: the linearized shape equation along the collapse is delta'' = mu delta / a^3 with mu > 0; a solution starting with delta' = 0 is convex and >= delta(0), so it cannot be the decaying solution. Each mode has a non-zero growing component.",
+    "By the inclination (lambda-) lemma the images of the punctured disc converge in C^1 to W^u(L_minus) on compact pieces. For equal masses both modes obey the same scalar equation, so the limiting angle map is the identity: Theta(psi) = psi.",
+    "From a point near W^u(L_minus) the orbit reaches the escape certificate in finite scaled time; criterion (C) is an open condition and theta_inf, rho_min e_inf are continuous with uniform tail bounds (P07). Hence S_eps(psi) -> S_0(psi) on the open set where the E=0 orbit of the exact manifold scatters.",
+    "Rate. The perturbation H = rho E at the exit is of order rho_min ~ eps^alpha, alpha = nu_L/Lam_+ = 4/(1 + sqrt(13 + 12 sqrt k)); stable-direction remnants are O(eps^(1 + |lambda_s|/Lam)), smaller. Equal masses: delta = alpha = 4/(1+sqrt 13) = 0.8685.",
+    "Unequal masses: generic limit is the scattering of the strong-unstable branch selected by sign(c_+) (two-valued limit map), with delta = min(alpha, 1 - Lam_-/Lam_+) = 1 - Lam_-/Lam_+ (0.1917 for (1,2,3)).",
+    "Why PARTIAL: non-emptiness of the open interval needs one interval-certified scattering orbit of W^u(L_minus); constants C are not computed; the lambda-lemma on the manifold with boundary rho >= 0 is invoked, not re-proved."
+   ],
+   "computational_certificate": "equal masses, phi=40: S_0 = (1, -80.024271, 0.39399230) from the exact manifold; eps = 1e-2..1e-7 gives angle differences 1.82, 0.285, 0.0406, 5.67e-3, 7.83e-4, 1.07e-4 deg (local slopes 0.805, 0.846, 0.855, 0.860, 0.864) and energy differences down to 1.3e-7 (last slope 0.846); r_min slope 0.8685. Slopes approach alpha from below.",
+   "error_bound": "|S_eps - S_0| <= C eps^delta with delta as above; C not computed"
+  },
+  {
+   "problem_id": "P09",
+   "result": "PARTIAL",
+   "derivation": [
+    "Step 1 (fates). At E=0, Lagrange-Jacobi gives I'' = 2U > 0, which removes the bounded and oscillatory types from Chazy's list; the energy balance removes parabolic-elliptic (needs E < 0) and hyperbolic, hyperbolic-parabolic (need E > 0). Every orbit of W^u(L_minus) is hyperbolic-elliptic (label j) or parabolic; a parabolic orbit converges to a single rest point with nu > nu(L_minus): L_plus or one of E_plus_j. So B = Gamma intersect [W^s(L_plus) union W^s(E_plus_1) union W^s(E_plus_2) union W^s(E_plus_3)], and B is closed.",
+    "Step 2 (both branches of W^u(E_plus_j) scatter). By P01 the unstable direction is collinear and the collinear subsystem with fixed ordering is invariant. Its only rest point with nu >= nu_E is E_plus_j itself, and nu is strictly increasing, so neither branch gamma_+- is parabolic. Both are hyperbolic-elliptic, with labels among the two outer bodies.",
+    "Step 3 (no return). A point leaving a small neighbourhood of E_plus_j exits near gamma_+- with nu > nu_E + eta, so it can never come back to W^s(E_plus_j). Near a point psi0 of B in W^s(E_plus_j), every nearby point of Gamma is either on the same local analytic sheet of W^s, or exits near gamma_+- and scatters.",
+    "Step 4 (analyticity). Gamma is an analytic curve and the local sheet is an analytic hypersurface, so points of Gamma on the sheet are isolated or fill an arc. An arc must end at a point of B that lies in neither W^s(E_plus_j) (it would be interior) nor W^s(E_plus_i), i != j (points of two different sheets cannot accumulate there); so it ends on W^s(L_plus).",
+    "Theorem (conditional finiteness). If Gamma does not meet W^s(L_plus) (hypothesis H2: no L_minus -> L_plus connection), then B is finite, every boundary point is a heteroclinic orbit L_minus -> E_plus_j, the two adjacent labels are the labels of gamma_+-, and nested channel changes do not occur. Accumulation of B is only possible at points of W^s(L_plus).",
+    "What is not proved: H2 for equal masses, and the cardinality. Numerical evidence only. This does not use finite grids as an argument for finiteness; the grid is evidence for H2."
+   ],
+   "computational_certificate": "equal masses, fundamental domain [0,60], N=240, exact-manifold seeds, regularized flow: no non-scattering point, one label change in (57.0, 57.25), the only interior maximum of the escape time is at the boundary; closest approach to L_plus (shape spread and |s'|/|y| combined) has grid minimum D = 0.1347 at psi = 60 (the isosceles symmetry axis), a smooth non-zero minimum: D(60 - x) = 0.1366, 0.1348, 0.1346, 0.1347 for x = 0.1, 0.03, 0.01, 0. By D3 symmetry: 6 boundary points on the circle.",
+   "new_hypothesis": "H2 holds for equal masses. For isosceles masses near (1,1,1) the near-miss D = 0.13 at psi = 60 may close at special mass ratios (L_minus -> L_plus connection inside the isosceles subsystem); there B could accumulate. Test: track D(60) as m1 varies in (m1,1,1)."
+  },
+  {
+   "problem_id": "P10",
+   "result": "PARTIAL",
+   "derivation": [
+    "C^1 linearization near E_plus is available: the second-order condition Re lambda_i != Re lambda_j + Re lambda_k (j stable, k unstable) holds for every kappa > 0. With S = sqrt(25+16 kappa) > 5 the stable+unstable sums are (nu_E/4)(S-2) and -nu_E/2, never equal to -nu_E/4, -(nu_E/4)(S+1) or (nu_E/4)(S-1).",
+    "In linearizing coordinates the passage is exact: tau_stay = ln(r_0/|u_0|)/lambda_u, x_exit = e^{A tau_stay} x_0, with u_0 = c d (1 + o(1)), c != 0 by transversality.",
+    "Energy observable. During the stay ln rho grows by nu_E tau_stay + const + o(1), so rho_exit/rho_min is proportional to |d|^(-nu_E/lambda_u). By scale invariance e_inf rho_exit -> e*(gamma_+-), the scaled asymptotic energy of the exit branch. Hence rho_min e_inf = C_+- |d|^gamma (1 + o(1)), gamma = nu_E/lambda_u.",
+    "C_+- cannot vanish: gamma_+- is hyperbolic-elliptic (P09 step 2) and at E=0 its e_inf equals |E_binary| > 0.",
+    "Direction observable. theta_inf is a C^1 function of the exit point. The complex stable pair contributes |d|^beta (A cos(omega ln|d|) + B sin(omega ln|d|)), beta = nu_E/(4 lambda_u), omega = Omega/lambda_u; the strong stable direction contributes |d|^((S+1)/(S-1)), exponent > 1; the regular dependence contributes O(d).",
+    "If A = B = 0 on some side, the leading correction is the regular term c_1 d (order 1), since (S+1)/(S-1) > 1. If kappa <= 1/8 (no spiral) the oscillation is replaced by two real powers |d|^((1 -+ sqrt(1-8kappa))/(S-1)).",
+    "Why PARTIAL: transversality and (A,B) != 0 are numerical; remainders are o(1) from C^1 regularity, not explicit."
+   ],
+   "computational_certificate": "equal masses, exact seeds, d = 1e-2.5..1e-9.5 both sides, 58 orbits. First-order fit (d <= 1e-4): gamma = 0.68005, beta = 0.1703, omega = 0.5422. Second-order fit (all d): gamma = 0.67979, beta = 0.1721, omega = 0.5416. Prediction: 0.67972, 0.1699, 0.5427. Oscillation amplitude |(A,B)| = 0.19 rad on both sides (non-zero). Caveat found: the second-order model has a spurious solution (beta/2, omega/2); fit first order first.",
+   "error_bound": "relative remainder o(1) in each expansion; observed max fit residual 1.6e-3 in ln(rho_min e_inf) and theta"
+  },
+  {
+   "problem_id": "P11",
+   "result": "PARTIAL",
+   "derivation": [
+    "Dominance (proved, non-resonant case): on W^u(L_minus) the flow is analytically conjugate to a' = diag(Lam_+, Lam_-) a (P02). Then I = a_- / |a_+|^(Lam_-/Lam_+) is an exact invariant. For a(0) = eps (c_+, c_-), c_+ != 0: tau_exit = ln(r/(eps|c_+|))/Lam_+ exactly, and a_-(tau_exit) = c_- |c_+|^(-Lam_-/Lam_+) r^(Lam_-/Lam_+) eps^(1 - Lam_-/Lam_+).",
+    "Exceptional set: exactly c_+ = 0, i.e. the two branches of the analytic weak manifold P(0, a_-). In backward time all other orbits are tangent to the weak direction; in forward time they bend to +-e_+.",
+    "Consequence: the eps -> 0 limit of a generic family is the scattering of one branch of the strong-unstable manifold, chosen by sign(c_+); convergence rate eps^(1 - Lam_-/Lam_+) provided S is Lipschitz at the branch.",
+    "Classification for (1,2,3) (numerical): +e_+ -> body 2 escapes (rho_min e = 2.297659); -e_+ -> body 1 (3.020953); weak branches: both body 1 (0.691464, 1.621297).",
+    "Are opposite strong branches necessarily in distinct channels? NO. If two masses are equal and the strong mode is the mirror-symmetric one, the strong-unstable manifold lies in the invariant isosceles subsystem; the two equal bodies are mirror images for all time, so any escape label on either branch is the third body."
+   ],
+   "counterexample": "m = (0.5, 1, 1): Lam_+/Lam_- = 1.1571, strong mode symmetric; +e_+ -> body 1 escapes (rho_min e = 0.39805), -e_+ -> body 1 escapes (0.00087). Contrast m = (2,1,1): strong mode antisymmetric, branches give bodies 2 and 3 with identical energy 1.16300 (mirror pair).",
+   "computational_certificate": "(1,2,3): S(0.05, a_-) - S(0.05, 0) is linear in a_- (slopes 0.982, 0.998, 1.000 for a_- = 1e-3..1e-6), so the rate is eps^0.1917; round 4 measured 0.181-0.200",
+   "open": "resonant masses (Lam_+ = 2 Lam_-): the invariant acquires a logarithm; not treated"
+  },
+  {
+   "problem_id": "P12",
+   "result": "PARTIAL",
+   "derivation": [
+    "det S: det T_h = exp(h tr K) = 1. Proved for every w.",
+    "L^2: A(w) H = H A(w)^T for every w, so the frozen linear flow conserves angular momentum; exp(hK) is its exact flow. Proved.",
+    "Energy: the frozen flow is the exact flow of three springs with stiffness m_i m_j w_ij and conserves T + (1/2) sum mu_k w_k d_k^2. So T' - T = -(1/2) sum mu_k w_k (d_k'^2 - d_k^2). This equals -(U' - U) = sum mu_k (d_k' - d_k)/(d_k d_k') exactly when w_k = 2/(d_k d_k' (d_k + d_k')). Proved, given a solution of the implicit equation.",
+    "Reversibility: w is symmetric in (d, d') and T_{-h}(w) = T_h(w)^-1, so Psi_{-h} o Psi_h = id on the selected branch; with R = diag(I,-I), R K R = -K gives Psi_h(R S R) = R Psi_{-h}(S) R. Proved.",
+    "Order: the step is consistent (w = d^-3 + O(h)) and symmetric, hence of even order: p = 2. Triple-jump composition gives p = 4 with the same three invariants.",
+    "Local solvability: fixed point of Phi(w) = W(d, d'(w)). Since Q' = Q + h(D + D^T) + h^2 (P + (QA + A^T Q)/2) + O(h^3), the dependence on w starts at h^2. In the relative (logarithmic) norm, |d ln Phi_k / d ln w_l| <= (3/2) h^2 M/(d_k d_l^2) + O(h^3) <= (3/2)(h/t_ff)^2, t_ff = min_k sqrt(d_k^3/M). So Phi is a contraction for h < c t_ff with c ~ sqrt(2/9) = 0.47 at leading order; the fixed point is unique in the neighbourhood of w = d^-3 and depends analytically on (S, h). This is the valid branch.",
+    "Why PARTIAL: the contraction constant is leading-order (the O(h^3) remainder and the extra condition h |d'|/d < 1 are not bounded explicitly); the adaptive error bound below is heuristic."
+   ],
+   "error_bound": "heuristic: with h = eta t_ff the local relative error is O(eta^3) per step and a close passage costs ~ (1/eta) ln(d_max/d_min) steps, so the relative global error is ~ C eta^2 ln(d_max/d_min) before dynamical amplification. Observed on the Pythagorean close passage (d_min = 0.0097): 0.43, 0.114, 0.0284, 0.00696 for eta = 0.4, 0.2, 0.1, 0.05 (ratios 3.78, 4.02, 4.07) with 28, 58, 117, 234 steps.",
+   "computational_certificate": "one step h=0.05: |Psi_-h(Psi_h(S)) - S| = 1.8e-15, dE = 0, dL2 = 3e-17, d det S = 0. Fixed-point iteration: converges for h/t_ff <= 0.5 in both tested states; at h/t_ff >= 1 it fails in the wide phase (d_min = 2.86) but still converges up to 4 near the close passage (the bound is worst-case).",
+   "failure_region": "h > ~0.5 t_ff in general; fixed-step integration through a close passage (round 4: stops, or conserves all three invariants while the state is 57% wrong). Conservation is not accuracy."
+  },
+  {
+   "problem_id": "P13",
+   "result": "PARTIAL",
+   "derivation": [
+    "Obstruction (proved): if a continuous function is strictly increasing along every non-stationary orbit of an invariant region, that region contains no periodic orbit (and no non-wandering non-fixed point). For E < 0 periodic orbits exist in the reduced space, e.g. the figure-eight (L = 0, equal masses). Hence no global strictly monotone scalar clock exists on any invariant region containing one. nu' = |s'|^2/2 + rho E shows the mechanism: the term rho E < 0 allows nu to decrease.",
+    "Return map (construction): Sigma = {collinear configurations} (syzygies) in the regularized energy surface, coded by the middle body in {1,2,3}; Pi(x) = first return. Domain: orbits that return. For L = 0, E < 0, every bounded collision-free solution has infinitely many syzygies (Montgomery), so Pi is defined on the bounded recurrent set; transversality fails only on the collinear invariant subsystem.",
+    "Periodic behaviour: the figure-eight is a fixed point of Pi^6 with symbol sequence (2,1,3,2,1,3); its four non-trivial multipliers lie on the unit circle (elliptic).",
+    "Finite exact symbolic partition: impossible on a recurrent set containing a KAM torus. A subshift is totally disconnected and expansive; an invariant torus with irrational rotation is connected and equicontinuous, so the set cannot be conjugate to any subshift. KAM stability of the eight is a computer-assisted theorem of Kapela and Simo. So for equal masses, L = 0: no finite exact (conjugacy) partition of the whole bounded recurrent set. The syzygy coding remains a non-exact semi-coding.",
+    "Hyperbolic/homoclinic part: horseshoes near triple collision for small L (Moeckel) and with oscillatory motions (Guardia, Martin, Paradela, Seara) carry exact symbolic dynamics on their own invariant sets. I did not construct these.",
+    "Unsolved here: a global description of the recurrent set (measure of the chaotic part, completeness of the syzygy alphabet)."
+   ],
+   "computational_certificate": "figure-eight: closure 3.9e-8; monodromy: 8 multipliers = 1 (symmetries), two pairs with |lambda| = 1.000000 and rotation numbers 0.00842, 0.29809; 6 syzygies per period, middle-body sequence 2,1,3,2,1,3"
+  },
+  {
+   "problem_id": "P14",
+   "result": "PARTIAL",
+   "derivation": [
+    "No single notion of 'finite closed form' settles the question; the answer is class by class.",
+    "Class C_lin (finite linear representation): U recovered from Psi(t) = e^{At} Psi(0), Psi: D -> R^N continuous and injective, N finite. NON-EXISTENCE PROVED, all masses. Proof: on the circular Lagrange orbit of side a the period is T(a) = 2 pi sqrt(a^3/M). Psi(z) = e^{A T} Psi(z) puts Psi(z) in the sum of eigenspaces with lambda T in 2 pi i Z; A has finitely many eigenvalues, so for all but countably many a only lambda = 0 qualifies; then Psi is constant on the orbit, contradicting injectivity. (The same proof applies to Kepler: the obstruction is period variation, not chaos.)",
+    "Class C_qp (quasi-periodic closed forms): phi_t(z) = G(z, t omega(z) mod 2 pi), G and omega continuous, finitely many angles. NON-EXISTENCE PROVED on any invariant region containing a compact hyperbolic set with positive entropy. Proof: such a representation separates nearby orbits at most linearly in t, so the number of (t, eps)-separated points grows polynomially and the topological entropy is zero. Existence of such hyperbolic sets in the planar problem is a cited theorem (finite-symbol subsystems of the Bernoulli sets of Guardia, Martin, Paradela, Seara); I did not re-check its mass hypotheses.",
+    "Class C_int (algebraic or meromorphic first integrals plus quadratures): NON-EXISTENCE is the content of Bruns' theorem and of Tsygvintsev's meromorphic non-integrability near the parabolic Lagrange orbit (cited, with his three exceptional mass ratios for a single extra integral).",
+    "Class C_polylog (evaluation to accuracy eps in bit cost polylog(t, 1/eps)): NON-EXISTENCE PROVED in the bit-query model on the same hyperbolic sets: two initial points at distance C eps e^{-lambda t} along an unstable leaf have images 2 eps apart, so any evaluator must read at least lambda t/ln 2 - O(1) bits. The Taylor-continuation evaluator of round 1 has cost growing polynomially in t on bounded collision-free orbits (heuristic estimate, not proved), so it sits in a larger class.",
+    "Class C_el (arbitrary finite compositions of elementary/Liouvillian functions of t and the data, allowing exponentially expanding arguments): UNSOLVED. Chaos is not an obstruction here: x_n = sin^2(2^n arcsin sqrt(x_0)) is elementary, and geodesic flows on compact hyperbolic surfaces are projections of matrix exponentials. No theorem known to me excludes such a form for three bodies.",
+    "Outside every finite class but valid for all collision-free data: globally convergent series (Sundman, Wang) and certified flow algorithms. These are not closed forms in the sense requested.",
+    "Net statement: a universal U exists as a convergent series and as a certified algorithm; it does not exist in C_lin, C_qp, C_int, C_polylog; the question is open for C_el."
+   ],
+   "new_hypothesis": "Covering-space loophole is closed for three bodies: the flow is not locally (in a complex neighbourhood of the parabolic Lagrange orbit) meromorphically conjugate to a linear flow, because that would make the variational equation along the orbit solvable with abelian Galois group, contradicting the monodromy computed by Tsygvintsev. This would extend the C_lin theorem to multivalued lifts. Not proved here; the field of definition and the complex-time loops need care."
+  }
+ ],
+ "sources": [
+  "Chazy final motions, as stated in arXiv:1805.00800 (Theorem 1.1)",
+  "Moeckel, Montgomery, Venturelli, Free time minimizers for the planar three-body problem, arXiv:1705.00723 (parabolic => zero energy, single rest point; collinear/Lagrange eigenvalues)",
+  "Moeckel, Montgomery, Symmetric regularization, reduction and blow-up of the planar three-body problem, arXiv:1202.0972",
+  "Montgomery, The only syzygy-free solution is Lagrange's, arXiv:math/0601269",
+  "Kapela, Simo, Rigorous KAM results around arbitrary periodic orbits for Hamiltonian systems, arXiv:1105.3235; Nonlinearity 20 (2007) 1241 (linear stability of the Eight)",
+  "Ren, Yang, C. R. Acad. Sci. Paris 336 (2003) 709 (statement of the C^1 linearization condition of Belitskii)",
+  "Tsygvintsev, arXiv:math/0009218 and Celest. Mech. Dyn. Astron. 99 (2007) 23",
+  "Guardia, Martin, Paradela, Seara, arXiv:2207.14351"
+ ]
+}

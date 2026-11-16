@@ -1,0 +1,971 @@
+#!/usr/bin/env python3
+"""
+uc_cisim_tur6.py -- THREE_BODY_CLASSICAL_SOLUTION v6.0: hesap sertifikalari (tek dosya, bagimsiz).
+
+Calistir:  python3 uc_cisim_tur6.py            (hepsi; numpy + scipy; ~3 dk, 2 cekirdek)
+           python3 uc_cisim_tur6.py p01 p12    (secili testler: p01 p02 p03 p05 p07 p08 p09 p11 p12 p13)
+
+p01  Euler spektral ozdesligi: kappa_+ = kappa_- = kappa (kapali form) vs tam Jacobian (karmasik adim)
+p02  W^u(L-) parametrizasyonu: F(P(a)) = DP(a) Lambda a, derece N; degismezlik artigi, kisitlar
+p03  Ikili carpisma duzenlilestirmesi (Levi-Civita x McGehee): esdegerlik, tam carpismadan gecis, sureklilik
+p05  psi* : tam manifold tohumlariyla sinir; yaricaptan bagimsizlik; oyalanma egimi; usler (P06, P10)
+p07  Kacis sertifikasi (C) + hata sinirlari; "yalniz mesafe esigi yetmez" karsi ornegi
+p08  eps -> 0 limiti: |S_eps - S_0| ~ eps^delta
+p09  Sinir topolojisi icin tarama: min |s'|^2 (L+ baglantisi var mi?)
+p11  Mod secimi: m = (1,2,3) dallari; ikizkenar kutlelerde "zit dal => farkli kanal" karsi ornegi
+p12  Degismez koruyan ayrik akis: tersinirlik, cozulebilirlik esigi, uyarlamali adim
+p13  Sekiz-figuru: monodromi carpanlari, sizigi dizisi (monoton saat engeli)
+"""
+import sys, time, math
+from multiprocessing import Pool
+import numpy as np
+from numpy.polynomial.polynomial import polyval2d
+from scipy.integrate import solve_ivp
+from scipy.signal import convolve2d
+from scipy.linalg import expm
+from scipy.optimize import least_squares
+
+PAIRS = ((0, 1), (0, 2), (1, 2))
+ORD = {0: (0, 1, 2), 1: (0, 2, 1), 2: (1, 2, 0)}     # harita c: ikili (i,j), ucuncu k
+RESULTS = []
+
+
+def verdict(name, ok, detail):
+    RESULTS.append((name, ok))
+    print(f"  => {'PASS' if ok else 'FAIL'}  {name}: {detail}", flush=True)
+
+
+# =============================================================== Jacobi koordinatlari
+class Jac:
+    def __init__(self, m, order=(0, 1, 2)):
+        self.m = np.asarray(m, float)
+        self.o = order
+        i, j, k = order
+        self.M = self.m.sum()
+        self.mb = self.m[i] + self.m[j]
+        self.mu1 = self.m[i] * self.m[j] / self.mb
+        self.mu2 = self.m[k] * self.mb / self.M
+        self.r1, self.r2 = math.sqrt(self.mu1), math.sqrt(self.mu2)
+
+    def to_q(self, r):
+        i, j, k = self.o
+        c = (self.m[i] * r[i] + self.m[j] * r[j]) / self.mb
+        return np.r_[self.r1 * (r[j] - r[i]), self.r2 * (r[k] - c)]
+
+    def to_r(self, q):
+        i, j, k = self.o
+        x, X = q[:2] / self.r1, q[2:] / self.r2
+        c = -self.m[k] * X / self.M
+        r = np.zeros((3, 2), dtype=q.dtype)
+        r[i], r[j], r[k] = c - self.m[j] / self.mb * x, c + self.m[i] / self.mb * x, c + X
+        return r
+
+
+def J4(q):
+    return np.array([-q[1], q[0], -q[3], q[2]])
+
+
+def acc(m, r):
+    a = np.zeros((3, 2))
+    for i, j in PAIRS:
+        d = r[j] - r[i]
+        f = d / np.dot(d, d) ** 1.5
+        a[i] += m[j] * f
+        a[j] -= m[i] * f
+    return a
+
+
+def Upot(m, r):
+    return sum(m[i] * m[j] / np.linalg.norm(r[i] - r[j]) for i, j in PAIRS)
+
+
+# =============================================================== polinom alan (s, y, u_k = 1/d_k): 11 degisken
+class Poly:
+    def __init__(self, m):
+        self.m = np.asarray(m, float)
+        self.jac = Jac(m)
+        self.L = []
+        for i, j in PAIRS:
+            L = np.zeros((2, 4))
+            for a in range(4):
+                e = np.zeros(4)
+                e[a] = 1
+                r = self.jac.to_r(e)
+                L[:, a] = r[j] - r[i]
+            self.L.append(L)
+        self.c = [self.m[i] * self.m[j] for i, j in PAIRS]
+
+    def F(self, Z, mul):
+        s, y, u = Z[0:4], Z[4:8], Z[8:11]
+        nu = sum(mul(s[a], y[a]) for a in range(4))
+        ds = [y[a] - mul(nu, s[a]) for a in range(4)]
+        dy = [0.5 * mul(nu, y[a]) for a in range(4)]
+        du = []
+        for k in range(3):
+            L = self.L[k]
+            D = [sum(L[b, a] * s[a] for a in range(4)) for b in range(2)]
+            Dp = [sum(L[b, a] * ds[a] for a in range(4)) for b in range(2)]
+            u3 = mul(mul(u[k], u[k]), u[k])
+            for b in range(2):
+                w = mul(u3, D[b])
+                for a in range(4):
+                    if L[b, a] != 0.0:
+                        dy[a] = dy[a] - self.c[k] * L[b, a] * w
+            du.append(-mul(u3, mul(D[0], Dp[0]) + mul(D[1], Dp[1])))
+        return ds + dy + du
+
+    def Ffloat(self, Z):
+        return np.array(self.F(list(Z), lambda a, b: a * b))
+
+    def jacobian(self, Z):
+        Jm = np.zeros((11, 11))
+        for k in range(11):
+            Zc = np.array(Z, dtype=complex)
+            Zc[k] += 1e-30j
+            Jm[:, k] = np.array(self.F(list(Zc), lambda a, b: a * b)).imag / 1e-30
+        return Jm
+
+    def U(self, s):
+        return sum(self.c[k] / np.linalg.norm(self.L[k] @ s) for k in range(3))
+
+    def hessU(self, s):
+        H = np.zeros((4, 4))
+        for k in range(3):
+            D = self.L[k] @ s
+            d = np.linalg.norm(D)
+            H += self.c[k] / d ** 3 * self.L[k].T @ (3 * np.outer(D, D) / d ** 2 - np.eye(2)) @ self.L[k]
+        return H
+
+    def state(self, s, v):
+        return np.r_[s, v * s, [1 / np.linalg.norm(self.L[k] @ s) for k in range(3)]]
+
+    def shape_hessian(self, s):
+        """P (Hess U + U I) P, P: span{s, J4 s}^perp uzerine izdusum. Doner: ozdegerler, ozvektorler (4x2)."""
+        Js = J4(s)
+        B = np.linalg.svd(np.vstack([s, Js]))[2][2:].T          # 4x2 ortonormal taban
+        Hs = B.T @ (self.hessU(s) + self.U(s) * np.eye(4)) @ B
+        w, V = np.linalg.eigh(Hs)
+        return w[::-1], (B @ V)[:, ::-1]
+
+
+def lagrange_s(P):
+    ang = np.array([np.pi / 2, 7 * np.pi / 6, 11 * np.pi / 6])
+    r = np.stack([np.cos(ang), np.sin(ang)], axis=1) / np.sqrt(3)
+    r = r - (P.m[:, None] * r).sum(0) / P.m.sum()
+    q = P.jac.to_q(r)
+    return q / np.linalg.norm(q)
+
+
+def euler_s(P, left, mid, right):
+    """Euler kollinear merkezi konfigurasyonu. Doner: s_E, r = d(mid,right)/d(left,mid)."""
+    m = P.m
+    ml, mm, mr = m[left], m[mid], m[right]
+    c = [ml + mm, 3 * ml + 2 * mm, 3 * ml + mm, -(mm + 3 * mr), -(2 * mm + 3 * mr), -(mm + mr)]
+    r = [x.real for x in np.roots(c) if abs(x.imag) < 1e-10 and x.real > 0][0]
+    pos = np.zeros((3, 2))
+    pos[left, 0], pos[mid, 0], pos[right, 0] = -1.0, 0.0, r
+    pos -= (m[:, None] * pos).sum(0) / m.sum()
+    q = P.jac.to_q(pos)
+    return q / np.linalg.norm(q), r
+
+
+def kappa_closed(ml, mm, mr, r):
+    """P01: kappa = [m_r(1+3r+3r^2) + m_l r^2(3+3r+r^2)] / [(m_l+m_r) r^2 + m_m (1+r)^2 (1+r^2)],  d_lm = 1, d_mr = r."""
+    return (mr * (1 + 3 * r + 3 * r * r) + ml * r * r * (3 + 3 * r + r * r)) / ((ml + mr) * r * r + mm * (1 + r) ** 2 * (1 + r * r))
+
+
+# =============================================================== P01
+def p01():
+    print("[P01] Euler spektral ozdesligi: mu_+ + 2 mu_- = 3U  <=>  kappa_+ = kappa_-")
+    rng = np.random.default_rng(0)
+    cases = [(1, 1, 1), (1, 2, 3), (3, 4, 5), (1, 1e-3, 1), (1e-3, 1, 1e-3)] + [tuple(10 ** rng.uniform(-2, 2, 3)) for _ in range(40)]
+    worst = dict(ident=0.0, closed=0.0, spec=0.0)
+    kmin, kmax = np.inf, 0.0
+    shown = 0
+    for m in cases:
+        P = Poly(m)
+        for mid in range(3):
+            left, right = [i for i in range(3) if i != mid]
+            sE, r = euler_s(P, left, mid, right)
+            U = P.U(sE)
+            v = math.sqrt(2 * U)
+            mu, _ = P.shape_hessian(sE)
+            kp, km = mu[0] / v ** 2 - 1.5, -2 * mu[1] / v ** 2
+            kc = kappa_closed(m[left], m[mid], m[right], r)
+            S = math.sqrt(25 + 16 * kc)
+            pred = [v / 4 * (S - 1), -v / 4 * (S + 1), complex(-v / 4, v / 4 * math.sqrt(abs(8 * kc - 1))) if kc > 0.125 else -v / 4 * (1 - math.sqrt(1 - 8 * kc))]
+            ev = np.linalg.eigvals(P.jacobian(P.state(sE, v)))
+            dspec = max(min(abs(ev - p)) for p in pred) / v
+            worst["ident"] = max(worst["ident"], abs(mu[0] + 2 * mu[1] - 3 * U) / U)
+            worst["closed"] = max(worst["closed"], abs(kp - kc) / kc, abs(km - kc) / kc)
+            worst["spec"] = max(worst["spec"], dspec)
+            kmin, kmax = min(kmin, kc), max(kmax, kc)
+            if shown < 6:
+                shown += 1
+                print(f"   m = ({m[0]:g},{m[1]:g},{m[2]:g}) orta = {mid + 1}: r = {r:.6f}, kappa_+ = {kp:.10f}, kappa_- = {km:.10f}, kapali form = {kc:.10f}")
+    print(f"   {len(cases)} kutle uclusu x 3 siralama: max |mu_+ + 2mu_- - 3U|/U = {worst['ident']:.1e}, max |kappa_+- - kapali|/kappa = {worst['closed']:.1e},"
+          f" max |ozdeger - ongoru|/nu_E = {worst['spec']:.1e};  kappa araligi [{kmin:.4f}, {kmax:.4f}]")
+    verdict("P01 kappa_+ = kappa_- = kapali form; spektrum tam Jacobian ile ayni", max(worst.values()) < 1e-7, "tum kutleler ve uc siralama")
+
+
+# =============================================================== P02: parametrizasyon yontemi
+class Manifold:
+    """W^u(L-) icin P(a_+, a_-): F(P(a)) = DP(a) diag(Lam_+, Lam_-) a, toplam derece <= N."""
+
+    def __init__(self, m, N=20):
+        self.P = P = Poly(m)
+        self.N = N
+        sL = lagrange_s(P)
+        U = P.U(sL)
+        self.v = v = math.sqrt(2 * U)
+        mu, V = P.shape_hessian(sL)
+        if abs(mu[0] - mu[1]) < 1e-9 * U:                      # esit kutle: taban = (cisim 1 disari, cisim 1 tegetsel)
+            jac = P.jac
+            r0 = jac.to_r(sL)
+            base = []
+            for p in (np.array([[0.0, 1.0], [0, 0], [0, 0]]), np.array([[-1.0, 0.0], [0, 0], [0, 0]])):
+                p = p - (P.m[:, None] * p).sum(0) / P.m.sum()
+                q = jac.to_q(p)
+                q = q - (q @ sL) * sL - (q @ J4(sL)) * J4(sL)
+                base.append(q / np.linalg.norm(q))
+            V = np.stack(base, axis=1)
+        self.Lam = np.array([v / 4 * (1 + math.sqrt(1 + 16 * x / v ** 2)) for x in mu])
+        self.mu, self.sL = mu, sL
+        Zeq = P.state(sL, -v)
+        DF = P.jacobian(Zeq)
+        vecs = []
+        for a in range(2):
+            sig = V[:, a]
+            du = [-(1 / np.linalg.norm(P.L[k] @ sL)) ** 3 * (P.L[k] @ sL) @ (P.L[k] @ sig) for k in range(3)]
+            vecs.append(np.r_[sig, (self.Lam[a] - v) * sig, du])
+        self.eig_res = max(np.abs(DF @ vecs[a] - self.Lam[a] * vecs[a]).max() for a in range(2))
+        mask = np.add.outer(np.arange(N + 1), np.arange(N + 1)) <= N
+        mul = lambda a, b: convolve2d(a, b)[:N + 1, :N + 1] * mask
+        C = [np.zeros((N + 1, N + 1)) for _ in range(11)]
+        for c in range(11):
+            C[c][0, 0], C[c][1, 0], C[c][0, 1] = Zeq[c], vecs[0][c], vecs[1][c]
+        self.mindiv = np.inf
+        for n in range(2, N + 1):
+            Fs = P.F(C, mul)
+            for i in range(n + 1):
+                j = n - i
+                A = DF - (i * self.Lam[0] + j * self.Lam[1]) * np.eye(11)
+                self.mindiv = min(self.mindiv, np.abs(np.linalg.eigvals(A)).min())
+                sol = np.linalg.solve(A, -np.array([Fs[c][i, j] for c in range(11)]))
+                for c in range(11):
+                    C[c][i, j] = sol[c]
+        self.C = C
+        self.dC1 = [np.arange(N + 1)[:, None] * C[c] for c in range(11)]          # a1 d/da1
+        self.dC2 = [np.arange(N + 1)[None, :] * C[c] for c in range(11)]          # a2 d/da2
+        self.Sn = np.array([sum(max(abs(C[c][i, n - i]) for c in range(8)) for i in range(n + 1)) for n in range(N + 1)])
+
+    def __call__(self, a):
+        return np.array([polyval2d(a[0], a[1], self.C[c]) for c in range(11)])
+
+    def residual(self, a):
+        Z = self(a)
+        rhs = np.array([self.Lam[0] * polyval2d(a[0], a[1], self.dC1[c]) + self.Lam[1] * polyval2d(a[0], a[1], self.dC2[c]) for c in range(11)])
+        return np.abs(self.P.Ffloat(Z) - rhs).max()
+
+    def constraints(self, a):
+        Z = self(a)
+        s, y = Z[:4], Z[4:8]
+        return max(abs(s @ s - 1), abs(0.5 * y @ y - self.P.U(s)), abs(s @ J4(y)))
+
+    def seed(self, a):
+        Z = self(a)
+        return Z[:4], Z[4:8]
+
+
+def p02():
+    print("[P02] W^u(L-) parametrizasyonu (derece N = 24)")
+    ok = True
+    for m in ((1, 1, 1), (1, 2, 3)):
+        t0 = time.time()
+        W = Manifold(m, 24)
+        M = sum(m)
+        k = sum((m[i] - m[j]) ** 2 for i, j in PAIRS) / (2 * M * M)
+        lam_th = [W.v / 4 * (1 + math.sqrt(13 + 12 * math.sqrt(k))), W.v / 4 * (1 + math.sqrt(13 - 12 * math.sqrt(k)))]
+        rad = [1 / W.Sn[n] ** (1 / n) for n in (16, 20, 24)]
+        print(f"   m = {m}: Lam = ({W.Lam[0]:.8f}, {W.Lam[1]:.8f}) [formul ({lam_th[0]:.8f}, {lam_th[1]:.8f})], Lam_+/Lam_- = {W.Lam[0] / W.Lam[1]:.5f},"
+              f" ozvektor artigi = {W.eig_res:.1e}, en kucuk bolen = {W.mindiv:.3f}, sure = {time.time() - t0:.1f} s")
+        print(f"        kok testi yaricap tahmini (n = 16, 20, 24): {np.round(rad, 4)}")
+        for r in (0.02, 0.05, 0.1, 0.2):
+            th = np.linspace(0, 2 * np.pi, 49)[:-1]
+            res = max(W.residual((r * math.cos(t), r * math.sin(t))) for t in th)
+            con = max(W.constraints((r * math.cos(t), r * math.sin(t))) for t in th)
+            tail = W.Sn[W.N] * r ** W.N
+            print(f"        |a| = {r:4.2f}: max degismezlik artigi = {res:.1e}, max kisit ihlali (|s|=1, H=0, L=0) = {con:.1e}, son terim S_N r^N = {tail:.1e}")
+            if r == 0.05:
+                ok = ok and res < 1e-11 and con < 1e-11
+        # akisla dogrudan sinama: phi_tau(P(a)) = P(e^{Lam tau} a)
+        a0 = np.array([0.03 * math.cos(0.7), 0.03 * math.sin(0.7)])
+        tau = 0.5 * math.log(0.1 / 0.03) / W.Lam[0]
+        sol = solve_ivp(lambda t, Z: W.P.Ffloat(Z), [0, tau], W(a0), rtol=1e-13, atol=1e-15, method="DOP853")
+        dflow = np.abs(sol.y[:8, -1] - W(a0 * np.exp(W.Lam * tau))[:8]).max()
+        print(f"        akis sinamasi: |phi_tau(P(a)) - P(e^(Lam tau) a)| = {dflow:.1e}  (tau = {tau:.3f})")
+        ok = ok and dflow < 1e-9 and W.eig_res < 1e-9 and max(abs(W.Lam[i] - lam_th[i]) for i in range(2)) < 1e-9
+    x = (48 + math.sqrt(129)) / 75
+    print(f"   rezonans: Lam_+ = 2 Lam_-  <=>  sqrt(k) = (48 + sqrt(129))/75 = {x:.6f} (k = {x * x:.6f});"
+          f" oran = {(1 + math.sqrt(13 + 12 * x)) / (1 + math.sqrt(13 - 12 * x)):.12f}")
+    verdict("P02 parametrizasyon degismez (|a| <= 0.05'te artik < 1e-11) ve akisla tutarli", ok, "boyut 2; tek ic rezonans Lam_+ = 2 Lam_-")
+
+
+# =============================================================== P03: Levi-Civita x McGehee haritalari
+class LC:
+    """Harita c: s1 = zeta^2 (ikili i,j), omega = conj(zeta) y1, dtau = |zeta|^2 dsigma.
+    dzeta/dsig  = (omega - nu |zeta|^2 zeta)/2
+    domega/dsig = zeta (U_reg - |y2|^2/2 + rho E) + |zeta|^2 conj(zeta) grad_1 U_reg
+    ds2/dsig    = |zeta|^2 (y2 - nu s2),   dy2/dsig = |zeta|^2 (grad_2 U_reg + nu y2/2)
+    Sag taraf zeta = 0'da analitik (s2 != 0)."""
+
+    def __init__(self, m, c, E=0.0):
+        self.c, self.E = c, E
+        self.jac = J = Jac(m, ORD[c])
+        i, j, k = ORD[c]
+        self.k1 = m[i] * m[j] * J.r1
+        self.c2 = 1 / J.r2
+        self.a, self.b = (m[j] / J.mb) / J.r1, (m[i] / J.mb) / J.r1
+        self.gik, self.gjk, self.mk = m[i] * m[k], m[j] * m[k], m[k]
+        self.ncall = 0
+
+    def unpack(self, X):
+        ze, s2 = complex(X[0], X[1]), complex(X[2], X[3])
+        n = math.sqrt(abs(ze) ** 4 + abs(s2) ** 2)
+        return ze / math.sqrt(n), s2 / n, n, complex(X[4], X[5]), complex(X[6], X[7])
+
+    def fields(self, zh, s2h):
+        s1 = zh * zh
+        A, B = self.c2 * s2h + self.a * s1, self.c2 * s2h - self.b * s1
+        rA, rB = abs(A), abs(B)
+        return A, B, rA, rB, self.gik / rA + self.gjk / rB
+
+    def rhs(self, sig, X):
+        self.ncall += 1
+        if self.ncall > 3000000:
+            raise OverflowError
+        zh, s2h, n, om, y2 = self.unpack(X)
+        z2 = abs(zh) ** 2
+        A, B, rA, rB, Ureg = self.fields(zh, s2h)
+        fA, fB = self.gik * A / rA ** 3, self.gjk * B / rB ** 3
+        g1, g2 = -self.a * fA + self.b * fB, -self.c2 * (fA + fB)
+        nu = (zh.conjugate() * om).real + (s2h.conjugate() * y2).real
+        h = self.E * math.exp(X[8]) if self.E else 0.0
+        K2 = abs(y2) ** 2 / 2
+        W = Ureg - K2 + h
+        Gam = abs(om) ** 2 / 2 - self.k1 - z2 * W
+        dmp = (abs(nu) + 1.0) * Gam / (abs(om) ** 2 + z2 * abs(y2) ** 2 + 1e-3 * self.k1)
+        dz = math.sqrt(n) * (om - nu * z2 * zh) / 2
+        dom = zh * W + z2 * zh.conjugate() * g1 - dmp * z2 * om
+        ds2 = n * z2 * (y2 - nu * s2h)
+        dy2 = z2 * (g2 + nu * y2 / 2 - dmp * y2)
+        return [dz.real, dz.imag, ds2.real, ds2.imag, dom.real, dom.imag, dy2.real, dy2.imag, z2 * nu, z2]
+
+    def nu(self, X):
+        zh, s2h, n, om, y2 = self.unpack(X)
+        return (zh.conjugate() * om).real + (s2h.conjugate() * y2).real
+
+    def gamma(self, X):
+        zh, s2h, n, om, y2 = self.unpack(X)
+        A, B, rA, rB, Ureg = self.fields(zh, s2h)
+        h = self.E * math.exp(X[8]) if self.E else 0.0
+        return abs(om) ** 2 / 2 - self.k1 - abs(zh) ** 2 * (Ureg - abs(y2) ** 2 / 2 + h)
+
+    def switch(self, X):
+        zh, s2h, n, om, y2 = self.unpack(X)
+        A, B, rA, rB, Ureg = self.fields(zh, s2h)
+        return min(rA, rB) - 0.7 * abs(zh) ** 2 / self.jac.r1
+
+    def sprime2(self, X):
+        """L+ duragan noktasina uzaklik olcusu: (ciftler arasi mesafe yayilimi)^2 + |s'|^2 / (2U).  L+'da 0."""
+        zh, s2h, n, om, y2 = self.unpack(X)
+        z2 = abs(zh) ** 2
+        A, B, rA, rB, Ureg = self.fields(zh, s2h)
+        nu = (zh.conjugate() * om).real + (s2h.conjugate() * y2).real
+        d = (z2 / self.jac.r1, rA, rB)
+        y2tot = abs(om) ** 2 / max(z2, 1e-300) + abs(y2) ** 2
+        return ((max(d) - min(d)) / (sum(d) / 3)) ** 2 + (y2tot - nu * nu) / y2tot
+
+    def cert(self, X, tol):
+        """P07 olcutu (C). Doner: (marj, veri). marj > 0  =>  kalici ikili + kacis, |e_R - e_inf| <= B_E <= tol * E_rel."""
+        zh, s2h, n, om, y2 = self.unpack(X)
+        A, B, rA, rB, Ureg = self.fields(zh, s2h)
+        J = self.jac
+        h = self.E * math.exp(X[8]) if self.E else 0.0
+        Eb = Ureg - abs(y2) ** 2 / 2 + h
+        if Eb >= 0:
+            return -1.0, None
+        eps_b = Eb / J.mu1
+        b = 1.25 * J.mb / (-eps_b)
+        Rv, Vv = self.c2 * s2h, self.c2 * y2
+        R = abs(Rv)
+        if R <= 2 * b:
+            return -1.0, None
+        Rd = (Rv.conjugate() * Vv).real / R
+        u0 = R - b
+        V2 = Rd * Rd - 2 * J.M / u0
+        if Rd <= 0 or V2 <= 0:
+            return -1.0, None
+        V = math.sqrt(V2)
+        de = self.mk * math.sqrt(2 * J.mb * b) / (V * u0 * u0)
+        if de >= 0.2 * (-eps_b):
+            return -1.0, None
+        S = abs(Vv) + J.M / (V * u0)
+        BE = self.mk * J.mu1 * b * b * S / (V * u0 ** 3)
+        Erel = abs(y2) ** 2 / 2 - self.mk * J.mb / R
+        hz = (Rv.conjugate() * Vv).imag
+        ev = -1j * Vv * hz / J.M - Rv / R
+        e = abs(ev)
+        De = 6 * S * J.mu1 * b * b / (J.mb * V) * (1 / (2 * u0 * u0) + b / (3 * u0 ** 3))
+        em = e - De
+        Bth = (math.pi / 2 * De / em + De / (em * math.sqrt(em * em - 1))) if em > 1 else math.inf
+        th = math.atan2(ev.imag, ev.real) + math.copysign(1.0, hz) * math.acos(max(-1.0, -1 / e))
+        return tol * Erel - BE, dict(Erel=Erel, BE=BE, Bth=Bth, th=th, R_over_a=2 * R * (-eps_b) / J.mb, Eb=Eb, b=b, R=R)
+
+    def from_cart(self, r, v, lnrho, tau):
+        q, yq = self.jac.to_q(r), self.jac.to_q(v)
+        ze = np.sqrt(complex(q[0], q[1]))
+        om = ze.conjugate() * complex(yq[0], yq[1])
+        return [ze.real, ze.imag, q[2], q[3], om.real, om.imag, yq[2], yq[3], lnrho, tau]
+
+    def to_cart(self, X):
+        zh, s2h, n, om, y2 = self.unpack(X)
+        s1, y1 = zh * zh, om / zh.conjugate()
+        q = np.array([s1.real, s1.imag, s2h.real, s2h.imag])
+        yq = np.array([y1.real, y1.imag, y2.real, y2.imag])
+        return self.jac.to_r(q), self.jac.to_r(yq)
+
+
+class Motor:
+    def __init__(self, m, E=0.0, rtol=1e-12, atol=1e-14):
+        self.m = np.asarray(m, float)
+        self.ch = [LC(self.m, c, E) for c in range(3)]
+        self.j0 = Jac(self.m)
+        self.kw = dict(rtol=rtol, atol=atol, method="DOP853")
+
+    def closest(self, r):
+        d = [np.linalg.norm(r[j] - r[i]) for i, j in PAIRS]
+        return int(np.argmin(d))
+
+    def run(self, s, y, lnrho=0.0, tol=1e-6, sig_max=400.0, track=False):
+        """s, y: (0,1,2) Jacobi haritasinda olcekli durum. Doner: dict(esc, th, es, lrmin, tau, ...) ya da None."""
+        r, v = self.j0.to_r(np.asarray(s, float)), self.j0.to_r(np.asarray(y, float))
+        tau, lrmin, ncol, smin2, gmax, nseg = 0.0, None, 0, math.inf, 0.0, 0
+        while nseg < 400:
+            nseg += 1
+            lc = self.ch[self.closest(r)]
+            lc.ncall = 0
+            X0 = lc.from_cart(r, v, lnrho, tau)
+            ev_nu = lambda t, X, lc=lc: lc.nu(X)
+            ev_nu.direction = 1
+            ev_sw = lambda t, X, lc=lc: lc.switch(X)
+            ev_sw.terminal, ev_sw.direction = True, -1
+            ev_ce = lambda t, X, lc=lc: lc.cert(X, tol)[0]
+            ev_ce.terminal, ev_ce.direction = True, 1
+            try:
+                sol = solve_ivp(lc.rhs, [0, sig_max], X0, events=(ev_nu, ev_sw, ev_ce), **self.kw)
+            except OverflowError:
+                return None
+            for te, Xe in zip(sol.t_events[0], sol.y_events[0]):
+                if lrmin is None and te > 1e-9:
+                    lrmin = Xe[8]
+            if track:
+                for kk in range(sol.y.shape[1]):
+                    Xk = sol.y[:, kk]
+                    if lc.nu(Xk) > 0.0:
+                        smin2 = min(smin2, lc.sprime2(Xk))
+                    gmax = max(gmax, abs(lc.gamma(Xk)))
+                z2s = sol.y[0] ** 2 + sol.y[1] ** 2
+                ncol += int(((z2s[1:-1] < z2s[:-2]) & (z2s[1:-1] < z2s[2:]) & (z2s[1:-1] < 1e-6)).sum())
+            if len(sol.t_events[2]):
+                X = sol.y_events[2][0]
+                d = lc.cert(X, tol)[1]
+                if lrmin is None:
+                    lrmin = X0[8]
+                return dict(esc=ORD[lc.c][2] + 1, th=angd(math.degrees(d["th"]), 0.0), es=d["Erel"] * math.exp(lrmin - X[8]), lrmin=lrmin, tau=X[9],
+                            BE_rel=d["BE"] / d["Erel"], Bth=math.degrees(d["Bth"]), R_over_a=d["R_over_a"], smin2=smin2, gmax=gmax, ncol=ncol, nseg=nseg)
+            if not len(sol.t_events[1]):
+                return None
+            X = sol.y_events[1][0]
+            r, v = lc.to_cart(X)
+            lnrho, tau = X[8], X[9]
+        return None
+
+
+def angd(a, b):
+    return (a - b + 180) % 360 - 180
+
+
+_W = {}
+
+
+def manifold(m, N=24):
+    key = tuple(float(x) for x in m)
+    if key not in _W:
+        _W[key] = (Manifold(key, N), Motor(key, rtol=1e-13, atol=1e-15))
+    return _W[key]
+
+
+def S0(m, a, tol=1e-6, track=False):
+    """Tam manifold tohumu P(a)'dan E = 0 sacilma sonucu."""
+    W, mot = manifold(m)
+    s, y = W.seed(a)
+    return mot.run(s, y, tol=tol, track=track)
+
+
+def S0_psi(m, psi, r=0.05, tol=1e-6, track=False):
+    return S0(m, (r * math.cos(math.radians(psi)), r * math.sin(math.radians(psi))), tol, track)
+
+
+def p03():
+    print("[P03] Levi-Civita x McGehee haritalari (E = 0, esit kutle; tohum: tam manifold, |a| = 1e-5 ve 0.05)")
+    ref = {40: (1, -80.024, 0.39399), 57: (1, -3.834, 0.00122), 59: (2, -162.183, 0.00920)}        # tur 4: mpmath Taylor, duzenlilestirmesiz
+    ok = True
+    for psi, (lab, th, es) in ref.items():
+        o = S0_psi((1, 1, 1), psi, r=1e-5, track=True)
+        print(f"   psi = {psi} (|a| = 1e-5): kacan = {o['esc']} (tur4 {lab}), yon = {o['th']:.3f} ({th}), r_min*e = {o['es']:.5f} ({es});"
+              f" harita degisimi = {o['nseg'] - 1}, max |Gamma| = {o['gmax']:.1e}, R/a_b = {o['R_over_a']:.0f}, B_E/E = {o['BE_rel']:.0e}")
+        ok = ok and o["esc"] == lab and abs(angd(o["th"], th)) < 3e-3 and abs(o["es"] - es) < 3e-5
+    print("   tam ikili carpismadan gecis (ikizkenar yorungeler) ve sureklilik:")
+    for p0 in (0.0, 60.0):
+        rows = [S0_psi((1, 1, 1), p0 + d, track=True) for d in (-1e-5, 0.0, 1e-5)]
+        for d, o in zip((-1e-5, 0.0, 1e-5), rows):
+            print(f"     psi = {p0:g}{d:+.0e}: kacan = {o['esc']}, yon = {o['th']:.6f}, r_min*e = {o['es']:.8f}, yakin gecis (|s1| < 1e-6) sayisi = {o['ncol']}, tau = {o['tau']:.4f}")
+        cont = max(abs(rows[0]["es"] - rows[1]["es"]), abs(rows[2]["es"] - rows[1]["es"])) / rows[1]["es"]
+        ok = ok and len({o["esc"] for o in rows}) == 1 and cont < 1e-4 and abs(angd(rows[0]["th"], rows[1]["th"])) < 1e-2
+    verdict("P03 duzenlilestirilmis akis = Newton; carpismadan duzgun gecis", ok, "uc harita + gecis kurali; psi = 0 ve 60 eksenleri artik hesaplanabiliyor")
+
+
+# =============================================================== P05 / P06 / P10
+def euler_spectrum(m, mid):
+    P = Poly(m)
+    left, right = [i for i in range(3) if i != mid]
+    sE, r = euler_s(P, left, mid, right)
+    v = math.sqrt(2 * P.U(sE))
+    k = kappa_closed(m[left], m[mid], m[right], r)
+    S = math.sqrt(25 + 16 * k)
+    lam_u, Om = v / 4 * (S - 1), v / 4 * math.sqrt(8 * k - 1) if k > 0.125 else 0.0
+    return dict(v=v, kappa=k, lam_u=lam_u, Omega=Om, gamma=v / lam_u, beta=v / (4 * lam_u), omega=Om / lam_u)
+
+
+def bisect_psi(m, a, b, la, r, n=60):
+    for _ in range(n):
+        c = 0.5 * (a + b)
+        if c in (a, b):
+            break
+        o = S0_psi(m, c, r)
+        if o is not None and o["esc"] == la:
+            a = c
+        else:
+            b = c
+    return a, b
+
+
+def _near(args):
+    m, psi, r = args
+    o = S0_psi(m, psi, r)
+    return (psi, None) if o is None else (psi, (o["esc"], o["th"], o["es"], o["tau"]))
+
+
+def joint_fit(D, g0, order=2, start=None):
+    """Iki taraf, iki gozlenebilir. Ortak: x (psi* kaymasi), gamma, beta, omega.
+    order = 1: d^beta (cos, sin)(omega ln d);  order = 2: + d^(2 beta) (1, cos, sin)(2 omega ln d).
+    Not: 2. mertebe modelinde (beta/2, omega/2, 1. mertebe genlik = 0) sahte bir cozumdur; bu yuzden once order = 1 ile baslanir."""
+    sides = sorted(D)
+    npar = 3 if order == 1 else 6
+
+    def ser(L, be, w, c):
+        o = np.exp(be * L) * (c[0] * np.cos(w * L) + c[1] * np.sin(w * L))
+        if order == 2:
+            o = o + np.exp(2 * be * L) * (c[2] + c[3] * np.cos(2 * w * L) + c[4] * np.sin(2 * w * L))
+        return o
+
+    def resid(p):
+        x, g, be, w = p[:4]
+        out = []
+        for i, sg in enumerate(sides):
+            d, y, th = D[sg]
+            q = p[4 + 2 * npar * i: 4 + 2 * npar * (i + 1)]
+            dt = d - sg * x
+            if np.any(dt <= 0):
+                return np.full(sum(2 * len(D[t][0]) for t in sides), 1e3)
+            L = np.log(dt)
+            out.append(q[0] + g * L + ser(L, be, w, q[1:npar]) - y)
+            out.append(q[npar] + ser(L, be, w, q[npar + 1:]) - th)
+        return np.concatenate(out)
+
+    starts = []
+    if start is not None:                      # 1. mertebe cozumunden devam
+        p0 = list(start[:4])
+        for i in range(len(sides)):
+            q = start[4 + 6 * i: 10 + 6 * i]
+            p0 += list(q[0:3]) + [0.0] * 3 + list(q[3:6]) + [0.0] * 3
+        starts.append(p0)
+    else:
+        for w0 in (0.3, 0.45, 0.6, 0.8):
+            for b0 in (0.1, 0.17, 0.3):
+                p0 = [0.0, g0, b0, w0]
+                for sg in sides:
+                    d, y, th = D[sg]
+                    p0 += [y[-1] - g0 * np.log(d[-1])] + [0.0] * (npar - 1) + [th[-1]] + [0.0] * (npar - 1)
+                starts.append(p0)
+    best = min((least_squares(resid, p0, x_scale="jac") for p0 in starts), key=lambda f: f.cost)
+    amp = [math.hypot(best.x[4 + 2 * npar * i + npar + 1], best.x[4 + 2 * npar * i + npar + 2]) for i in range(len(sides))]
+    return best.x, np.abs(best.fun).max(), amp
+
+
+def p05(pool):
+    m = (1.0, 1.0, 1.0)
+    print("[P05] psi*: tam manifold kesiti Gamma_r(psi) = P(r cos psi, r sin psi)")
+    sp = euler_spectrum(m, 2)
+    ps = {}
+    for r in (0.02, 0.05, 0.1):
+        a, b = bisect_psi(m, 57.0, 58.0, 1, r)
+        ps[r] = 0.5 * (a + b)
+        print(f"   r = {r:4.2f}: psi* in [{a:.13f}, {b:.13f}]  (genislik {b - a:.1e})")
+    spread = max(ps.values()) - min(ps.values())
+    print(f"   yaricaplar arasi fark = {spread:.1e} derece  (dogrusal tohum, tur 5: delta = 1e-5 -> 57.0539071; 1e-3 -> 57.0499673; 1e-2 -> 57.0138528)")
+    ok5 = spread < 1e-9
+    r, p0 = 0.05, ps[0.05]
+    ds = 10.0 ** -np.arange(2.5, 9.51, 0.25)
+    res = dict(pool.map(_near, [(m, p0 + sg * d, r) for sg in (-1, 1) for d in ds]))
+    D, slopes, good = {}, [], True
+    for sg, lab in ((-1, 1), (1, 2)):
+        rows = [(d, res[p0 + sg * d]) for d in ds]
+        good = good and all(o is not None and o[0] == lab for _, o in rows)
+        d = np.array([x for x, o in rows if o and o[0] == lab])
+        y = np.log([o[2] for x, o in rows if o and o[0] == lab])
+        th = np.unwrap(np.radians([o[1] for x, o in rows if o and o[0] == lab]))
+        tau = np.array([o[3] for x, o in rows if o and o[0] == lab])
+        D[sg] = (d, y, th)
+        slopes.append(np.polyfit(np.log(1 / d), tau, 1)[0])
+        loc = np.diff(tau) / np.diff(np.log(1 / d))
+        print(f"   taraf {sg:+d} (kacan = {lab}): {len(d)} yorunge, d = 1e-2.5..1e-9.5; d tau/d ln(1/d): uyum = {slopes[-1]:.5f}, yerel (son 3) = {np.round(loc[-3:], 5)}")
+    print(f"   [P06] ongoru 1/lambda_u = {1 / sp['lam_u']:.5f}   (teget kesisimde k/lambda_u olurdu, k >= 2)")
+    ok6 = good and all(abs(x * sp["lam_u"] - 1) < 0.01 for x in slopes)
+    Das = {sg: tuple(v[D[sg][0] <= 1e-4] for v in D[sg]) for sg in D}
+    p1, r1, amp1 = joint_fit(Das, sp["gamma"], order=1)
+    print(f"   [P10] 1. mertebe uyum (d <= 1e-4, {sum(len(Das[k][0]) for k in Das)} yorunge): gamma = {p1[1]:.5f}, beta = {p1[2]:.4f}, omega = {abs(p1[3]):.4f},"
+          f" max artik = {r1:.1e};  yon salinim genligi |(A,B)| = {amp1[0]:.3f}, {amp1[1]:.3f} rad")
+    p, rmax, amp = joint_fit(D, sp["gamma"], order=2, start=p1)
+    print(f"         2. mertebe uyum (d <= 1e-2.5, {sum(len(D[k][0]) for k in D)} yorunge): gamma = {p[1]:.5f}, beta = {p[2]:.4f}, omega = {abs(p[3]):.4f},"
+          f" psi* kaymasi = {p[0]:.1e}, max artik = {rmax:.1e};  |(A,B)| = {amp[0]:.3f}, {amp[1]:.3f} rad")
+    print(f"         ongoru (kappa = {sp['kappa']:.4f}): gamma = {sp['gamma']:.5f}, beta = {sp['beta']:.4f}, omega = {sp['omega']:.4f}")
+    ok10 = abs(p[1] - sp["gamma"]) < 2e-3 and abs(p[2] - sp["beta"]) < 0.01 and abs(abs(p[3]) - sp["omega"]) < 0.01 and min(amp) > 1e-2 \
+        and abs(p1[2] - sp["beta"]) < 0.02 and abs(abs(p1[3]) - sp["omega"]) < 0.02
+    verdict("P05 sinir tam manifoldda duruyor; yaricaptan bagimsiz", ok5, f"psi* = {p0:.11f} derece, etiket 1|2")
+    verdict("P06 oyalanma yasasi, kesisim enine", ok6, "egim = 1/lambda_u, iki tarafta")
+    verdict("P10 usler Euler ozdeger oranlari; baglasim katsayilari sifir degil", ok10, "7 onluk, iki taraf, iki gozlenebilir")
+    return p0
+
+
+# =============================================================== P07
+def p07():
+    print("[P07] Kacis sertifikasi (C): sinirlar gercek kuyrugu kapsiyor mu?  (E = 0, esit kutle)")
+    ok = True
+    for psi in (10.0, 40.0, 57.0, 59.5):
+        o6, o9 = S0_psi((1, 1, 1), psi, tol=1e-6), S0_psi((1, 1, 1), psi, tol=1e-9)
+        de, dth = abs(o6["es"] - o9["es"]) / o9["es"], abs(angd(o6["th"], o9["th"]))
+        print(f"   psi = {psi:5.1f}: R/a_b = {o6['R_over_a']:.0f} -> {o9['R_over_a']:.0f};  |de|/e = {de:.1e} <= B_E/E = {o6['BE_rel']:.1e};"
+              f"  |dtheta| = {dth:.1e} <= B_theta = {o6['Bth']:.1e} derece")
+        ok = ok and de <= o6["BE_rel"] and dth <= o6["Bth"]
+    verdict("P07a sinirlar tutuyor", ok, "B_E ~ (a_b/R)^3, B_theta ~ (a_b/R)^2")
+
+    print("   karsi ornek: E_b < 0, E_rel > 0, R.V > 0, R = k a_b  ama  e_inf < 0   (m = 1,1,1; dairesel ikili a = 1)")
+    m = np.ones(3)
+    M, mb, mu_b, mu3 = 3.0, 2.0, 0.5, 2.0 / 3.0
+
+    def rhs(t, z):
+        return np.r_[z[6:], acc(m, z[:6].reshape(3, 2)).ravel()]
+
+    def split(z):
+        r, v = z[:6].reshape(3, 2), z[6:].reshape(3, 2)
+        x, xd = r[1] - r[0], v[1] - v[0]
+        R, Rd = r[2] - (r[0] + r[1]) / 2, v[2] - (v[0] + v[1]) / 2
+        return mu_b * (xd @ xd) / 2 - 1 / np.linalg.norm(x), mu3 * (Rd @ Rd) / 2 - mb / np.linalg.norm(R), np.linalg.norm(R), R @ Rd
+
+    found = True
+    for k in (10.0, 20.0):
+        Wbar = mu_b / (4 * k ** 3)
+        line = []
+        for phi in (0.0, 45.0, 90.0, 135.0):
+            ph = math.radians(phi)
+            x = np.array([math.cos(ph), math.sin(ph)])
+            xd = math.sqrt(2.0) * np.array([-math.sin(ph), math.cos(ph)])
+            V = math.sqrt(2 * (0.5 * Wbar + mb / k) / mu3)
+            R, Rd = np.array([k, 0.0]), np.array([V, 0.0])
+            c, cd = -R / M, -Rd / M
+            z0 = np.r_[c - x / 2, c + x / 2, c + R, cd - xd / 2, cd + xd / 2, cd + Rd]
+            Eb0, Er0, R0, RV0 = split(z0)
+            ev1 = lambda t, z: split(z)[2] - 10 * k
+            ev2 = lambda t, z: split(z)[2] - 30 * k
+            ev2.terminal = True
+            sol = solve_ivp(rhs, [0, 1e6], z0, events=(ev1, ev2), rtol=1e-12, atol=1e-13, method="DOP853")
+            e10, e30 = split(sol.y_events[0][0])[1], split(sol.y_events[1][0])[1]
+            tail = mu_b / (30 * k) ** 3
+            line.append((phi, Er0, e10, e30, tail, Eb0 < 0 and Er0 > 0 and RV0 > 0))
+            found = found and e30 < -100 * tail and abs(e30 - e10) < 0.05 * abs(e30) and line[-1][5]
+        print(f"     k = {k:g}: <W> = -{Wbar:.3e}, baslangic E_rel = +{line[0][1]:.3e};  E_rel(30k)/<W> faza gore (0,45,90,135): "
+              + ", ".join(f"{x[3] / Wbar:+.3f}" for x in line) + f";  |E_rel(30k) - E_rel(10k)| <= {max(abs(x[3] - x[2]) for x in line):.1e}, kuyruk olcegi {line[0][4]:.1e}")
+    verdict("P07b yalniz mesafe esigi yetmez", found, "her k icin E_rel = <W>/2 secimi kosullari saglar ama asimptotik enerji negatif (e_inf ~ -<W>/2 ~ k^-3)")
+
+
+# =============================================================== P08
+def p08():
+    print("[P08] eps -> 0: duragan baslangic ailesi (E < 0) vs tam manifoldun E = 0 sacilmasi  (esit kutle, cisim 1 bozmasi phi = 40)")
+    m = np.ones(3)
+    W, mot0 = manifold((1, 1, 1))
+    ref = S0_psi((1, 1, 1), 40.0)
+    print(f"   S_0(40) = (kacan {ref['esc']}, yon {ref['th']:.6f}, r_min*e {ref['es']:.8f})")
+    ang = np.array([np.pi / 2, 7 * np.pi / 6, 11 * np.pi / 6])
+    base = np.stack([np.cos(ang), np.sin(ang)], axis=1) / np.sqrt(3)
+    ph = np.pi / 2 + math.radians(40)
+    rows = []
+    for eps in (1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7):
+        r0 = base.copy()
+        r0[0] += eps * np.array([math.cos(ph), math.sin(ph)])
+        r0 -= r0.mean(0)
+        j0 = Jac(m)
+        q0 = j0.to_q(r0)
+        rho0 = np.linalg.norm(q0)
+        mot = Motor(m, E=-Upot(m, r0), rtol=1e-13, atol=1e-15)
+        o = mot.run(q0 / rho0, np.zeros(4), lnrho=math.log(rho0))
+        rows.append((eps, abs(angd(o["th"], ref["th"])), abs(o["es"] - ref["es"]), o["esc"], math.exp(o["lrmin"])))
+        print(f"   eps = {eps:.0e}: kacan = {o['esc']}, r_min = {rows[-1][4]:.3e}, yon = {o['th']:.6f}, r_min*e = {o['es']:.8f};  |fark| = {rows[-1][1]:.2e} derece, {rows[-1][2]:.2e}")
+    sl_t = [math.log10(rows[i][1] / rows[i + 1][1]) for i in range(len(rows) - 1)]
+    sl_e = [math.log10(rows[i][2] / rows[i + 1][2]) for i in range(len(rows) - 1)]
+    sl_r = [math.log10(rows[i][4] / rows[i + 1][4]) for i in range(len(rows) - 1)]
+    alpha = 4 / (1 + math.sqrt(13))
+    print(f"   egimler: yon = {np.round(sl_t, 3)}, r_min*e = {np.round(sl_e, 3)}, r_min = {np.round(sl_r, 4)};  ongoru delta = alpha = {alpha:.4f}")
+    ok = all(x[3] == ref["esc"] for x in rows) and abs(sl_t[-1] - alpha) < 0.01 and abs(sl_e[-1] - alpha) < 0.03 \
+        and sl_t[-1] > sl_t[-2] > sl_t[-3] and sl_e[-1] > sl_e[-2] > sl_e[-3]
+    verdict("P08 limit var, S_0 = tam E=0 manifoldunun sacilmasi, hiz -> eps^alpha", ok,
+            f"son onlukta egim {sl_t[-1]:.3f} (yon), {sl_e[-1]:.3f} (enerji), alttan {alpha:.4f}'e yaklasiyor")
+
+
+# =============================================================== P09
+def _scan(args):
+    m, psi, r = args
+    o = S0_psi(m, psi, r, track=True)
+    return (psi, None) if o is None else (psi, (o["esc"], o["es"], o["tau"], o["smin2"]))
+
+
+def p09(pool, pstar):
+    print("[P09] Sinir topolojisi icin tarama (esit kutle, temel bolge psi in [0, 60], N = 240)")
+    m = (1.0, 1.0, 1.0)
+    psis = np.linspace(0.0, 60.0, 241)
+    res = dict(pool.map(_scan, [(m, float(p), 0.05) for p in psis]))
+    labs = [res[p][0] if res[p] else 0 for p in psis]
+    tau = np.array([res[p][2] if res[p] else np.nan for p in psis])
+    sm = np.array([res[p][3] if res[p] else np.nan for p in psis])
+    ch = [(psis[i], psis[i + 1]) for i in range(len(psis) - 1) if labs[i] != labs[i + 1]]
+    far = np.abs(psis - pstar) > 1.0
+    loc = [float(psis[i]) for i in range(1, len(psis) - 1) if tau[i] > tau[i - 1] and tau[i] > tau[i + 1]]
+    DL = np.sqrt(sm)
+    print(f"   kacmayan = {labs.count(0)}; etiket degisimi = {ch}; kacis suresi tau: en kisa {np.nanmin(tau):.3f} (psi = {psis[np.nanargmin(tau)]:g}),"
+          f" psi = 60'ta {tau[-1]:.3f}, sinir yakininda {np.nanmax(tau[~far]):.3f}")
+    print(f"   tau'nun ic yerel maksimumlari: {loc}  (bir L+ ya da E+ yaklasimi ln(1/d) sivrisi verirdi)")
+    imin = int(np.nanargmin(DL))
+    fine = [math.sqrt(_scan((m, 60.0 - x, 0.05))[1][3]) for x in (0.1, 0.03, 0.01, 0.0)]
+    print(f"   L+ duragan noktasina en yakin gecis D (nu > 0; sekil yayilimi ve |s'|/|y| birlikte): izgarada min = {DL[imin]:.4f} (psi = {psis[imin]:g}), ortanca = {np.nanmedian(DL):.3f}")
+    print(f"   psi = 60 (ikizkenar simetri ekseni) yakininda D(60 - x), x = 0.1, 0.03, 0.01, 0: {np.round(fine, 5)}  -> sifira inmeyen duzgun minimum")
+    ok = labs.count(0) == 0 and len(ch) == 1 and all(abs(x - pstar) < 0.5 for x in loc) and DL[imin] > 0.05 and psis[imin] == 60.0 \
+        and abs(fine[0] - fine[3]) < 0.02
+    verdict("P09 sayisal: tek sinir; L+'ya en yakin gecis sifirdan uzak (D = 0.13, simetri ekseninde)", ok,
+            "sonluluk teoreminin H2 varsayimi (L- -> L+ baglantisi yok) icin KANIT DEGIL, sayisal dayanak")
+
+
+# =============================================================== P11
+def p11():
+    print("[P11] Mod secimi")
+    m = (1.0, 2.0, 3.0)
+    W, _ = manifold(m)
+    print(f"   m = (1,2,3): Lam_+ = {W.Lam[0]:.5f}, Lam_- = {W.Lam[1]:.5f}, 1 - Lam_-/Lam_+ = {1 - W.Lam[1] / W.Lam[0]:.4f}")
+    out = {}
+    for name, a in (("+e+", (0.05, 0)), ("-e+", (-0.05, 0)), ("+e-", (0, 0.05)), ("-e-", (0, -0.05))):
+        o = S0(m, a)
+        out[name] = o
+        print(f"     dal {name}: kacan = {o['esc']}, yon = {o['th']:.4f}, r_min*e = {o['es']:.6f}")
+    # baskinlik: dogrusallastiran koordinatlarda a_-/|a_+|^(Lam_-/Lam_+) tam degismez  =>  a = eps (c+, c-) icin
+    # cikis (|a_+| = r) aninda a_- = c_- |c_+|^(-Lam_-/Lam_+) r^(Lam_-/Lam_+) eps^(1 - Lam_-/Lam_+).  Geriye S'nin guclu dalda duzgunlugu kaliyor:
+    ok = out["+e+"]["esc"] != out["-e+"]["esc"]
+    ex = 1 - W.Lam[1] / W.Lam[0]
+    rows = []
+    for am in (1e-3, 1e-4, 1e-5, 1e-6):
+        o = S0(m, (0.05, am))
+        rows.append((am, abs(angd(o["th"], out["+e+"]["th"])), abs(o["es"] - out["+e+"]["es"]), o["esc"]))
+    sl = [math.log10(rows[i][1] / rows[i + 1][1]) for i in range(3)]
+    print(f"     guclu dal yakininda S(0.05, a_-) - S(0.05, 0): a_- = 1e-3..1e-6 -> yon farki = {[f'{x[1]:.2e}' for x in rows]} derece (egim {np.round(sl, 3)}, beklenen 1)")
+    print(f"     => |S_eps - S_0| ~ eps^(1 - Lam_-/Lam_+) = eps^{ex:.4f}  (tur 4'te olculen: 0.181-0.200);  a_- = 1e-3'e inmek icin eps ~ {(1e-3 / 0.05) ** (1 / ex):.0e} gerekir")
+    ok = ok and all(abs(x - 1) < 0.02 for x in sl) and all(x[3] == out["+e+"]["esc"] for x in rows)
+    print("   ikizkenar kutleler m = (m1, 1, 1): guclu mod simetrik mi?  zit dallar ayni kanali verebilir mi?")
+    counter = False
+    for m1 in (0.5, 2.0):
+        m = (m1, 1.0, 1.0)
+        W, _ = manifold(m)
+        d = W.P.jac.to_r(W.C_mode(0)) if hasattr(W, "C_mode") else W.P.jac.to_r(np.array([W.C[c][1, 0] for c in range(4)]))
+        sym = abs(d[0, 0]) < 1e-9 and abs(d[1, 0] + d[2, 0]) < 1e-9 and abs(d[1, 1] - d[2, 1]) < 1e-9
+        op, om_ = S0(m, (0.05, 0)), S0(m, (-0.05, 0))
+        print(f"     m1 = {m1}: Lam_+/Lam_- = {W.Lam[0] / W.Lam[1]:.4f}, guclu mod {'SIMETRIK (ikizkenar alt sistem)' if sym else 'antisimetrik'};"
+              f" +e+ -> kacan {op['esc']} (r_min*e = {op['es']:.5f}),  -e+ -> kacan {om_['esc']} (r_min*e = {om_['es']:.5f})")
+        if sym and op["esc"] == om_["esc"]:
+            counter = True
+    verdict("P11 baskinlik yasasi; (1,2,3)'te zit dallar farkli kanal; genelde ZORUNLU DEGIL", ok and counter,
+            "karsi ornek: guclu modu simetrik olan ikizkenar kutleler -> iki dal da ayni cisim")
+
+
+# =============================================================== P12
+def Hmat(m):
+    return np.array([[m[1] * (m[0] + m[2]), m[0] * m[1]], [m[0] * m[1], m[0] * (m[1] + m[2])]], float)
+
+
+def Kmat(m, w):
+    A = np.array([[-(m[1] + m[2]) * w[0] - m[0] * w[2], m[1] * (w[0] - w[2])], [m[0] * (w[1] - w[2]), -(m[0] + m[2]) * w[1] - m[1] * w[2]]])
+    K = np.zeros((4, 4))
+    K[:2, 2:], K[2:, :2] = A, np.eye(2)
+    return K
+
+
+def gdist(S):
+    Q = S[:2, :2]
+    return np.sqrt(np.array([Q[0, 0], Q[1, 1], Q[0, 0] + 2 * Q[0, 1] + Q[1, 1]]))
+
+
+def gram(r, v):
+    Y = np.concatenate((np.stack((r[2] - r[1], r[0] - r[2]), axis=1), np.stack((v[2] - v[1], v[0] - v[2]), axis=1)), axis=1)
+    return Y.T @ Y
+
+
+def genergy(S, m):
+    mu = np.array([m[1] * m[2], m[0] * m[2], m[0] * m[1]])
+    return np.sum(Hmat(m) * S[2:, 2:]) / (2 * sum(m)) - mu @ (1 / gdist(S))
+
+
+def gL2(S, m):
+    H, Q, D, P = Hmat(m), S[:2, :2], S[:2, 2:], S[2:, 2:]
+    return sum(H[a, b] * H[c, d] * (Q[a, c] * P[b, d] - D[a, d] * D[c, b]) for a in range(2) for b in range(2) for c in range(2) for d in range(2)) / sum(m) ** 2
+
+
+def step_E(S, m, h, maxit=200, info=False):
+    d0 = gdist(S)
+    w = 1 / d0 ** 3
+    rate, prev = 0.0, None
+    for it in range(1, maxit + 1):
+        T = expm(h * Kmat(m, w))
+        Q1 = (T.T @ S @ T)[:2, :2]
+        if min(Q1[0, 0], Q1[1, 1], Q1[0, 0] + 2 * Q1[0, 1] + Q1[1, 1]) <= 0:
+            return (None, it, np.inf) if info else None
+        d1 = gdist(T.T @ S @ T)
+        wn = 2 / (d0 * d1 * (d0 + d1))
+        err = np.abs(wn - w).max() / np.abs(wn).max()
+        if prev and prev > 0:
+            rate = err / prev
+        prev, w = err, wn
+        if err < 1e-15:
+            break
+    else:
+        return (None, maxit, rate) if info else None
+    T = expm(h * Kmat(m, w))
+    Sn = T.T @ S @ T
+    Sn = (Sn + Sn.T) / 2
+    return (Sn, it, rate) if info else Sn
+
+
+def p12():
+    print("[P12] Degismez koruyan ayrik akis  (Pisagor problemi m = 3,4,5)")
+    m = np.array([3.0, 4.0, 5.0])
+    M = m.sum()
+    r0 = np.array([[1.0, 3], [-2, -1], [1, -1]])
+    f = lambda t, z: np.r_[z[6:], acc(m, z[:6].reshape(3, 2)).ravel()]
+    ref = solve_ivp(f, [0, 2.0], np.r_[r0.ravel(), np.zeros(6)], rtol=1e-13, atol=1e-13, method="DOP853", dense_output=True)
+    S0_ = gram(r0, np.zeros((3, 2)))
+    gref = lambda t: gram(ref.sol(t)[:6].reshape(3, 2), ref.sol(t)[6:].reshape(3, 2))
+    # (i) tersinirlik + korunum, tek adim
+    S1 = step_E(S0_, m, 0.05)
+    Sb = step_E(S1, m, -0.05)
+    print(f"   (i) tek adim h = 0.05: |Psi_-h(Psi_h(S)) - S| = {np.abs(Sb - S0_).max():.1e};  dE = {abs(genergy(S1, m) - genergy(S0_, m)):.1e},"
+          f" dL2 = {abs(gL2(S1, m) - gL2(S0_, m)):.1e}, d(det S) = {abs(np.linalg.det(S1) - np.linalg.det(S0_)):.1e}")
+    ok = np.abs(Sb - S0_).max() < 1e-12
+    # (ii) cozulebilirlik esigi: yakin gecis ani
+    ts = np.linspace(1.8, 1.95, 20001)
+    dm = np.array([gdist(gref(t)).min() for t in ts])
+    tc = ts[dm.argmin()]
+    for label, t in (("yakin gecis", tc), ("genis faz", 0.5)):
+        Sc = gref(t)
+        tff = math.sqrt(gdist(Sc).min() ** 3 / M)
+        row = []
+        for al in (0.125, 0.25, 0.5, 1.0, 2.0, 4.0):
+            Sn, it, rate = step_E(Sc, m, al * tff, info=True)
+            row.append(f"{al:g}: " + (f"{it} it, oran {rate:.2f}" if Sn is not None else "YAKINSAMADI"))
+        print(f"   (ii) {label} (t = {t:.4f}, d_min = {gdist(Sc).min():.4f}, t_ff = sqrt(d^3/M) = {tff:.2e}); h/t_ff -> " + " | ".join(row))
+    # (iii) uyarlamali adim h = eta * t_ff
+    print("   (iii) uyarlamali adim h = eta * min_k sqrt(d_k^3/M), T = 2 (yakin gecis dahil):")
+    Sref = gref(2.0)
+    errs = []
+    for eta in (0.4, 0.2, 0.1, 0.05):
+        S, t, n = S0_.copy(), 0.0, 0
+        while t < 2.0 - 1e-15:
+            h = min(eta * math.sqrt(gdist(S).min() ** 3 / M), 2.0 - t)
+            S = step_E(S, m, h)
+            t, n = t + h, n + 1
+        errs.append(np.abs(S - Sref).max() / np.abs(Sref).max())
+        print(f"       eta = {eta:4.2f}: adim = {n:6d}, bagil hata = {errs[-1]:.2e}, dE = {abs(genergy(S, m) - genergy(S0_, m)):.1e}, dL2 = {abs(gL2(S, m) - gL2(S0_, m)):.1e}")
+    rat = [errs[i] / errs[i + 1] for i in range(3)]
+    print(f"       hata oranlari = {np.round(rat, 2)} (2. mertebe icin 4)")
+    ok = ok and 3.0 < rat[-1] < 5.0
+    verdict("P12 tersinir, uc degismez tam korunuyor, 2. mertebe; cozulebilirlik h <~ t_ff", ok, "sabit adim yerine h = eta t_ff ile yakin gecis de cozuluyor")
+
+
+# =============================================================== P13
+def p13():
+    print("[P13] E < 0: sekiz-figuru (m = 1,1,1; L = 0) -- periyodik yorunge => kesin monoton evrensel saat yok")
+    m = np.ones(3)
+    x, y, vx, vy, T = 0.97000436, -0.24308753, -0.93240737, -0.86473146, 6.32591398
+    z0 = np.r_[x, y, -x, -y, 0, 0, -vx / 2, -vy / 2, -vx / 2, -vy / 2, vx, vy]
+    f = lambda t, z: np.r_[z[6:], acc(m, z[:6].reshape(3, 2)).ravel()]
+    flow = lambda z: solve_ivp(f, [0, T], z, rtol=1e-13, atol=1e-14, method="DOP853").y[:, -1]
+    close = np.abs(flow(z0) - z0).max()
+    Mm = np.zeros((12, 12))
+    for k in range(12):
+        e = np.zeros(12)
+        e[k] = 1e-6
+        Mm[:, k] = (flow(z0 + e) - flow(z0 - e)) / 2e-6
+    ev = np.linalg.eigvals(Mm)
+    non = sorted([e for e in ev if abs(e - 1) > 0.02 and e.imag > 0], key=lambda e: e.imag)
+    rot = [math.atan2(e.imag, e.real) / (2 * math.pi) for e in non]
+    print(f"   kapanma |z(T) - z(0)| = {close:.1e};  monodromi: {sum(abs(e - 1) <= 0.02 for e in ev)} carpan ~ 1 (simetriler),"
+          f" asil ciftler |lambda| = {[round(abs(e), 6) for e in non]}, donme sayilari = {[round(x, 5) for x in rot]}")
+    sol = solve_ivp(f, [0, T], z0, rtol=1e-12, atol=1e-13, method="DOP853", dense_output=True)
+    ts = np.linspace(1e-4, T + 1e-4, 60001)
+    Z = sol.sol(ts)
+    cr = (Z[2] - Z[0]) * (Z[5] - Z[1]) - (Z[3] - Z[1]) * (Z[4] - Z[0])
+    idx = np.where(np.sign(cr[:-1]) != np.sign(cr[1:]))[0]
+    seq = []
+    for i in idx:
+        r = Z[:6, i].reshape(3, 2)
+        c = r - r.mean(0)
+        seq.append(int(np.argsort(c @ np.linalg.svd(c)[2][0])[1]) + 1)
+    print(f"   sizigi kesiti Sigma = {{kollinear}}: bir periyotta {len(idx)} gecis, ortadaki cisim dizisi = {seq}  (Pi^6 sabit noktasi)")
+    ok = close < 1e-6 and len(non) == 2 and all(abs(abs(e) - 1) < 1e-4 for e in non) and len(idx) == 6
+    verdict("P13 sekiz-figuru eliptik periyodik yorunge (carpanlar birim cemberde)", ok, "monoton saat engeli + sonlu Markov bolumlemesi engeli (eliptik ada)")
+
+
+TESTS = ("p01", "p02", "p03", "p05", "p07", "p08", "p09", "p11", "p12", "p13")
+
+if __name__ == "__main__":
+    sel = [a for a in sys.argv[1:] if a in TESTS] or list(TESTS)
+    t0 = time.time()
+    pstar = 57.05394750
+    with Pool(2) as pool:
+        for name in sel:
+            t1 = time.time()
+            if name == "p05":
+                pstar = p05(pool)
+            elif name == "p09":
+                p09(pool, pstar)
+            else:
+                globals()[name]()
+            print(f"   ({name}: {time.time() - t1:.0f} s)", flush=True)
+    print(f"\nsure = {time.time() - t0:.0f} s")
+    print("OZET: " + "  ".join(f"{n.split()[0]}={'PASS' if ok else 'FAIL'}" for n, ok in RESULTS))
+    sys.exit(0 if all(ok for _, ok in RESULTS) else 1)

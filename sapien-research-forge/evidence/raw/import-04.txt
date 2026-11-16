@@ -1,0 +1,578 @@
+#!/usr/bin/env python3
+"""
+uc_cisim_tur5.py -- Uc cisim, tur 5: nu-merdiveni ve sacilma sinirinin spektral anatomisi.
+
+Ayni klasorde gerekli: uc_cisim_tur4_hakem.py (shape_geom, shape_part, ip, zero_energy_start),
+                       ve onun bagimliliklari (tur4_yapi_koruyan, tur3_dogrulama, tur2).
+Calistir:  python3 uc_cisim_tur5.py          (numpy, scipy, mpmath; ~10 dk, 2 cekirdek)
+           python3 uc_cisim_tur5.py --quick  (V1-V3; ~1 dk)
+
+FIKIR (nu-merdiveni): kutle-agirlikli Jacobi q = rho s, y = rho^(1/2) q', dt = rho^(3/2) dtau, nu = s.y:
+    s' = y - nu s,   y' = grad U(s) + nu y / 2,   (ln rho)' = nu,     nu' = |s'|^2 / 2 + rho E.
+    E = 0  =>  (s,y) akisi rho'dan bagimsiz (carpisma manifoldu akisinin AYNISI) ve nu kesin Lyapunov.
+    Duragan noktalar nu ekseninde sirali: E- < L- < 0 < L+ < E+.  Sonuclar:
+    (a) uclu carpisma sacilma limiti S_0 = L-'nin kararsiz manifoldunun E=0 akisi altindaki sonu (eps'siz, O(1) maliyet)
+    (b) S_0'in sinirlari = W^s(E+) (kod-1) ile kesisim; sonlu sayida, fraktal YOK
+    (c) sinir yakininda olcekleme, E+ ozdegerlerinin oranlari (kappa: Euler parametresi):
+          r_min e_inf ~ d^gamma,          gamma = 4 / (sqrt(25+16 kappa) - 1)
+          duzeltme    ~ d^beta cos(omega ln d + phi),   beta = gamma/4,  omega = sqrt(8 kappa - 1) / (sqrt(25+16 kappa) - 1)
+          sinirdaki yorunge, ortadaki cisim = iki kacis adayinin DISINDAKI cisim olan Euler genlesmesine takilir.
+
+V1  Motor = Newton: tur4'un mpmath sonuclariyla karsilastirma (psi = 40, 57, 59) + degismezler
+V2  nu-merdiveni: nu' >= 0 (E=0), ve E<0'da kirilir
+V3  Sayilabilir sinir: esit kutle, psi in [0,60], N = 240 ve 960 -> sinir sayisi
+V4  Sinir anatomisi: psi*, nu platosu vs v_E, dogrusallik, ortadaki cisim
+V5  Usler: gamma, beta, omega uyumu (iki taraf)
+V6  m = (1,2,3): tum sinirlar, her biri icin ortadaki cisim ve gamma(kappa)
+"""
+import sys
+import time
+from multiprocessing import Pool
+import numpy as np
+from scipy.integrate import solve_ivp
+from scipy.optimize import least_squares
+import uc_cisim_tur4_hakem as T4
+
+RESULTS = []
+NORMAL = dict(rtol=1e-12, atol=1e-13, method="DOP853")
+TIGHT = dict(rtol=3e-14, atol=1e-16, method="DOP853")
+RT = NORMAL
+
+
+def verdict(name, ok, detail):
+    RESULTS.append((name, ok))
+    print(f"  => {'PASS' if ok else 'FAIL'}  {name}: {detail}", flush=True)
+
+
+# ------------------------------------------------------------------ Jacobi <-> Kartezyen (duzlemsel, G = 1)
+class Sys:
+    def __init__(self, m):
+        self.m = np.asarray(m, float)
+        m1, m2, m3 = self.m
+        self.M = self.m.sum()
+        self.m12 = m1 + m2
+        self.s1 = np.sqrt(m1 * m2 / self.m12)
+        self.s2 = np.sqrt(m3 * self.m12 / self.M)
+
+    def to_q(self, r):
+        m1, m2, _ = self.m
+        c12 = (m1 * r[0] + m2 * r[1]) / self.m12
+        return np.r_[self.s1 * (r[1] - r[0]), self.s2 * (r[2] - c12)]
+
+    def to_r(self, q):
+        m1, m2, m3 = self.m
+        R12, R3 = q[:2] / self.s1, q[2:] / self.s2
+        c12 = -m3 * R3 / self.M
+        return np.array([c12 - m2 / self.m12 * R12, c12 + m1 / self.m12 * R12, c12 + R3])
+
+    def acc(self, r):
+        a = np.zeros((3, 2))
+        for i, j in ((0, 1), (0, 2), (1, 2)):
+            d = r[j] - r[i]
+            f = d / np.dot(d, d) ** 1.5
+            a[i] += self.m[j] * f
+            a[j] -= self.m[i] * f
+        return a
+
+    def U(self, r):
+        return sum(self.m[i] * self.m[j] / np.linalg.norm(r[i] - r[j]) for i, j in ((0, 1), (0, 2), (1, 2)))
+
+    def gradU(self, s):
+        return self.to_q(self.acc(self.to_r(s)))  # dogrusal + kinetik metrigi korur => q'' = grad U
+
+    def rhs(self, tau, Z):
+        """|s| = 1 ve H = |y|^2/2 - U(s) = 0 degismez manifoldlari carpismaya giderken ITICI (hata ~ rho^-2 buyur).
+        Duzeltme: s yerine s/|s| kullan (|s| notr olur) ve H'yi sondur. H = 0 uzerinde akis Newton ile birebir ayni."""
+        s, y = Z[:4], Z[4:8]
+        sh = s / np.linalg.norm(s)
+        nu = sh @ y
+        g = self.gradU(sh)
+        yy = y @ y
+        H = 0.5 * yy - self.U(self.to_r(sh))
+        return np.r_[y - nu * sh, g + 0.5 * nu * y - (abs(nu) + 1.0) * H * y / yy, nu]
+
+    def clock(self, Z):
+        """Ikinci saat dtau = f dsigma, f = (en kucuk cift mesafesi / olcek)^(3/2): ikili yakin gecisleri duzlestirir."""
+        r = self.to_r(Z[:4] / np.linalg.norm(Z[:4]))
+        d = min(np.linalg.norm(r[i] - r[j]) for i, j in ((0, 1), (0, 2), (1, 2)))
+        return d ** 1.5
+
+    ncall, ncall_max = 0, 600000
+
+    def rhs_sig(self, sig, Z):
+        self.ncall += 1
+        if self.ncall > self.ncall_max:
+            raise OverflowError("cok yakin ikili gecis: duzenlilestirme olmadan butce asildi")
+        f = self.clock(Z)
+        return np.r_[f * self.rhs(sig, Z[:9]), f]
+
+    def rhs_raw(self, tau, Z):
+        """Her E icin gecerli ham olcekli sistem (H = rho E kendiliginden tasinir; sondurme yok)."""
+        s, y = Z[:4], Z[4:8]
+        sh = s / np.linalg.norm(s)
+        nu = sh @ y
+        return np.r_[y - nu * sh, self.gradU(sh) + 0.5 * nu * y, nu]
+
+
+# ------------------------------------------------------------------ cikti olcutu (olcekten bagimsiz)
+def split(S, rr, vv):
+    m, M = S.m, S.M
+    d = [np.linalg.norm(rr[j] - rr[i]) for i, j in ((0, 1), (0, 2), (1, 2))]
+    i, j = ((0, 1), (0, 2), (1, 2))[int(np.argmin(d))]
+    e = 3 - i - j
+    mb = m[i] + m[j]
+    x = rr[e] - (m[i] * rr[i] + m[j] * rr[j]) / mb
+    u = vv[e] - (m[i] * vv[i] + m[j] * vv[j]) / mb
+    bx, bu = rr[j] - rr[i], vv[j] - vv[i]
+    mu = m[e] * mb / M
+    erel = mu * (u @ u) / 2 - m[e] * mb / np.linalg.norm(x)
+    ebin = (m[i] * m[j] / mb) * (bu @ bu) / 2 - m[i] * m[j] / np.linalg.norm(bx)
+    return e, x, u, erel, ebin, m[i] * m[j]
+
+
+def gap(S, Z):
+    rr, vv = S.to_r(Z[:4]), S.to_r(Z[4:8])
+    e, x, u, erel, ebin, mm = split(S, rr, vv)
+    if ebin >= 0 or erel <= 0 or x @ u <= 0:
+        return -1.0
+    return np.linalg.norm(x) - 40 * mm / (2 * abs(ebin))
+
+
+def outcome(S, Z):
+    rr, vv = S.to_r(Z[:4]), S.to_r(Z[4:8])
+    e, x, u, erel, ebin, mm = split(S, rr, vv)
+    rho_e, v2 = np.linalg.norm(x), u @ u
+    xu, hz = x @ u, x[0] * u[1] - x[1] * u[0]
+    ev = ((v2 - S.M / rho_e) * x - xu * u) / S.M
+    th = np.arctan2(ev[1], ev[0]) + np.sign(hz) * np.arccos(-1 / np.linalg.norm(ev))
+    return e + 1, (np.degrees(th) + 180) % 360 - 180, erel
+
+
+def run(S, Z0, tmax=3000.0, keep=False):
+    ev_nu = lambda t, Z: Z[:4] @ Z[4:8]
+    ev_nu.direction = 1
+    ev_gap = lambda t, Z: gap(S, Z)
+    ev_gap.terminal, ev_gap.direction = True, 1
+    ev_col = lambda t, Z: S.clock(Z) - 1e-15          # tam ikili carpisma (or. ikizkenar L=0'da dogrusal ikili): duzenlilestirme yok
+    ev_col.terminal, ev_col.direction = True, -1
+    S.ncall = 0
+    try:
+        sol = solve_ivp(S.rhs_sig, [0, tmax], Z0, events=(ev_nu, ev_gap, ev_col), dense_output=keep, max_step=0.5, **RT)
+    except OverflowError:
+        return None
+    if len(sol.t_events[1]) == 0:
+        return None
+    Zend = sol.y_events[1][0]
+    lrmin = sol.y_events[0][0][8] if len(sol.t_events[0]) else Z0[8]
+    lab, th, erel = outcome(S, Zend)
+    out = dict(esc=lab, th=th, es=erel * np.exp(lrmin - Zend[8]), lrmin=lrmin, tau=Zend[9])
+    if keep:
+        out["sol"] = sol
+    return out
+
+
+# ------------------------------------------------------------------ baslangic: L- kararsiz manifoldu
+def from_cart(S, r, v):
+    q, qd = S.to_q(r), S.to_q(v)
+    rho = np.linalg.norm(q)
+    return np.r_[q / rho, np.sqrt(rho) * qd, np.log(rho), 0.0]
+
+
+class Family:
+    """L- kararsiz manifoldunun psi ile parametrelenmis cemberi (delta: manifold uzerindeki mesafe)."""
+
+    def __init__(self, m, delta=1e-5):
+        self.S = Sys(m)
+        m = self.S.m
+        self.s, H = T4.shape_geom(m)
+        self.delta = delta
+        if np.allclose(m, m[0]):
+            eA = T4.shape_part(m, self.s, np.array([[0.0, 1.0], [0, 0], [0, 0]]))
+            eB = T4.shape_part(m, self.s, np.array([[-1.0, 0.0], [0, 0], [0, 0]]))
+            self.e = [eA / np.sqrt(T4.ip(m, eA, eA)), eB / np.sqrt(T4.ip(m, eB, eB))]
+            self.lam = [m.sum() / 2] * 2
+        else:
+            lam, vec = np.linalg.eig(H)
+            lam, vec = lam.real, vec.real
+            M = m.sum()
+            keep = sorted([k for k in range(6) if min(abs(lam[k]), abs(lam[k] - 2 * M), abs(lam[k] + M)) > 1e-6], key=lambda k: -lam[k])
+            self.e = [vec[:, k].reshape(3, 2) / np.sqrt(T4.ip(m, vec[:, k].reshape(3, 2), vec[:, k].reshape(3, 2))) for k in keep]
+            self.lam = [lam[k] for k in keep]
+
+    def start(self, psi_deg):
+        m, M, s = self.S.m, self.S.M, self.s
+        c, sn = np.cos(np.radians(psi_deg)), np.sin(np.radians(psi_deg))
+        tau0 = np.sqrt(2.0 / (9 * M))
+        adot = -(2.0 / 3.0) / tau0
+        p = [(1 - np.sqrt(1 + 8 * l / (9 * M))) / 2 for l in self.lam]
+        de = self.delta * (c * self.e[0] + sn * self.e[1])
+        dv = -self.delta * (c * p[0] * self.e[0] + sn * p[1] * self.e[1]) / tau0
+        r, v = s + de, adot * s + dv
+        r = r - (m[:, None] * r).sum(0) / M
+        v = v - (m[:, None] * v).sum(0) / M
+        T = 0.5 * (m[:, None] * v * v).sum()
+        v = v * np.sqrt(self.S.U(r) / T)
+        return from_cart(self.S, r, v)
+
+    def __call__(self, psi_deg, keep=False):
+        return run(self.S, self.start(psi_deg), keep=keep)
+
+
+FAM = {}
+
+
+def _eval(args):
+    key, psi = args[0], args[1]
+    delta = args[2] if len(args) > 2 else 1e-5
+    tight = args[3] if len(args) > 3 else False
+    global RT
+    RT = TIGHT if tight else NORMAL
+    if (key, delta) not in FAM:
+        FAM[(key, delta)] = Family(key, delta)
+    o = FAM[(key, delta)](psi)
+    return (psi, None) if o is None else (psi, (o["esc"], o["th"], o["es"], o["tau"]))
+
+
+def scan(m, psis, pool):
+    return dict(pool.map(_eval, [(tuple(m), float(p)) for p in psis]))
+
+
+def bisect(fam, a, b, la, n=60):
+    for _ in range(n):
+        c = 0.5 * (a + b)
+        if c in (a, b):
+            break
+        o = fam(c)
+        if o is not None and o["esc"] == la:
+            a = c
+        else:
+            b = c
+    return a, b
+
+
+# ------------------------------------------------------------------ Euler kappa
+def kappa(ml, mm, mr):
+    c = [ml + mm, 3 * ml + 2 * mm, 3 * ml + mm, -(mm + 3 * mr), -(2 * mm + 3 * mr), -(mm + mr)]
+    r = [x.real for x in np.roots(c) if abs(x.imag) < 1e-10 and x.real > 0][0]
+    return r, (ml * (1 + 3 * r + 3 * r * r) + mr * (3 * r ** 3 + 3 * r ** 4 + r ** 5)) / ((ml + mr) * r * r + mm * (1 + r) ** 2 * (1 + r * r))
+
+
+def euler_point(S, left, mid, right):
+    m = S.m
+    r, k = kappa(m[left], m[mid], m[right])
+    pos = np.zeros((3, 2))
+    pos[left, 0], pos[mid, 0], pos[right, 0] = -1.0, 0.0, r
+    pos -= (m[:, None] * pos).sum(0) / S.M
+    q = S.to_q(pos)
+    s = q / np.linalg.norm(q)
+    vE = np.sqrt(2 * S.U(S.to_r(s)))
+    return s, vE, k
+
+
+def spectrum(S, s0, v):
+    """(s_E, v s_E) duragan noktasinda ham olcekli akisin Jacobian ozdegerleri (sonlu fark).
+    Beklenen: v (enerji yonu), 0, 0 (donme, |s|), -v/2 (L yonu) + 4 asil ozdeger:
+    lambda_u > 0, lambda_ss < 0 (toplam -v/2) ve odak -v/4 +- i Omega."""
+    Z0 = np.r_[s0, v * s0]
+    f = lambda Z: S.rhs_raw(0, np.r_[Z, 0.0])[:8]
+    J = np.zeros((8, 8))
+    for k in range(8):
+        e = np.zeros(8)
+        e[k] = 1e-7
+        J[:, k] = (f(Z0 + e) - f(Z0 - e)) / 2e-7
+    ev = np.linalg.eigvals(J)
+    real = sorted(e.real for e in ev if abs(e.imag) < 1e-8)
+    lam_u = max(x for x in real if abs(x - v) > 1e-5 * v and x > 1e-6)
+    Om = max(abs(e.imag) for e in ev)
+    kap = ((4 * lam_u / v + 1) ** 2 - 25) / 16
+    return dict(lam_u=lam_u, Omega=Om, kappa=kap, focus_check=abs(Om - v / 4 * np.sqrt(8 * kap - 1)) / Om,
+                gamma=v / lam_u, beta=v / 4 / lam_u, omega=Om / lam_u)
+
+
+def preds(k):
+    sq = np.sqrt(25 + 16 * k)
+    return dict(gamma=4 / (sq - 1), beta=1 / (sq - 1), omega=np.sqrt(8 * k - 1) / (sq - 1))
+
+
+def collinearity(S, s):
+    r = S.to_r(s)
+    a, b = r[1] - r[0], r[2] - r[0]
+    return abs(a[0] * b[1] - a[1] * b[0]) / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-300)
+
+
+def middle_body(S, s):
+    r = S.to_r(s)
+    c = r - r.mean(0)
+    _, _, Vt = np.linalg.svd(c)
+    x = c @ Vt[0]
+    return int(np.argsort(x)[1]) + 1
+
+
+# ------------------------------------------------------------------ testler
+def v1():
+    print("[V1] Motor = Newton (esit kutle, delta = 1e-5): tur 4 mpmath sonuclari ile")
+    ref = {40: (1, -80.024, 0.39399), 57: (1, -3.834, 0.00122), 59: (2, -162.183, 0.00920)}
+    fam = Family((1, 1, 1))
+    ok = True
+    for psi, (lab, th, es) in ref.items():
+        o = fam(psi, keep=True)
+        sol = o["sol"]
+        drift = 0.0
+        for t in np.linspace(0, sol.t[-1], 200):
+            Z = sol.sol(t)
+            s, y = Z[:4], Z[4:8]
+            H = 0.5 * y @ y - fam.S.U(fam.S.to_r(s))
+            L = s[0] * y[1] - s[1] * y[0] + s[2] * y[3] - s[3] * y[2]
+            drift = max(drift, abs(np.linalg.norm(s) - 1), abs(H) / (y @ y), abs(L) / (y @ y))
+        print(f"   psi = {psi}: kacan = {o['esc']} (tur4 {lab}), yon = {o['th']:.3f} (tur4 {th}), r_min*e = {o['es']:.5f} (tur4 {es}),"
+              f"  max degismez sapmasi = {drift:.1e}")
+        ok = ok and o["esc"] == lab and abs(T4.angdiff(o["th"], th)) < 2e-3 and abs(o["es"] - es) < 2e-5 and drift < 1e-9
+    verdict("V1 E=0 olcekli motor tur 4 ile ayni", ok, "|s| = 1, E = 0, L = 0 korunuyor; sonuclar 3-4 basamak ortusuyor")
+
+
+def v2():
+    print("[V2] nu-merdiveni: E = 0'da nu' = |s'|^2/2 >= 0;  E < 0'da kirilma")
+    fam = Family((1, 1, 1))
+    worst = np.inf
+    for psi in (10, 40, 57, 59):
+        o = fam(psi, keep=True)
+        tt = np.linspace(0, o["sol"].t[-1], 3000)
+        nu = np.array([fam.S.rhs(0, o["sol"].sol(t)[:9])[8] for t in tt])
+        worst = min(worst, np.diff(nu).min())
+    S = Sys((3, 4, 5))
+    r0 = np.array([[1.0, 3], [-2, -1], [1, -1]])
+    Z0 = from_cart(S, r0, np.zeros((3, 2)))[:9]
+    E = -S.U(r0)
+    sol = solve_ivp(S.rhs_raw, [0, 2.5], Z0, dense_output=True, **RT)
+    nu = np.array([sol.sol(t)[:4] @ sol.sol(t)[4:8] for t in np.linspace(0, 2.5, 3000)])
+    drops = int((np.diff(np.sign(np.diff(nu))) > 0).sum())
+    print(f"   E = 0: dort yorungede en kucuk ardisik nu farki = {worst:.1e};   Pisagor (E = {E:.1f}): nu'nun yerel minimum sayisi = {drops}")
+    verdict("V2 nu, E>=0'da monoton; E<0'da degil", worst > -1e-12 and drops >= 2, "E>=0: gradyan benzeri akis; E<0: geri donus (kaosa kapi) mumkun")
+
+
+def v3(pool):
+    print("[V3] Sinir sayimi, esit kutle, psi in [0, 60] (D3 x ayna simetrisiyle temel bolge)")
+    counts = []
+    for N in (120, 480):
+        psis = np.linspace(0.0, 60.0, N + 1)[1:-1]
+        res = scan((1, 1, 1), psis, pool)
+        labs = [res[p][0] if res[p] else 0 for p in psis]
+        ch = [(psis[i], psis[i + 1]) for i in range(len(psis) - 1) if labs[i] != labs[i + 1]]
+        counts.append(len(ch))
+        print(f"   N = {N}: kacmayan = {labs.count(0)}, etiket degisimi = {len(ch)} -> {[(round(a, 3), round(b, 3)) for a, b in ch]}")
+    verdict("V3 sonlu sinir (fraktal yok)", counts == [1, 1], "inceltmede sinir sayisi sabit: 1 (cember uzerinde 6)")
+
+
+def anatomy(m, ps, la, lb, pool, ds=(1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7), delta=1e-5):
+    """Sinir psi*'da: ortadaki cisim, nu = v_E gecisi, kacis suresi egimi d tau / d ln(1/d)."""
+    fam = Family(m, delta)
+    S = fam.S
+    mid = ({1, 2, 3} - {la, lb}).pop()
+    oth = sorted({1, 2, 3} - {mid})
+    sE, vE, _ = euler_point(S, oth[0] - 1, mid - 1, oth[1] - 1)
+    sp = spectrum(S, sE, vE)
+    k, lam_u = sp["kappa"], sp["lam_u"]
+    jobs = [(tuple(m), ps + sg * d, delta) for sg in (-1, 1) for d in ds]
+    res = dict(pool.map(_eval, jobs))
+    slopes = []
+    for sg in (-1, 1):
+        tau = np.array([res[ps + sg * d][3] for d in ds])
+        slopes.append(np.polyfit(np.log(1 / np.array(ds)), tau, 1)[0])
+    o = fam(ps + 1e-6, keep=True)
+    sol = o["sol"]
+    sg_ = np.linspace(0, sol.t[-1], 20000)
+    Zs = sol.sol(sg_)
+    nu = np.einsum("ij,ij->j", Zs[:4], Zs[4:8]) / np.linalg.norm(Zs[:4], axis=0)
+    kk = int(np.argmin(np.abs(nu - vE)))
+    return dict(mid=mid, k=k, vE=vE, lam_u=lam_u, slopes=slopes, mid_obs=middle_body(S, Zs[:4, kk]), sp=sp)
+
+
+def v4(pool):
+    print("[V4] Sinir anatomisi (esit kutle, delta = 1e-5 ailesi)")
+    fam = Family((1, 1, 1))
+    a, b = bisect(fam, 57.0, 58.0, 1, n=62)
+    ps = 0.5 * (a + b)
+    A = anatomy((1, 1, 1), ps, 1, 2, pool)
+    print(f"   psi* = {ps:.13f};  ongoru: orta = {A['mid']} (Euler; Newton dogrusallastirmasindan kappa = {A['k']:.6f}"
+          f" [kapali form 1.4], v_E = {A['vE']:.5f}, lambda_u = {A['lam_u']:.5f})")
+    print(f"   gozlenen: nu = v_E anindaki ortadaki cisim = {A['mid_obs']};  kacis suresi egimi d tau/d ln(1/d) = {A['slopes'][0]:.5f} (alt), "
+          f"{A['slopes'][1]:.5f} (ust);  ongoru 1/lambda_u = {1 / A['lam_u']:.5f}")
+    ok = A["mid_obs"] == 3 and all(abs(x * A["lam_u"] - 1) < 0.01 for x in A["slopes"])
+    verdict("V4 sinirdaki yorunge Euler genlesmesinde (orta = 3) oyalaniyor", ok, "oyalanma = ln(1/d)/lambda_u, lambda_u = (v_E/4)(sqrt(25+16 kappa) - 1)")
+    return ps
+
+
+def joint_fit(D, P, order=2):
+    """D: {sg: (d, ln es, th)}. Ortak: x (psi* kaymasi), gamma, beta, omega.
+    Taraf ve gozlenebilir basina: sabit + d^beta (cos, sin)(omega ln d) [+ d^(2 beta) (1, cos 2w, sin 2w)]."""
+    sides = sorted(D)
+    npar = 3 + (3 if order == 2 else 0)
+
+    def series(L, be, w, c):
+        o = np.exp(be * L) * (c[0] * np.cos(w * L) + c[1] * np.sin(w * L))
+        if order == 2:
+            o = o + np.exp(2 * be * L) * (c[2] + c[3] * np.cos(2 * w * L) + c[4] * np.sin(2 * w * L))
+        return o
+
+    def resid(p):
+        x, g, be, w = p[:4]
+        r = []
+        for i, sg in enumerate(sides):
+            d, y, th = D[sg]
+            q = p[4 + 2 * npar * i: 4 + 2 * npar * (i + 1)]
+            dt = d - sg * x
+            if np.any(dt <= 0):
+                return np.full(sum(len(D[t][0]) * 2 for t in sides), 1e3)
+            L = np.log(dt)
+            r.append(q[0] + g * L + series(L, be, w, q[1:npar]) - y)
+            r.append(q[npar] + series(L, be, w, q[npar + 1:]) - th)
+        return np.concatenate(r)
+
+    best = None
+    for w0 in (0.3, 0.45, 0.6, 0.8):
+        for b0 in (0.1, 0.17, 0.3):
+            p0 = [0.0, 0.68, b0, w0]
+            for sg in sides:
+                d, y, th = D[sg]
+                p0 += [y[-1] - P["gamma"] * np.log(d[-1])] + [0.0] * (npar - 1) + [th[-1]] + [0.0] * (npar - 1)
+            f = least_squares(resid, p0, x_scale="jac")
+            if best is None or f.cost < best.cost:
+                best = f
+    J = best.jac
+    cov = np.linalg.pinv(J.T @ J) * (2 * best.cost / max(1, len(best.fun) - len(best.x)))
+    return best.x, np.sqrt(np.diag(cov)), np.abs(best.fun).max()
+
+
+def v5(pool, ps_small):
+    print("[V5] Usler (esit kutle): iki farkli aile, ortak uyum (iki taraf, iki gozlenebilir, psi* kaymasi serbest)")
+    P = preds(1.4)
+    ok = True
+    ds = 10.0 ** -np.arange(1.5, 7.51, 0.25)
+    save = {}
+    for name, delta, ps in (("delta = 1e-3", 1e-3, None), ("delta = 1e-2", 1e-2, None)):
+        if ps is None:
+            fam = Family((1, 1, 1), delta)
+            lo = [q for q in np.arange(50.0, 60.0, 0.5) if fam(q)["esc"] == 1][-1]
+            a, b = bisect(fam, lo, lo + 0.5, 1, n=62)
+            ps = 0.5 * (a + b)
+        jobs = [((1.0, 1.0, 1.0), ps + sg * d, delta) for sg in (-1, 1) for d in ds]
+        res = dict(pool.map(_eval, jobs))
+        D = {}
+        for sg, lab in ((-1, 1), (1, 2)):
+            rows = [(d, np.log(res[ps + sg * d][2]), res[ps + sg * d][1]) for d in ds if res[ps + sg * d] and res[ps + sg * d][0] == lab]
+            d, y, th = map(np.array, zip(*rows))
+            D[sg] = (d, y, np.unwrap(np.radians(th)))
+            save[f"{delta}_{sg}"] = np.array([d, y, D[sg][2]])
+        Dfit = {sg: tuple(v[D[sg][0] <= 10 ** -2.5] for v in D[sg]) for sg in D}   # d > 1e-2.5: dogrusal olmayan bolge, uyuma alinmaz
+        for order in (1, 2):
+            p, e, r = joint_fit(Dfit, P, order)
+            print(f"   {name}, {order}. mertebe (d = 1e-2.5..1e-7.5): psi* = {ps:.12f}, kayma x = {p[0]:.1e};  gamma = {p[1]:.5f} +- {e[1]:.5f},"
+                  f" beta = {p[2]:.4f} +- {e[2]:.4f}, omega = {p[3]:.4f} +- {e[3]:.4f}  (max artik {r:.1e})")
+        ok = ok and abs(p[1] - P["gamma"]) < 2e-3 and abs(p[2] - P["beta"]) < 0.02 and abs(abs(p[3]) - P["omega"]) < 0.02 and r < 2e-3
+    np.savez("v5_veri.npz", **save)
+    print(f"   ongoru (kappa = 1.4):  gamma = {P['gamma']:.5f}, beta = {P['beta']:.4f}, omega = {P['omega']:.4f}"
+          f"   (log-periyot = {2 * np.pi / P['omega'] / np.log(10):.2f} onluk)")
+    verdict("V5 uc us E+ ozdegerlerinden, aileden bagimsiz", ok, "2. mertebe uyum; iki ayri ailede ayni usler")
+
+
+def fit_gamma(D, be, w):
+    """Ortak: x, gamma; beta, omega Newton spektrumundan SABIT. Taraf basina: C, a, b."""
+    sides = sorted(D)
+
+    def resid(p):
+        x, g = p[:2]
+        r = []
+        for i, sg in enumerate(sides):
+            d, y = D[sg]
+            C, a1, b1 = p[2 + 3 * i: 5 + 3 * i]
+            dt = d - sg * x
+            if np.any(dt <= 0):
+                return np.full(sum(len(D[t][0]) for t in sides), 1e3)
+            L = np.log(dt)
+            r.append(C + g * L + np.exp(be * L) * (a1 * np.cos(w * L) + b1 * np.sin(w * L)) - y)
+        return np.concatenate(r)
+
+    p0 = [0.0, 0.7]
+    for sg in sides:
+        d, y = D[sg]
+        p0 += [y[-1] - 0.7 * np.log(d[-1]), 0.0, 0.0]
+    f = least_squares(resid, p0, x_scale="jac")
+    return f.x[1], np.abs(f.fun).max()
+
+
+def v6(pool):
+    print("[V6] m = (1,2,3): L- kararsiz manifoldunun tum cemberi (delta = 1e-2; psi: guclu/zayif mod acisi)")
+    m, delta = (1.0, 2.0, 3.0), 1e-2
+    S = Sys(m)
+    print("   Euler genlesme noktalarinin spektrumu (Newton dogrusallastirmasi):")
+    for mid in (1, 2, 3):
+        oth = sorted({1, 2, 3} - {mid})
+        sE, vE, kf = euler_point(S, oth[0] - 1, mid - 1, oth[1] - 1)
+        sp = spectrum(S, sE, vE)
+        print(f"     orta = {mid}: v_E = {vE:.5f}, kappa = {sp['kappa']:.5f} (literaturden aldigim kapali form {kf:.5f} YANLIS cikti),"
+              f" odak tutarliligi {sp['focus_check']:.1e};  gamma = {sp['gamma']:.5f}, 1/lambda_u = {1 / sp['lam_u']:.5f}, omega = {sp['omega']:.4f}")
+    psis = np.linspace(-180.0, 180.0, 721)[:-1]
+    res = dict(pool.map(_eval, [(m, float(p), delta) for p in psis]))
+    labs = [res[p][0] if res[p] else 0 for p in psis]
+    n = len(psis)
+    ch = [(psis[i], psis[(i + 1) % n] + (360 if i == n - 1 else 0), labs[i], labs[(i + 1) % n]) for i in range(n) if labs[i] != labs[(i + 1) % n]]
+    print(f"   N = 720: kacmayan = {labs.count(0)}, sinir sayisi = {len(ch)}: {[(round(a, 1), la, lb) for a, b, la, lb in ch]}")
+    fam = Family(m, delta)
+    ok = len(ch) > 0 and labs.count(0) == 0
+    ds = 10.0 ** -np.arange(1.5, 7.51, 0.5)
+    nres = 0
+    for a, b, la, lb in ch:
+        a, b = bisect(fam, a, b, la, n=40)
+        ps = 0.5 * (a + b)
+        mid = ({1, 2, 3} - {la, lb}).pop()
+        oth = sorted({1, 2, 3} - {mid})
+        sE, vE, _ = euler_point(S, oth[0] - 1, mid - 1, oth[1] - 1)
+        sp = spectrum(S, sE, vE)
+        r = dict(pool.map(_eval, [(m, ps + sg * d, delta) for sg in (-1, 1) for d in ds]))
+        # gurultu tabani: herhangi bir tarafta etiketin bozuldugu en buyuk d (yakin ikili gecis hatayi buyutuyor)
+        bad = [d for sg, lab in ((-1, la), (1, lb)) for d in ds if not (r[ps + sg * d] and r[ps + sg * d][0] == lab)]
+        floor = max(bad) if bad else 0.0
+        use = [d for d in ds if d > 10 * floor and d <= 10 ** -2.5] or [d for d in ds if d > 10 * floor]
+        span = np.log10(max(use) / min(use)) if len(use) > 1 else 0.0
+        if span < 1.99:
+            print(f"   psi* = {ps:9.4f} ({la}|{lb}): orta = {mid};  COZUNURLUK YOK: gurultu tabani d = {floor:.0e} (kullanilabilir aralik {span:.1f} onluk)")
+            continue
+        nres += 1
+        D, slopes = {}, []
+        for sg in (-1, 1):
+            d = np.array(use)
+            D[sg] = (d, np.log([r[ps + sg * x][2] for x in use]))
+            slopes.append(np.polyfit(np.log(1 / d), [r[ps + sg * x][3] for x in use], 1)[0])
+        g, rg = fit_gamma(D, sp["beta"], sp["omega"])
+        o = fam(ps + min(use), keep=True)
+        Zs = o["sol"].sol(np.linspace(0, o["sol"].t[-1], 20000))
+        nu = np.einsum("ij,ij->j", Zs[:4], Zs[4:8]) / np.linalg.norm(Zs[:4], axis=0)
+        mo = middle_body(S, Zs[:4, int(np.argmin(np.abs(nu - vE)))])
+        print(f"   psi* = {ps:9.4f} ({la}|{lb}): orta ongoru/gozlenen = {mid}/{mo};  gamma = {g:.4f} (ongoru {sp['gamma']:.4f});"
+              f"  d tau/d ln(1/d) = {slopes[0]:.4f}, {slopes[1]:.4f} (ongoru {1 / sp['lam_u']:.4f});  d = {max(use):.0e}..{min(use):.0e}"
+              + (f", gurultu tabani {floor:.0e}" if floor else ""))
+        ok = ok and mo == mid and abs(g - sp["gamma"]) < 0.015 and all(abs(x * sp["lam_u"] - 1) < 0.03 for x in slopes)
+    ok = ok and nres >= len(ch) - 2
+    verdict("V6 her sinir kendi Euler noktasinin spektrumuyla", ok, "uc farkli Euler noktasi -> uc farkli gamma ve lambda_u")
+
+
+if __name__ == "__main__":
+    t0 = time.time()
+    if not any(a in sys.argv for a in ("v3", "v4", "v5", "v6")):
+        v1()
+        v2()
+    only = [a for a in sys.argv[1:] if a in ("v3", "v4", "v5", "v6")]
+    with Pool(2) as pool:
+        if not only or "v3" in only:
+            v3(pool)
+        if "--quick" not in sys.argv:
+            ps = 57.0539070751032
+            if not only or "v4" in only or "v5" in only:
+                ps = v4(pool)
+            if not only or "v5" in only:
+                v5(pool, ps)
+            if not only or "v6" in only:
+                v6(pool)
+    print(f"\nsure = {time.time() - t0:.0f} s")
+    print("OZET: " + "  ".join(f"{n.split()[0]}={'PASS' if ok else 'FAIL'}" for n, ok in RESULTS))
+    sys.exit(0 if all(ok for _, ok in RESULTS) else 1)

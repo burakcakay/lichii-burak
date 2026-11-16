@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "as_of": "2026-11-16",
+  "results": [
+    {
+      "result_id": "THREEBODY-G01",
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "independent_verified": false,
+      "claim": "rho=ell^2/|j|^2, dt=ell^3 |j|^-3 dtau; relative equilibrium c=E ell^2=-U(s)^2/2; global critical strata not fully classified",
+      "domain": "spatial arbitrary positive masses, ell>0, collision-free intervals",
+      "source": "results/THREEBODY-G01.md"
+    },
+    {
+      "result_id": "THREEBODY-P05",
+      "status": "CAP_PENDING_REPRODUCTION",
+      "independent_verified": false,
+      "claim": "agent-reported transverse equal-mass L-/E+ connection near psi=57.05394683549 deg",
+      "domain": "planar m=(1,1,1), E=0,L=0",
+      "source": "results/THREEBODY-P05.md"
+    },
+    {
+      "result_id": "THREEBODY-X10",
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "independent_verified": false,
+      "claim": "sufficient collision-free permanent escape with tidal energy buffer and momentum margin",
+      "domain": "spatial arbitrary masses with strict sufficient inequalities",
+      "source": "results/THREEBODY-X10.md"
+    },
+    {
+      "result_id": "ALIEN-04",
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "independent_verified": false,
+      "claim": "D3 equal-mass shape-potential Taylor identity and related geometric phase",
+      "domain": "local equal mass shape sphere",
+      "source": "results/ALIEN.md"
+    },
+    {
+      "result_id": "ALIEN-05",
+      "status": "CONJECTURE",
+      "independent_verified": false,
+      "claim": "double scaling chi=p log(r/epsilon) controls local mode selection; universal global scattering not shown",
+      "domain": "near equal masses collapsing Lagrange",
+      "source": "results/ALIEN.md"
+    }
+  ]
+}

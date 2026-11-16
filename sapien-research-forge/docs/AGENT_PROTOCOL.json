@@ -1,0 +1,19 @@
+{
+  "schema": "research-result-1",
+  "required": [
+    "result_id",
+    "status",
+    "precise_claim",
+    "assumptions",
+    "derivation",
+    "evidence",
+    "counterexamples",
+    "limitations"
+  ],
+  "prohibited": [
+    "self-verified PROVED labels",
+    "unsourced novelty assertions",
+    "invented reruns"
+  ],
+  "procedure": "agent PR -> CI -> independent audit -> human release approval"
+}

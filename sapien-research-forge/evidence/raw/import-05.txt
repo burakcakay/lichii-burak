@@ -1,0 +1,356 @@
+Canım, iki betiği kaynak kod düzeyinde inceledim. En önemli sonuç şu: **ν-merdiveninin temel özdeşliği doğru; Euler yakınındaki üsler de belirli yerel varsayımlar altında doğru biçimde türetilebiliyor. Buna karşılık P7’nin genel varlığı, sonlu sayıda sınır ve “fraktal yok” iddiaları bu deneylerden çıkmıyor.** Ayrıca beşinci turda eşit olmayan kütle deneyini etkileyen somut bir başlangıç koşulu hatası buldum: `Family.start()` genel açılarda sıfır açısal momentum üretmiyor.
+
+İki dosya da mevcut, fakat çalıştırmak için gereken `uc_cisim_tur4_yapi_koruyan.py`, `uc_cisim_tur3_dogrulama.py` ve `uc_cisim_tur2.py` dosyalarını bulamadım. Bu yüzden **betiklerin bütününü çalıştırdım veya PASS çıktılarını yeniden ürettim demiyorum**. Bağımsız kontrollerim, dosyalardan yalnız ilgili fonksiyonları alarak yaptığım Euler Jacobian hesabı ve başlangıç açısal momentumu ölçümüyle sınırlı. Önceki sohbetten görülen sayılar da betiğin ham çıktısı yerine önceden bildirilmiş değerler olarak ele alınmalı.
+
+| İddia | Hakem kararı |
+|---|---|
+| \(E=0\) için \(\nu'\ge 0\) | **Doğru**, çarpışmasız bölgede ve verilen zaman ölçeğinde. |
+| Merdivenden sonlu sınır / fraktal yokluğu | **Gösterilmemiş**; monotonluk bunu tek başına vermez. |
+| P7 ölçekli saçılma limitinin genel varlığı | **Gösterilmemiş**; özel aileler ve düzenli sonuç noktaları için makul, koşullu hipotez. |
+| Euler yakınındaki spektral üsler | **Yerel olarak tutarlı**, ama gözlenebilirle bağları geçiş ve tekillik varsayımlarına bağlı. |
+| `kappa()` eşit olmayan kütle kapalı formu | **Yanlış**; bağımsız karşılaştırma aşağıda. |
+| Eşit olmayan kütlede sıfır-\(L\) kararsız manifold ailesi | **Kodun genel başlangıcı bu koşulu sağlamıyor.** |
+| Enerji koruyan adım | **Cebirsel olarak koşullu doğru**; yakınsama, doğru dal ve yuvarlama sınırlarıyla. |
+| Genel klasik kapalı çözüm | **Bulunmuş değil.** |
+
+## 1. ν-merdiveni: doğru sonuç ve sınırı
+
+Kütle ağırlıklı Jacobi koordinatlarında
+
+\[
+q=\rho s,\qquad \rho=\lVert q\rVert,\qquad \lVert s\rVert=1,
+\]
+
+\[
+y=\rho^{1/2}\dot q,\qquad dt=\rho^{3/2}d\tau,\qquad
+\nu=s\cdot y
+\]
+
+alalım. Pozitif potansiyel \(U\) ile enerji
+
+\[
+E=\frac12\lVert\dot q\rVert^2-\frac{U(s)}{\rho}
+\]
+
+olsun. Newton potansiyelinin \(-1\) homojenliğinden
+
+\[
+s'=y-\nu s,\qquad
+y'=\nabla U(s)+\frac{\nu}{2}y,\qquad
+(\log\rho)'=\nu.
+\]
+
+\(U\) için Euler özdeşliği \(s\cdot\nabla U=-U\) verir. Böylece
+
+\[
+\begin{aligned}
+\nu'
+&=s'\cdot y+s\cdot y'\\
+&=\lVert y-\nu s\rVert^2-U+\frac{\nu^2}{2}.
+\end{aligned}
+\]
+
+Enerjiden
+
+\[
+\rho E=\frac12\lVert y\rVert^2-U
+=\frac12(\nu^2+\lVert s'\rVert^2)-U
+\]
+
+yerine konursa:
+
+\[
+\boxed{\nu'=\frac12\lVert s'\rVert^2+\rho E.}
+\]
+
+Dolayısıyla:
+
+- \(E>0\): sonlu, çarpışmasız noktalarda \(\nu'>0\).
+- \(E=0\): \(\nu'\ge0\); eşitlik \(s'=0\) olduğunda gerçekleşir. Şekil dinamiğinde merkezi konfigürasyonların homotetik hareketleri bu ayrımı önemli kılar; her anda kesin artış demek fazla güçlüdür.
+- \(E<0\): işaret sabit değildir. Örneğin sıfır hızla bırakılmış, çarpışmasız herhangi bir konfigürasyonda başlangıçta \(s'=0\) ve \(\nu'=\rho E<0\).
+
+Bu, beşinci turdaki ana özdeşliği destekliyor. McGehee tipi çarpışma açılımı ve merkezi konfigürasyonların bu dinamikteki rolü klasik literatürle de uyumlu; dolayısıyla mekanizmanın kendisini yeni bir çözüm diye sunmamalıyız. [McGehee, *Triple collision in the collinear three-body problem*](https://www-users.cse.umn.edu/~mcgehee/publications/McGehee1974b/index.html); [Moeckel, *Symbolic Dynamics in the Planar Three-Body Problem*](https://www-users.cse.umn.edu/~rmoeckel/research/SymDyn5.pdf).
+
+### Monotonluk neden fraktal yokluğunu kanıtlamaz?
+
+Bir Lyapunov fonksiyonu, belirli türde geri dönüşleri engeller; **kararlı ve kararsız manifoldların bir kesitte kaç kez kesiştiğini tek başına sınırlamaz**.
+
+Basit bir geometrik karşı örnek: \(x\in[0,1]\) ve \(0\le z\le1\) için düzgün sistem
+
+\[
+\dot x=0,\qquad \dot z=1
+\]
+
+alalım. \(z\) her yörüngede kesin artar. Buna rağmen \(z=1\) çıkış kesitindeki bir sonuç sınıfını, orta üçte-bir Cantor kümesinin tamamlayıcısının çift ve tek çıkarılma aşamalarına göre iki renge ayırabiliriz. Başlangıç kesitine geri çekilen sınır Cantor kümesidir. Yani **kesin monoton bir koordinat bulunması bile tek başına sonlu sonuç sınırı gerektirmez**.
+
+Bu örnek Newton üç cisim sisteminde fraktal olduğunu göstermiyor; yalnızca “ν monoton, öyleyse sınır sonlu” çıkarımını çürütüyor. Üç cisim sistemi için ayrıca özel bir küresel geometri ispatı gerekir.
+
+`V3` ise yalnızca iki sonlu ızgarada birer etiket değişimi gözlüyor. Hücre içinde iki ya da daha çok değişim varsa uç etiketler aynı kalabilir; dar pencereler ızgara noktalarının arasına sığabilir. Ayrıca sonuç alınamayan yörüngelerin bir etikete dönüştürülmesi tanımsızlık ile fiziksel sınıflandırmayı karıştırabilir. Bu nedenle doğru hüküm:
+
+> İncelenen sonlu çözünürlükte bir geçiş gözlenmesi **beklenir**; betiğin bunu ürettiği dahi bu oturumda yeniden çalıştırılmadı. Her ölçekte tek sınır veya fraktal yokluğu kanıtlanmadı.
+
+Dosyanın başlığındaki ızgara sayılarıyla `v3()` içinde gerçekten kullanılan 120 ve 480 sayılarının farklı olması da raporlama kontrolü gerektiriyor.
+
+## 2. P7: ölçekleme sağlam, haritanın varlığı koşullu
+
+Newton denklemlerinin ölçeklemesi
+
+\[
+q(t)\mapsto q_a(t)=a\,q(t/a^{3/2}),\qquad
+\dot q\mapsto a^{-1/2}\dot q
+\]
+
+şeklindedir. Buna göre
+
+\[
+\rho_{\min}\mapsto a\rho_{\min},\qquad
+e\mapsto a^{-1}e,
+\]
+
+dolayısıyla \(\rho_{\min}e\) boyutsuz ölçekleme anlamında değişmezdir. Eğer \(\rho_{\min}\to0\) iken bu çarpım pozitif sonlu bir değere yaklaşıyorsa, gerçekten \(e\sim C/\rho_{\min}\) ve uygun kaçış hızı \(v_\infty\sim C'\rho_{\min}^{-1/2}\) çıkar.
+
+Ancak **ölçekleme simetrisi kendi başına limitin varlığını veya \(C>0\) olduğunu söylemez**.
+
+P7’yi kesin tanımlamak için en azından şunlar sabitlenmeli:
+
+1. Hangi kütleler, enerji ve açısal momentum?
+2. Hangi bir parametreli başlangıç ailesi \(X_\varepsilon(\psi)\)?
+3. \(\rho_{\min}\), bütün yörüngenin mi yoksa seçilen yakın geçişin mi minimumu?
+4. Sonuç yalnız ikili + kaçan cisim son durumunda mı tanımlı?
+5. Sınır ve çarpışma başlangıçlarında ne yapılıyor?
+6. Yön hangi referans çerçevesinde ve gerçek \(t\to\infty\) limitinde mi ölçülüyor?
+
+Örneğin tam eşkenar, sıfır hız başlangıcı homotetik üçlü çarpışmaya gider. Bu yörüngede standart Newton akışı çarpışmadan öteye kendiliğinden tanımlanmadığı için “kaçan cisim” sonucu yoktur. Dolayısıyla bütün başlangıçlarda koşulsuz tek değerli bir saçılma haritası iddiası yanlıştır.
+
+Bunun dışında, sınır noktasında iki taraftan farklı cisimler kaçıyorsa etiket bileşeni iki taraflı limitte birleşmez. Sınırdaki yörünge Euler genişlemesine asimptotikse, orada ayrıca sonlu zamanda tamamlanan sıradan bir ikili + kaçış sonucu bulunması gerekmez.
+
+### Kodun “asimptotik” ölçümü tam sonsuzluk değil
+
+Her iki betik de ayrılmayı kabaca
+
+\[
+R\ge40a_b,\quad E_{\rm bin}<0,\quad E_{\rm rel}>0,\quad R\cdot \dot R>0
+\]
+
+ile tanıyor. Bu iyi bir **sonlu mesafe ölçütü**, fakat tek başına şu sonuçları ispatlamaz:
+
+- Sonrasında üçüncü cismin geri dönmeyeceğini;
+- ikilinin başka bir değiş tokuş yaşamayacağını;
+- ikili–üçüncü cisim etkileşiminin tam Kepler problemi olduğunu;
+- hesaplanan Kepler hiperbol yönü ve enerjisinin gerçek \(t\to\infty\) değerleriyle eşit olduğunu.
+
+Özellikle `outcome()` sonlu noktadaki durumu iki cisimli hiperbolmiş gibi devam ettiriyor. Gerçek üç cisim kuvvetindeki kalan çokkutup etkileri için ayrıca hata sınırı veya artan ayrılma eşiğiyle yakınsama gerekir. `40 a_b` sonucuna `e_inf` adı vermek ölçümü olduğundan kesin gösteriyor.
+
+Bir başka önemli nokta: C1’deki Richardson kestirimi seçilen üç \(\delta\) değerinden belirli hata davranışını **varsayıyor**. Aynı şekilde yakın sonuçlar görmek limit ispatı değildir. C2’nin birkaç açıda aynı etiketi görmesi de bütün yayda süreklilik göstermez.
+
+### Eşit olmayan kütlede “iki değerli limit”
+
+Güçlü mod katsayısı \(a_+\ne0\) ise, başlangıç ailesi ve düzgün geçiş varsayımları altında güçlü modun zayıf moda baskın gelmesi makul:
+
+\[
+\frac{\text{zayıf mod}}{\text{güçlü mod}}
+\asymp
+\varepsilon^{1-\lambda_-/\lambda_+}.
+\]
+
+Fakat \(a_+=0\) istisnai yönü, \(\varepsilon\)’a bağlı yönler ve çıkış haritasının süreksiz olduğu sınırlar ayrı ele alınmalı. Ayrıca **iki farklı kararsız dal, otomatik olarak iki farklı kaçan cisim etiketi anlamına gelmez**; bu küresel çıkış dinamiğiyle belirlenir.
+
+## 3. Euler yakınındaki üsler: ne gerçekten çıkar?
+
+Genişleyen Euler merkezi konfigürasyonunun ölçekli akıştaki bir denge noktası olduğunu ve uygun indirgenmiş koordinatlarda bir kararsız özdeğer ile bir kararlı odak çifti bulunduğunu varsayalım:
+
+\[
+\lambda_u>0,\qquad
+\lambda_{s,\pm}=-\frac{\nu_E}{4}\pm i\Omega.
+\]
+
+Bir parametre ailesi kararlı manifoldu **enine** kessin ve sınıra uzaklık \(d\) olsun. Denge yakınındaki kararsız koordinat
+
+\[
+u(\tau)\simeq C d\,e^{\lambda_u\tau}
+\]
+
+olduğundan, sabit büyüklüğe çıkış süresi
+
+\[
+\boxed{\tau_{\rm stay}=
+\frac1{\lambda_u}\log\frac1{|d|}+O(1).}
+\]
+
+Kararlı odak bileşeni bu süre sonunda
+
+\[
+e^{-\nu_E\tau_{\rm stay}/4}
+\cos(\Omega\tau_{\rm stay}+\phi)
+\sim
+|d|^\beta\cos(\omega\log|d|+\phi')
+\]
+
+üretir; burada
+
+\[
+\boxed{\beta=\frac{\nu_E}{4\lambda_u}},\qquad
+\boxed{\omega=\frac{\Omega}{\lambda_u}}.
+\]
+
+Ayrıca \((\log\rho)'=\nu\simeq\nu_E\) ise
+
+\[
+\rho_{\rm exit}\asymp |d|^{-\nu_E/\lambda_u}.
+\]
+
+Eğer dış geçiş boyunca enerji gözlenebilirinin ölçekli katsayısı sıfırdan farklı ve düzgün kalıyorsa, sabit referans ölçeğine göre
+
+\[
+\rho_{\min}e_\infty\asymp |d|^\gamma,\qquad
+\boxed{\gamma=\frac{\nu_E}{\lambda_u}=4\beta.}
+\]
+
+Bu son adım özellikle önemlidir: **özdeğer oranı tek başına herhangi bir keyfî gözlenebilir için üs vermez**. Gözlenebilirin ilgili moda gerçekten bağlanması, katsayının sıfırlanmaması ve yerel Euler çıkışından gerçek uzak saçılmaya geçişin yeterince düzenli olması gerekir.
+
+Kodun parametrelemesiyle
+
+\[
+\lambda_u=\frac{\nu_E}{4}\bigl(\sqrt{25+16\kappa}-1\bigr),
+\quad
+\Omega=\frac{\nu_E}{4}\sqrt{8\kappa-1}
+\]
+
+olduğunda:
+
+\[
+\gamma=\frac4{\sqrt{25+16\kappa}-1},\qquad
+\beta=\frac1{\sqrt{25+16\kappa}-1},
+\]
+
+\[
+\omega=
+\frac{\sqrt{8\kappa-1}}{\sqrt{25+16\kappa}-1}.
+\]
+
+Bunlar, **\(\kappa\) doğru tanımlanmışsa ve odak gerçekten karmaşıksa**, yukarıdaki yerel türetimle tutarlı. Eşit kütlede koddan bağımsız çıkardığım sayılar:
+
+\[
+\kappa\simeq1.4,\qquad
+\gamma\simeq0.679721,\quad
+\beta\simeq0.169930,\quad
+\omega\simeq0.542714.
+\]
+
+Bununla birlikte `V4`, \(\nu=\nu_E\) yakınındaki noktada “ortadaki cisim” ölçüyor; bu tek başına yörüngenin Euler denge noktasına yaklaştığını ispatlamaz. Şekil uzaklığı, şekil hızı ve Euler noktasının kararlı/kararsız özvektör izdüşümleri birlikte ölçülmeli. `V5` ise çok parametreli salınımlı bir uyum yapıyor; kovaryansından çıkan standart hatalar model hatasını, sınır açısındaki belirsizliği ve sonlu ayrılma hatasını kapsamaz. İki farklı \(\delta\) başlangıcı da bağımsız iki matematiksel aile sayılmadan önce aynı gerçek manifoldla ilişkileri kurulmalı.
+
+## 4. Somut hata: `kappa()` ve eşit olmayan kütle ailesi
+
+### 4.1. Kapalı \(\kappa\) formülü yanlış
+
+Beşinci tur kodundaki `Sys`, `euler_point`, `spectrum` ve `kappa` fonksiyonlarını dosyadan ayırıp doğrudan çalıştırdım. Tablo, kapalı formülün çıktısını aynı kodun Newton akışından sonlu farkla hesaplanan Jacobian spektrumuyla karşılaştırıyor:
+
+| Kütleler | Euler diziliminde ortadaki cisim | `kappa()` | Jacobian’dan \(\kappa\) |
+|---|---:|---:|---:|
+| \((1,1,1)\) | Herhangi biri | 1.400000 | 1.400000 |
+| \((1,2,3)\) | 1 | 2.987600 | 2.644338 |
+| \((1,2,3)\) | 2 | 1.858236 | 1.269486 |
+| \((1,2,3)\) | 3 | 0.865033 | 0.754982 |
+
+Dolayısıyla kodun kendi “eşit olmayan kütlelerde kapalı form yanlış” uyarısı destekleniyor. Bu, spektrumun tümü kesin kanıtlandı demek değil: Jacobian sonlu farkla bulunuyor; adım büyüklüğü, analitik türev ve özdeğer eşleştirmesiyle ayrıca sınanmalı. Ama mevcut kapalı formülü genel kütlelere uygulamamak için açık karşı örnek var.
+
+### 4.2. `Family.start()` eşit olmayan kütlede \(L=0\) vermiyor
+
+Bu daha önemli. Kod, eşkenar şekle iki şekil özmodunu ekleyip hızlarını farklı mod katsayılarıyla kuruyor. Modlar ayrı ayrı dönme yönüne dik olsa da **iki modun çapraz açısal momentumu** genel olarak sıfırlanmaz. Sonradan bütün hızları enerji sıfır olacak şekilde tek bir skalerle çarpmak, sıfır olmayan açısal momentumu sıfırlamaz.
+
+Dosyadan `shape_geom`, `shape_part`, `ip`, `Sys`, `from_cart` ve `Family` fonksiyonlarını alarak \(\psi=45^\circ\) için başlangıçta
+
+\[
+\ell=s_1y_2-s_2y_1+s_3y_4-s_4y_3
+\]
+
+hesapladım:
+
+| Kütleler | \(\delta\) | Başlangıçtaki ölçekli açısal momentum \(\ell\) |
+|---|---:|---:|
+| \((1,1,1)\) | \(10^{-2}\) | \(-1.11\times10^{-16}\) |
+| \((1,2,3)\) | \(10^{-2}\) | \(3.6080\times10^{-5}\) |
+| \((1,2,3)\) | \(10^{-3}\) | \(3.6080\times10^{-7}\) |
+
+Bu örnekte hata açıkça yaklaşık \(O(\delta^2)\). Sıfırdan farklı fiziksel açısal momentumlu bir yörünge gerçek üçlü çarpışmaya gidemez; dolayısıyla bu başlangıçları **tam \(L=0\) çarpışma manifoldunun kararsız manifoldu üstündeki noktalar** diye adlandırmak doğru değil.
+
+Üstelik eşit kütlede \(L\) sıfır çıksa bile, başlangıç \(s+\delta e\) ile **doğrusal teğet yaklaşımıdır**; sonlu \(\delta\)’da tam doğrusal olmayan kararsız manifoldun üzerinde olduğu ayrıca gösterilmemiştir. Enerjiyi ve açısal momentumu sağlamak, tek başına o manifold üzerinde bulunmaya yetmez.
+
+Bu bulgu `V6`’yı tamamen değersizleştirmiyor: sıfır enerjili, küçük ama sıfır olmayan \(L\)’li yakın-yörünge deneyleri yine ilginç olabilir. Fakat sonuçları iddia edildiği gibi tam sıfır-\(L\) manifoldunun küresel haritasına atfedemeyiz.
+
+## 5. Enerji koruyan integratör: cebir doğru, kullanım iddiası koşullu
+
+Tur 4’te her çift için
+
+\[
+w_{ij}=\frac{2G}{d_{ij,n}d_{ij,n+1}
+(d_{ij,n}+d_{ij,n+1})}
+\]
+
+seçiliyor. Donmuş \(w\) için çözümü alınan yardımcı sistemin koruduğu enerji, uygun kütle katsayılarıyla
+
+\[
+T+\frac12\sum_{i<j}m_im_jw_{ij}d_{ij}^{\,2}
+\]
+
+biçimindedir. Bir adım boyunca \(w_{ij}\) sabit olduğundan:
+
+\[
+\Delta T
+=-\frac12\sum_{i<j}m_im_jw_{ij}
+\left(d_{ij,n+1}^2-d_{ij,n}^2\right).
+\]
+
+Verilen \(w_{ij}\) yerine konursa
+
+\[
+\Delta T
+=-G\sum_{i<j}m_im_j
+\frac{d_{ij,n+1}-d_{ij,n}}
+{d_{ij,n}d_{ij,n+1}}
+=\Delta U,
+\]
+
+burada \(U=\sum Gm_im_j/d_{ij}\) pozitif potansiyel büyüklüğüdür. Dolayısıyla
+
+\[
+\Delta(T-U)=0.
+\]
+
+Bu, integratörün **örtük denklemi tam ve tutarlı olarak çözülürse** enerji koruduğunu gösterir. Aynı sabit-katsayılı akışın Gram güncellemesi
+
+\[
+S_{n+1}=T_h^\mathsf{T}S_nT_h
+\]
+
+ile \(\det T_h=1\) üzerinden Gram determinantını, uygun kütle yapısı ve simetri altında açısal momentumu da koruması mümkündür. Ancak burada `K4.Kmat` kaynağı mevcut olmadığından o uygulamanın kütle katsayılarını ve momentum özdeşliğini bağımsız inceleyemedim.
+
+Kod açısından sınırlamalar:
+
+- Sabit nokta iterasyonu başarısız olabilir; kod böyle durumda duruyor.
+- Enerji eşitliği tam örtük çözüm için geçerli. Kod toleransla durup son matrisi yeniden hesapladığından sonuç yaklaşık çözümdür; enerji hatası sıfır değil, iterasyon ve kayan nokta düzeyindedir.
+- Bir örtük adımın birden fazla çözümü olabileceğinden, küçük \(h\) için gerçek akışa sürekli bağlanan dal seçilmelidir.
+- İleri–geri simetrisi ve düzgünlük koşulları sağlanırsa yöntem ikinci mertebe, simetrik üçlü bileşim dördüncü mertebe olabilir. Negatif orta alt adım yakın çarpışmalarda çözümü ve yakınsamayı zorlaştırabilir.
+- Enerjinin korunması yörüngenin doğru olduğu anlamına gelmez. Faz hatası veya yanlış saçılma etiketi enerji neredeyse sabit kalırken ortaya çıkabilir.
+
+Dolayısıyla burada değerli bir **yapı koruyan aday** var; `A1/A2` sayısal başarılarını gerekli bağımlılıklar olmadan doğrulanmış sayamıyorum.
+
+## 6. Bir sonraki adım: tek bir sınır üzerinde yanlışlanabilir deney
+
+Bence en verimli yeni adım, bütün P7 haritasını yeniden taramak değil, **eşit kütlede bildirilen \(57^\circ\!-\!58^\circ\) civarındaki tek sınırı**, hem yerel Euler mekanizması hem de gerçek saçılma ölçümü açısından bağlamak.
+
+1. **Başlangıç ailesini düzelt.** \(E=0\) ve \(L=0\)’ı birlikte dayat; yalnız teğet vektörle başlama. Kararsız manifoldu yüksek mertebeli yerel parametrizasyonla veya denge yakınından hata kontrollü devamla kur. \(\delta\) küçüldüğünde aynı kesitteki yörüngelerin yakınsadığını göster.
+
+2. **Sınırı iki taraftan çevrele.** Sadece kaçan cisim etiketine göre değil, çözülmemiş ve çarpışma olaylarını ayrı durum olarak sakla. İki tarafın sonuçları zaman/çözünürlük artırıldığında kararlı kalmalı.
+
+3. **Euler’e yaklaşımı doğrudan ölç.** Dönme simetrisi giderilmiş şekil uzaklığı, şekil hızı ve analitik ya da otomatik türevli Jacobian’ın özmod izdüşümlerini kaydet. Özellikle
+   \[
+   \tau_{\rm stay}/\log(1/|d|)\longrightarrow1/\lambda_u
+   \]
+   yakınsamasını, uyum aralığını değiştirerek sınamak gerekir.
+
+4. **Sonlu çıkış hatasını ölç.** Aynı yörüngeler için \(R/a_b=40,80,160\) eşiklerinde etiket, yön ve \(\rho_{\min}e_{\rm rel}\) değerlerini karşılaştır. Yakın ikili düzenlileştirmesi ve bağımsız integratörle çapraz kontrol yap. Sınır yakınında daha büyük eşiklerin gerekip gerekmediği ayrıca raporlanmalı.
+
+5. **Önceden yanlışlama ölçütü koy.** Sınır açısı veya ölçülen üs tolerans, \(\delta\), kesit ve ayrılma eşiği küçültülüp/büyütüldükçe kararlılaşmıyorsa; ya da özmod uzaklığı küçülmeden yalnız \(\nu\) platosu görülüyorsa, “Euler spektrumu saçılmayı açıklıyor” hipotezini o deney için reddet. Kararlılaşırsa da sonuç **o belirli sınır ve aile için güçlü sayısal kanıt** olur; küresel sonluluk teoremi olmaz.
+
+Buradaki araştırma fikri bence canlı: ν-merdiveni, yakın çarpışma problemini gelişigüzel bir tam yörünge aramasından çıkarıp **merkezi konfigürasyonlar arasındaki geçişlerin ve bunların saçılma çıktısına bağlanmasının** incelenmesine indiriyor. Ama çalışmamızın gerçek darboğazı artık daha net: yerel spektrumu hesaplamak değil, yerel manifolddan uzak saçılmaya giden küresel geçişi güvenilir ve ölçülebilir biçimde kurmak.
