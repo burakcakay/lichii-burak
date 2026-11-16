@@ -64,6 +64,12 @@
       "source_status": "UNVERIFIED_RAW_EVIDENCE"
     },
     {
+      "path": "sapien-research-forge/evidence/raw/import-11.txt",
+      "original_filename": "Yapıştırılan metin (3).txt",
+      "description": "Sanitized text extracted from user-supplied round-7 Claude report; byte identity not guaranteed. Local user paths redacted.",
+      "source_status": "UNVERIFIED_RAW_EVIDENCE"
+    },
+    {
       "path": "sapien-research-forge/evidence/raw/import-12.txt",
       "original_filename": "Yapıştırılan metin (4).txt",
       "description": "Text extracted from user-supplied research attachment. Original byte identity not guaranteed. Local user paths redacted.",
