@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "as_of": "2026-11-16",
+  "as_of": "2026-11-20",
   "results": [
     {
       "result_id": "THREEBODY-G01",
@@ -41,6 +41,14 @@
       "claim": "double scaling chi=p log(r/epsilon) controls local mode selection; universal global scattering not shown",
       "domain": "near equal masses collapsing Lagrange",
       "source": "results/ALIEN.md"
+    },
+    {
+      "result_id": "THREEBODY-G02",
+      "status": "OPEN_PROBLEM",
+      "independent_verified": false,
+      "claim": "Find or refute a non-tautological finite exact event-transition representation of spatial reduced three-body flow",
+      "domain": "spatial arbitrary positive masses, ell>0, regular collision-free strata",
+      "source": "results/THREEBODY-G02.md"
     }
   ]
 }
