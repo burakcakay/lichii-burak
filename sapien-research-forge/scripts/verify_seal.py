@@ -35,7 +35,7 @@ def verify() -> bool:
     assert decoded == unicodedata.normalize("NFC", decoded)
     assert "Burak Çakay" in decoded and "burakcakay" in decoded
     assert "gerçekten yararlanıldıysa" in decoded
-    assert "atfı" in decoded
+    assert "açık atıf yapılır" in decoded
     return True
 
 
