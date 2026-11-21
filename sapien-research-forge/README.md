@@ -10,6 +10,7 @@ Research lead: Burak (GitHub @burakcakay). This directory lives temporarily in a
 - [P05: Lagrange-Euler heteroclinic](results/THREEBODY-P05.md): 256-bit interval-certificate claim **NOT independently reproduced**.
 - [X10 / T16: permanent escape](results/THREEBODY-X10.md): full analytic bootstrap derivation; independent audit pending.
 - [T12b / T17: analytic invariant vanishing](results/THREEBODY-T12B.md): non-resonance argument conditional on T10 analyticity.
+- [T18: X10 ball inclusion certificate](results/THREEBODY-T18.md): explicit test certifies *all points* of an 8D sup-norm ball meet the escape cone.
 - [T09–T15 technical status and open obstructions](evidence/rounds/T09-T15-20261121.md): agent-reported CAPs, partial covers and explicit gaps.
 - [ALIEN research](results/ALIEN.md): mathematical identities and distinct exploratory hypotheses.
 
