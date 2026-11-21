@@ -1,5 +1,5 @@
 {
-  "schema": "urn:sapien-research:three-body:g05-t20-p20-p27:v1",
+  "schema": "urn:sapien-research:three-body:g05-t20-t21-p20-p27:v1",
   "version": "1.0.0",
   "date": "2026-11-22",
   "lead": "Burak Çakay",
@@ -19,7 +19,8 @@
     "T19_L": "NUM_3000_FREE_L_DISAGREES_WITH_PROPOSED_ASYMPTOTIC_EXPONENT",
     "T19_M": "NUM_3000_1_1_10_DISAGREES_WITH_PROPOSED_ASYMPTOTIC_EXPONENT",
     "P14": "CAP_U_CLAIMED_141_141_AT_THETA_M_0_003_NOT_INDEPENDENTLY_REPRODUCED",
-    "P15_P16": "OPEN"
+    "P15_P16": "OPEN",
+    "T21": "ANALYTIC_PROOF_CANDIDATE_EXACT_SYMMETRY_SELECTION_RULE"
   },
   "audits": [
     {
@@ -58,6 +59,15 @@
         "https://academic.oup.com/mnras/article/250/3/555/998448",
         "https://academic.oup.com/mnras/article/506/1/692/6297275"
       ]
+    },
+    {
+      "id": "A21.1",
+      "type": "CORRECTED_ANALYTIC_RESULT",
+      "ref": "T21",
+      "original_intermediate_error": "d_odd-d_even=3*rho0*(2*M^2+5*M-1)/(M+2)",
+      "verified_identity": "d_odd-d_even=3*rho0*(2*M+1)*(M-1)/(M+2)>0 for M>1",
+      "consequence": "At the equal-pair mass resonance sigma_star, c_res=d_res=kappa=0 by exchange-reflection parity",
+      "status": "SYM"
     }
   ],
   "theorems": [
@@ -100,6 +110,30 @@
       "conditional_planar_exponent": "gamma_L=gamma+1/2 if J is an independent transverse coordinate with smooth nonzero density near J=0 and the exit shape/scattering map is uniformly regular",
       "conditional_spatial_exponent": "gamma_spatial=gamma+3/2 if three independent transverse angular-momentum components have regular nondegenerate density and uniform exit bounds",
       "limitation": "Extra exponent is not established solely by linear eigenvalues; the angular momentum fiber and nonlinear exit uniformity must be proved."
+    },
+    {
+      "id": "T21",
+      "name": "EQUAL_PAIR_RESONANCE_PARITY_CANCELLATION",
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "mass_family": "m=(1,1,M), M>1; at sigma_star M=Mstar≈12.38418125935",
+      "involution": "S=diag(1,-1,-1,1) acts on both q and p; exchange m1/m2 plus reflection",
+      "shape_tangent_even": "e_even=(b,0,0,-a)",
+      "shape_tangent_odd": "e_odd=(0,b,a,0)",
+      "hessian_gap": "D^2U(s0)[e_odd,e_odd]-D^2U(s0)[e_even,e_even]=3*rho0*(2*M+1)*(M-1)/(M+2)>0",
+      "mode_parity": {
+        "xi1": -1,
+        "xi2": 1,
+        "xi3": -1,
+        "xi4": 1
+      },
+      "forbidden_monomials": [
+        "xi2^2*partial_xi1",
+        "xi2*xi3*partial_xi4"
+      ],
+      "conclusion": "c_res=d_res=kappa=0 exactly on equal-pair resonant point; no forced quadratic logarithms",
+      "proof": "S-equivariance of Newton field, Hessian gap makes strong shape pair odd and weak shape pair even; the only two quadratic resonant monomials violate S-parity.",
+      "reproducible_test": "scripts/check_t21.py",
+      "review": "Independent human review and novelty check pending"
     }
   ],
   "tasks": [
@@ -216,11 +250,12 @@
         "G03",
         "P18"
       ],
-      "target": "certify kappa=c*w_plus near sigma_star for mass triples with broken and unbroken exchange symmetry",
+      "target": "Certify kappa for genuinely asymmetric mass triples; T21 analytically settles kappa=0 on equal-pair resonant branch",
       "datum": "m=(1,2,18.4703902): kappa≈0.0487154592 (NUM); m=(1,5,36.2907146): kappa≈-0.0554937790 (NUM); m=(1,1,12.384181259...): |kappa|<1e-52 (NUM)",
-      "output": "interval exclusions 0 notin kappa for unequal asymmetric masses, and exact symmetry proof or refutation of kappa=0 when m1=m2",
+      "output": "Interval exclusions 0 notin kappa for unequal asymmetric masses; audit T21 proof and quantify kappa versus mass-splitting Delta=m2-m1 along sigma_star manifold",
       "accept": "independent derivation of Hamiltonian quadratic-coefficient identity, invariant normal-form coefficient and certified log/no-log dichotomy",
-      "falsify": "normalization-dependent sign mistaken for invariant or hidden symmetry forbids a claimed nonzero coefficient"
+      "falsify": "an exact reflection violation in symmetric family or interval coefficient containing zero in asymmetric test cases",
+      "required_known_result": "T21 exchange-reflection parity theorem: at m=(1,1,Mstar), c_res=d_res=kappa=0"
     },
     {
       "id": "P27",
@@ -251,7 +286,7 @@
   "source_integrity": {
     "user_data_status": "TEXT_TRANSCRIPTION_ONLY; scripts r17_*, r18_*, r19_* not provided or rerun in this task",
     "no_live_monitor_claim": true,
-    "latest_24000_runs": "NOT_PROVIDED; DO NOT ASSUME_RESULT",
+    "latest_24000_runs": "NOT_PROVIDED",
     "novelty_status": "NOT_EVALUATED"
   }
 }
