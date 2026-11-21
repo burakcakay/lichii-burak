@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "as_of": "2026-11-21",
+  "as_of": "2026-11-22",
   "results": [
     {
       "result_id": "THREEBODY-G01",
@@ -90,6 +90,24 @@
       "claim": "For arbitrary positive masses the instantaneous Jacobi Hamiltonian matrix family Lie-generates full sp(4,R); no universal constant linear two-mode decomposition",
       "domain": "positive mass triples; general collision-free Jacobi shapes",
       "source": "results/THREEBODY-G04.md"
+    },
+    {
+      "result_id": "THREEBODY-G05-T20",
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "independent_verified": false,
+      "claim": "Exact angular flux and face-weight identities for 2D diagonal unstable linear flow; conditional nonlinear 3-body close-approach and escape-energy tails",
+      "domain": "local hyperbolic 2D linear flow exact; any positive-mass 3-body globalization requires uniform outgoing branch and source-measure assumptions",
+      "source": "results/THREEBODY-G05-T20.md",
+      "notes": "Not a globally proved 3-body statistical law or claimed discovery priority; T17b chart sign and T18a finite-R angular-density quantifier corrected."
+    },
+    {
+      "result_id": "THREEBODY-T17-T19",
+      "status": "CAP_PENDING_REPRODUCTION",
+      "independent_verified": false,
+      "claim": "User-supplied T17 analytic geometry and resonance proof candidates, T18 statistical power-law proposals and T19 finite Monte Carlo pilots",
+      "domain": "planar equal/unequal masses, near Lagrange and Euler configurations",
+      "source": "registry/T17_T20_P20_P27.json",
+      "notes": "T19 free-L and unequal-mass pilots disagree with predicted exponents; 24000-run results not supplied; 141/141 and 29/29 CAP_U coverage claims not independently rerun."
     }
   ]
 }
