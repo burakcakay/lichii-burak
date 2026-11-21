@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "as_of": "2026-11-20",
+  "as_of": "2026-11-21",
   "results": [
     {
       "result_id": "THREEBODY-G01",
@@ -22,9 +22,10 @@
       "result_id": "THREEBODY-X10",
       "status": "ANALYTIC_PROOF_CANDIDATE",
       "independent_verified": false,
-      "claim": "sufficient collision-free permanent escape with tidal energy buffer and momentum margin",
-      "domain": "spatial arbitrary masses with strict sufficient inequalities",
-      "source": "results/THREEBODY-X10.md"
+      "claim": "Sufficient Jacobi-cone conditions imply hyperbolic–elliptic escape, no binary collision, and positive limiting outer energy; explicit analytic bootstrap proof provided in THREEBODY-X10.md",
+      "domain": "Equal-mass Newtonian three-body problem, planar or spatial, collision-free physical Jacobi initial data (scaled McGehee state requires reconstruction)",
+      "source": "results/THREEBODY-X10.md",
+      "analytic_derivation": "full self-contained proof, still pending independent human verification"
     },
     {
       "result_id": "ALIEN-04",
@@ -49,6 +50,22 @@
       "claim": "Find or refute a non-tautological finite exact event-transition representation of spatial reduced three-body flow",
       "domain": "spatial arbitrary positive masses, ell>0, regular collision-free strata",
       "source": "results/THREEBODY-G02.md"
+    },
+    {
+      "result_id": "THREEBODY-T12B",
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "independent_verified": false,
+      "claim": "For any analytic T10 invariant parameterization with Lambda-theta homological equation, G,c,H vanish identically by non-resonance",
+      "domain": "Equal-mass collapsing Lagrange unstable analytic manifold, conditional on T10 construction",
+      "source": "results/THREEBODY-T12B.md"
+    },
+    {
+      "result_id": "THREEBODY-T09-T15",
+      "status": "CAP_PENDING_REPRODUCTION",
+      "independent_verified": false,
+      "claim": "User-reported interval certificates and partial T15 coverage; full code/certificate review not done",
+      "domain": "Equal-mass planar zero-energy/zero-angular-momentum L- unstable sector and nearby perturbations",
+      "source": "evidence/rounds/T09-T15-20261121.md"
     }
   ]
 }

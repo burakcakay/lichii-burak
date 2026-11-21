@@ -8,7 +8,9 @@ Research lead: Burak (GitHub @burakcakay). This directory lives temporarily in a
 - [G01: space reduction and reconstruction](results/THREEBODY-G01.md): analytic identities; complete singular-strata audit pending.
 - [G02: exact transition-operator problem](results/THREEBODY-G02.md): open research question; no general solution claimed.
 - [P05: Lagrange-Euler heteroclinic](results/THREEBODY-P05.md): 256-bit interval-certificate claim **NOT independently reproduced**.
-- [X10: permanent escape](results/THREEBODY-X10.md): proof candidate; independent cross-audit pending.
+- [X10 / T16: permanent escape](results/THREEBODY-X10.md): full analytic bootstrap derivation; independent audit pending.
+- [T12b / T17: analytic invariant vanishing](results/THREEBODY-T12B.md): non-resonance argument conditional on T10 analyticity.
+- [T09–T15 technical status and open obstructions](evidence/rounds/T09-T15-20261121.md): agent-reported CAPs, partial covers and explicit gaps.
 - [ALIEN research](results/ALIEN.md): mathematical identities and distinct exploratory hypotheses.
 
 See [result registry](registry/results.json), [source manifest](evidence/source_manifest.json) and [proof policy](docs/PROOF_POLICY.md).
