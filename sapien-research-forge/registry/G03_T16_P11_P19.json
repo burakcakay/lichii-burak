@@ -54,13 +54,18 @@
         "ref": "P11/Euler_exact_Jacobian_numerical",
         "status": "NUM",
         "claim": "At equal-mass Euler E+ normalized x=(sqrt2,0),X=0,u=nu_E*x,W=0: 8D Jacobian eigenvalues match {0,nu_E,-nu_E/2,-2nu_E,(nu_E/4)(A-1),-(nu_E/4)(A+1),(nu_E/4)(-1±iB)} up to finite-difference tolerance."
+      },
+      {
+        "ref": "P13/exact_angular_momentum_fibre",
+        "status": "SYM",
+        "claim": "Using angular momentum c itself as an analytic transverse coordinate (dc !=0), exact c'=-nu*c/2 implies every additive resonance term Theta*Sigma in the c-equation is zero. Remaining resonances/mixed fibre effects are not thereby eliminated."
       }
     ],
     "issues": [
       {
         "ref": "T16a,E+/T16c",
         "status": "NORMALIZATION_ERRATUM",
-        "reason": "nu_L=-sqrt(6) at L_minus cannot be the Euler expanding scale. Equal masses have U_E=5/sqrt(2), nu_E=+sqrt(5*sqrt(2)); Euler eigenvalue multiplier is nu_E/4 in McGehee tau, and the published (A-1,-A-1,-1±iB) expression is in normalized Euler time. Re-derive signs/chart labels from DF(E_plus). Beta_E and omega are eigenvalue ratios, unaffected by common positive time scale."
+        "reason": "nu_L=-sqrt(6) at L_minus cannot be the Euler expanding scale. Equal masses have U_E=5/sqrt(2), nu_E=+sqrt(5*sqrt(2)); Euler eigenvalue multiplier is nu_E/4 in McGehee tau, and the published (A-1,-A-1,-1±iB) expression is in normalized Euler time. Re-derive signs/chart labels from DF(E_plus). Beta_E and omega are eigenvalue ratios, unaffected by common positive time scale. Moreover using nu_L/4<0 as a 'lower bound' makes the stated E+ Diophantine inequality vacuous; replace it with nu_E/4>0 before invoking Siegel."
       },
       {
         "ref": "T16b/c/f",
@@ -162,7 +167,9 @@
       "identity": "a_star-2*b_star=1",
       "lambda_indexing": "(1+a,1+b,1-a,1-b) times common positive factor",
       "quadratic_resonance": "lambda_2+lambda_3=lambda_4",
-      "multi_index": "(0,1,1,0) -> component 4"
+      "multi_index": "(0,1,1,0) -> component 4",
+      "rest_point": "collapsing Lagrange L_minus; NOT Euler E_plus",
+      "mass_realization": "m=(1,1,M), M≈12.38418126 satisfies sigma_star"
     }
   },
   "mission": "Find a verified, predictive structural compression for spatial general-mass Newtonian 3-body dynamics beyond coordinate transformations and unvalidated short-time numerics.",
@@ -238,7 +245,8 @@
         "T16b analytic linearization only on M0",
         "T16d Lambda+mu=lambda_c",
         "c'=-nu*c/2",
-        "T15 Lemma E quantitative bounds"
+        "T15 Lemma E quantitative bounds",
+        "Exact invariance c=0 forces coefficient of the additive Theta*Sigma term in c' to vanish when c is an actual local coordinate; do not spend a task trying to prove that coefficient nonzero."
       ],
       "unknowns": [
         "which full-system resonant coefficients genuinely survive after using c as an exact invariant-fibre coordinate",
@@ -382,7 +390,7 @@
     {
       "id": "P18",
       "priority": 2,
-      "title": "UNEQUAL_MASS_RESONANT_STRATIFICATION_AND_LOG_COEFFICIENT",
+      "title": "UNEQUAL_MASS_LAGRANGE_RESONANT_STRATIFICATION_AND_LOG_COEFFICIENT",
       "depends_on": [
         "P11",
         "P13"
@@ -391,12 +399,14 @@
       "given": [
         "T16e Schmidt bound only for Q-linear independence {1,a,b}",
         "exact_bridge.unequal_mass_exact_resonance",
-        "G03 all-mass quartic coefficients"
+        "G03 all-mass quartic coefficients",
+        "At sigma_star, positive mass realization m=(1,1,M_star), M_star positive root of sigma_star*(M_star+2)^2=2*M_star+1, M_star≈12.38418126"
       ],
       "unknowns": [
         "Poincare-Dulac coefficient for quadratic resonance lambda_2+lambda_3=lambda_4 at sigma_star",
         "complete order<=N rational-dependence and resonance strata with exact root isolation",
-        "transverse off-resonance normal-form estimates uniform in sigma"
+        "transverse off-resonance normal-form estimates uniform in sigma",
+        "effective computable small-divisor C for rational/algebraic mass triples via number-field norms (Schmidt C_epsilon is generally ineffective), independent of generic nonresonance"
       ],
       "equations": [
         "k=sqrt(1-3*sigma)",
