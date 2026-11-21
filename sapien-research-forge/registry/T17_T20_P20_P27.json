@@ -1,0 +1,292 @@
+{
+  "schema": "urn:sapien-research:three-body:g05-t20-t21-p20-p27:v1",
+  "version": "1.0.0",
+  "date": "2026-11-22",
+  "lead": "Burak Çakay",
+  "attribution": "cite individual original sources only when materially used; do not assert novelty without literature review",
+  "basis": {
+    "T17a": "NUM_55_DIGITS_EULER_SPECTRUM",
+    "T17b": "SYM_EXCEPT_GAUGE_TRANSITION_SIGN_ERRATUM",
+    "T17c": "SYM_G03_McGEHEE_CONJUGACY",
+    "T17d": "FORMAL_RESONANCE_ANALYSIS_CONVERGENCE_OPEN",
+    "T17e": "PP_U_PLUS_NUM_RESONANT_COUPLING_NONZERO_NOT_CERTIFIED",
+    "T18a": "PP_U_WITH_DENSITY_AND_GLOBAL_BRANCH_HYPOTHESES",
+    "T18b": "PP_U_CONDITIONAL_ON_T18a_AND_POSITIVE_SCATTERING_ENERGY",
+    "T18c": "COND_NOT_CONFIRMED_BY_T19_FOR_L_FREE_OR_UNEQUAL_MASS",
+    "T18d": "NUM_278_RAYS_NOT_INTERVAL_CERTIFIED",
+    "T18e": "NUM_MONTE_CARLO_CONSISTENT_ON_EQUAL_MASS_L0_H0",
+    "T19_E": "NUM_3000_H_NONZERO_CONSISTENT_LOW_POWER",
+    "T19_L": "NUM_3000_FREE_L_DISAGREES_WITH_PROPOSED_ASYMPTOTIC_EXPONENT",
+    "T19_M": "NUM_3000_1_1_10_DISAGREES_WITH_PROPOSED_ASYMPTOTIC_EXPONENT",
+    "P14": "CAP_U_CLAIMED_141_141_AT_THETA_M_0_003_NOT_INDEPENDENTLY_REPRODUCED",
+    "P15_P16": "OPEN",
+    "T21": "ANALYTIC_PROOF_CANDIDATE_EXACT_SYMMETRY_SELECTION_RULE"
+  },
+  "audits": [
+    {
+      "id": "A20.1",
+      "type": "ERRATUM_PROVED",
+      "ref": "T17b.c",
+      "original": "z^(l)=(H_kl/abs(H_kl))*z^(k)",
+      "corrected": "z^(l)=(conj(H_kl)/abs(H_kl))*z^(k), H_kl != 0",
+      "counterexample": "z=(1,i): H_12=i, chart_1=(1,i), chart_2=(-i,1); multiplying chart_1 by i yields (i,-1), not chart_2",
+      "status": "SYM"
+    },
+    {
+      "id": "A20.2",
+      "type": "QUANTIFIER_ERRATUM_PROVED",
+      "ref": "T18a.d",
+      "original": "P(psi|abs(Theta0)<R)=1/(2*pi) for every smooth positive density",
+      "corrected": "P(psi|abs(Theta0)<R)=1/(2*pi)+o(1) as R->0 for continuous positive density f at Theta=0; exact finite-R uniformity requires a radial-symmetric or equivalent density condition",
+      "counterexample": "f(Theta)=1+a*Theta_1, abs(a)*R<1 => p_R(psi)=[1+(2*a*R/3)*cos(psi)]/(2*pi)"
+    },
+    {
+      "id": "A20.3",
+      "type": "INDEPENDENT_CALCULATION",
+      "ref": "T18c_gamma_m",
+      "m_1_1_10_gamma": 2.1726039399558577,
+      "predicted_exit_square_side_plus": 0.6547921200882851,
+      "predicted_exit_square_side_minus": 0.34520787991171475,
+      "T19_observed_gamma": "1.38±0.11 (pilot), not confirmed",
+      "inference": "Do not attribute mismatch exclusively to finite sampling without checking coordinate pushforward, density, and global regularity."
+    },
+    {
+      "id": "A20.4",
+      "type": "LITERATURE_SCOPE",
+      "ref": "T18a_T18b",
+      "statement": "McGehee near-triple-collision dynamics and three-body escape statistics have extensive predecessors; novelty of this particular spectral conditional density/energy-tail formula is unestablished.",
+      "evidence_urls": [
+        "https://academic.oup.com/mnras/article/250/3/555/998448",
+        "https://academic.oup.com/mnras/article/506/1/692/6297275"
+      ]
+    },
+    {
+      "id": "A21.1",
+      "type": "CORRECTED_ANALYTIC_RESULT",
+      "ref": "T21",
+      "original_intermediate_error": "d_odd-d_even=3*rho0*(2*M^2+5*M-1)/(M+2)",
+      "verified_identity": "d_odd-d_even=3*rho0*(2*M+1)*(M-1)/(M+2)>0 for M>1",
+      "consequence": "At the equal-pair mass resonance sigma_star, c_res=d_res=kappa=0 by exchange-reflection parity",
+      "status": "SYM"
+    }
+  ],
+  "theorems": [
+    {
+      "id": "T20.A",
+      "name": "ANISOTROPIC_UNSTABLE_EXIT_FLUX",
+      "status": "SYM_EXACT_FOR_LINEAR_SYSTEM",
+      "domain": "Lambda_plus,Lambda_minus,delta>0; Theta'=diag(Lambda_plus,Lambda_minus)*Theta; exit |Theta|=delta; smooth initial density f with f(0)>0",
+      "coordinate_map": "Theta0(T,psi)=delta*(exp(-Lambda_plus*T)*cos(psi), exp(-Lambda_minus*T)*sin(psi))",
+      "jacobian": "J(T,psi)=delta^2*exp(-(Lambda_plus+Lambda_minus)*T)*a(psi)",
+      "a": "a(psi)=Lambda_plus*cos(psi)^2+Lambda_minus*sin(psi)^2",
+      "exit_angle_conditional_limit": "p_exit(psi)=a(psi)/(pi*(Lambda_plus+Lambda_minus)) as T_threshold->infinity",
+      "square_exit_side_weights": "P(|Theta_plus|=delta)=Lambda_plus/(Lambda_plus+Lambda_minus); P(|Theta_minus|=delta)=Lambda_minus/(Lambda_plus+Lambda_minus)",
+      "proof": "Compute exact determinant of (partial_T Theta0, partial_psi Theta0); f(Theta0)->f(0) uniformly as T->infinity. Integral over psi a(psi)=pi*(Lambda_plus+Lambda_minus). For square exit, integrate each face's constant flux delta*Lambda_i*exp(-sum Lambda*T) over its remaining coordinate.",
+      "limitation": "This is a local linear-flow theorem, not yet a theorem for global three-body scattering."
+    },
+    {
+      "id": "T20.B",
+      "name": "CONDITIONAL_ANISOTROPIC_CLOSE_APPROACH_AND_EJECTION_LAWS",
+      "status": "COND",
+      "assumptions": [
+        "A stable-leaf-conditioned local return map exists with rho_min=kappa*exp(-v*T)*m(psi)*(1+o(1)) uniformly on compact collision-free outgoing angle windows.",
+        "kappa>0 and m(psi)>0 bounded from zero and infinity; initial unstable density smooth and positive at origin.",
+        "Positive ejection energy only on certified escaper branches with F(psi)>0; e_inf=F(psi)/rho_min; error uniform over selected windows."
+      ],
+      "v": "abs(nu_L)",
+      "gamma": "(Lambda_plus+Lambda_minus)/v",
+      "close_approach_tail": "P(rho_min<r, psi in W)=C*r^gamma*integral_W(a(psi)*m(psi)^(-gamma)*dpsi)+o(r^gamma)",
+      "close_approach_angle_density": "p_rho(psi) proportional to a(psi)*m(psi)^(-gamma)",
+      "ejection_energy_tail": "P(e_inf>E, psi in W)=C*E^(-gamma)*integral_W(a(psi)*(F(psi)/m(psi))^gamma*dpsi)+o(E^(-gamma))",
+      "ejection_velocity_tail": "P(v_inf>v) has v^(-2*gamma) scaling under the same assumptions",
+      "note": "The common amplitude C includes stable-leaf and sampling-density factors; no universal number without specified ensemble. For equal Lambda, a(psi) constant, recovering T18a-b weights."
+    },
+    {
+      "id": "T20.C",
+      "name": "ANGULAR_MOMENTUM_DOUBLE_SCALING_NECESSITY",
+      "status": "SYM_SCALING_ONLY_PLUS_CONDITIONAL_TAIL",
+      "exact_relation": "c=J/sqrt(rho) on McGehee phase-space; if |c_exit|<=c_bound then |J|<=c_bound*sqrt(rho_exit)",
+      "scaling_variable": "zeta_L=J/sqrt(r), r is threshold for closest size",
+      "conditional_planar_exponent": "gamma_L=gamma+1/2 if J is an independent transverse coordinate with smooth nonzero density near J=0 and the exit shape/scattering map is uniformly regular",
+      "conditional_spatial_exponent": "gamma_spatial=gamma+3/2 if three independent transverse angular-momentum components have regular nondegenerate density and uniform exit bounds",
+      "limitation": "Extra exponent is not established solely by linear eigenvalues; the angular momentum fiber and nonlinear exit uniformity must be proved."
+    },
+    {
+      "id": "T21",
+      "name": "EQUAL_PAIR_RESONANCE_PARITY_CANCELLATION",
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "mass_family": "m=(1,1,M), M>1; at sigma_star M=Mstar≈12.38418125935",
+      "involution": "S=diag(1,-1,-1,1) acts on both q and p; exchange m1/m2 plus reflection",
+      "shape_tangent_even": "e_even=(b,0,0,-a)",
+      "shape_tangent_odd": "e_odd=(0,b,a,0)",
+      "hessian_gap": "D^2U(s0)[e_odd,e_odd]-D^2U(s0)[e_even,e_even]=3*rho0*(2*M+1)*(M-1)/(M+2)>0",
+      "mode_parity": {
+        "xi1": -1,
+        "xi2": 1,
+        "xi3": -1,
+        "xi4": 1
+      },
+      "forbidden_monomials": [
+        "xi2^2*partial_xi1",
+        "xi2*xi3*partial_xi4"
+      ],
+      "conclusion": "c_res=d_res=kappa=0 exactly on equal-pair resonant point; no forced quadratic logarithms",
+      "proof": "S-equivariance of Newton field, Hessian gap makes strong shape pair odd and weak shape pair even; the only two quadratic resonant monomials violate S-parity.",
+      "reproducible_test": "scripts/check_t21.py",
+      "review": "Independent human review and novelty check pending"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "P20",
+      "priority": 0,
+      "name": "REPAIR_HERMITIAN_GAUGE_COCYCLE",
+      "depends_on": [
+        "T17b"
+      ],
+      "variables": [
+        "H=Gamma+iOmega",
+        "z^(k)=H_k*/sqrt(H_kk)"
+      ],
+      "target": "z^(l)=conj(H_kl)/abs(H_kl)*z^(k)",
+      "output": "complete corrected 4-chart SO2 cocycle and syzygy continuity; add regression of z=(1,i)",
+      "accept": "exact triple-overlap cocycle, no wrong phase sign and continuity when pivot changes away from zero",
+      "falsify": "find one H rank1 Hermitian positive with conflicting chart reconstructions"
+    },
+    {
+      "id": "P21",
+      "priority": 0,
+      "name": "CERTIFY_T20_ANISOTROPIC_EXIT_FLUX",
+      "depends_on": [
+        "T17c",
+        "T18c"
+      ],
+      "target": "derive both circular-exit angular p_exit and square-face Lambda weights, then perturb by analytic nonlinear terms",
+      "known": "T20.A exact Jacobian for linear flow",
+      "output": "rigorous nonlinear asymptotic with explicit uniform error O(exp(-eta*T)) or proof of a weaker true remainder",
+      "accept": "verified angular density uniformity on compact exit sections and quantitative error bound in G03/T17 coordinates",
+      "falsify": "construct analytic nonlinear perturbation with singular/nonuniform angular pushforward violating the proposed bound"
+    },
+    {
+      "id": "P22",
+      "priority": 0,
+      "name": "T19_MASS_ANISOTROPIC_ENSEMBLE_DISCREPANCY",
+      "depends_on": [
+        "P21"
+      ],
+      "masses": [
+        1,
+        1,
+        10
+      ],
+      "gamma_pred": 2.1726039399558577,
+      "gamma_pilot": "1.38+-0.11",
+      "required": [
+        "State initial source measure in exact T17e unstable eigenmode coordinates with Jacobian",
+        "sample rare events directly using Theta_i=delta*exp(-Lambda_i*T)*u_i, u in unit disk, rather than relying on random draws to reach the tail",
+        "use G03/T17 conjugacy to skip unnecessary near-equilibrium integration and test outgoing kappa*m(psi) regularity",
+        "compare circular p_exit(psi) and square face proportions, as a second independent prediction",
+        "separate certified escapers, collision regularization and non-escapers"
+      ],
+      "output": "pre-registered log-tail convergence table with equal-mass positive control, uncertainty/confidence intervals and explicit falsification verdict",
+      "accept": "gamma and exit-angle density both converge under stated regularity, OR documented counterexample identifies failure of global transfer",
+      "falsify": "asymptotic exponent != gamma after analytic-coordinate sampling and demonstrated uniform global exit"
+    },
+    {
+      "id": "P23",
+      "priority": 0,
+      "name": "ANGULAR_MOMENTUM_CROSSOVER_AND_DIMENSION",
+      "depends_on": [
+        "P21",
+        "T17d"
+      ],
+      "target": "explain or refute gamma_L=gamma+1/2 and gamma_spatial=gamma+3/2",
+      "exact_constraint": "J=c*sqrt(rho); J is conserved",
+      "limits": "r->0 with zeta_L=|J|/sqrt(r) fixed; classify which zeta_L permit near-Lagrange transit",
+      "output": "exact conditional crossover scaling function in zeta_L for planar and spatial ensembles, or a rigorous obstruction",
+      "accept": "prove 1- and 3-component transverse rank and uniform exit/scattering map, then derive exponent; test at several controlled zeta_L",
+      "falsify": "Jacobian degeneracy or collision/geometry invalidates independence, or pilot exponent remains 1.05 in controlled asymptotic regime"
+    },
+    {
+      "id": "P24",
+      "priority": 1,
+      "name": "NONZERO_PHYSICAL_ENERGY_UNIFORM_TAIL",
+      "depends_on": [
+        "P21",
+        "T17d"
+      ],
+      "target": "upgrade T18a from h=0 to |h|<=h0 at fixed physical initial section, using H=rho*h and analytic transverse fibers",
+      "output": "uniform asymptotic m_h(psi), rho_min=C(h,Sigma)*exp(-abs(nuL)*T)*m_h(psi)*(1+o(1)) and tail exponent gamma",
+      "accept": "uniform remainder and positive bounded shape transfer over h-interval; independently test pilot 2.22+-0.18",
+      "falsify": "new branch/singular factor changes exponent for fixed h or uniformity fails"
+    },
+    {
+      "id": "P25",
+      "priority": 1,
+      "name": "VALIDATE_M_AND_F_AND_WINDOW_AMPLITUDES",
+      "depends_on": [
+        "P21",
+        "P14",
+        "X10"
+      ],
+      "target": "turn T18d float ray weights and F into rigorous interval enclosures, including close-to-endpoint behavior and symmetry-image overlap",
+      "unverified_values": [
+        "m_min≈0.3968",
+        "m_max≈1.4144",
+        "P_short_given_rho_small≈0.2212",
+        "energy_tail_short_fraction≈5.07e-5",
+        "certified_angular_measure_report≈353.3672deg"
+      ],
+      "output": "independent Arb interval integral certificates for m(psi)^(-gamma) and a_m(psi)*(F/m)^gamma, correctly distinguishing angular measure and weighted probability",
+      "accept": "interval bounds narrow enough to distinguish 0.2212 from uniform 0.0491 and to verify 353.3672-deg union measure",
+      "falsify": "interval overlap or endpoint singularity changes stated ratios"
+    },
+    {
+      "id": "P26",
+      "priority": 1,
+      "name": "RESONANT_CUBIC_KAPPA_CERTIFICATION",
+      "depends_on": [
+        "T17e",
+        "G03",
+        "P18"
+      ],
+      "target": "Certify kappa for genuinely asymmetric mass triples; T21 analytically settles kappa=0 on equal-pair resonant branch",
+      "datum": "m=(1,2,18.4703902): kappa≈0.0487154592 (NUM); m=(1,5,36.2907146): kappa≈-0.0554937790 (NUM); m=(1,1,12.384181259...): |kappa|<1e-52 (NUM)",
+      "output": "Interval exclusions 0 notin kappa for unequal asymmetric masses; audit T21 proof and quantify kappa versus mass-splitting Delta=m2-m1 along sigma_star manifold",
+      "accept": "independent derivation of Hamiltonian quadratic-coefficient identity, invariant normal-form coefficient and certified log/no-log dichotomy",
+      "falsify": "an exact reflection violation in symmetric family or interval coefficient containing zero in asymmetric test cases",
+      "required_known_result": "T21 exchange-reflection parity theorem: at m=(1,1,Mstar), c_res=d_res=kappa=0"
+    },
+    {
+      "id": "P27",
+      "priority": 2,
+      "name": "GLOBAL_STRUCTURAL_COMPRESSION_VS_STATISTICAL_PREDICTION",
+      "depends_on": [
+        "P21",
+        "P22",
+        "P23",
+        "P24",
+        "P25",
+        "P26"
+      ],
+      "target": "determine whether G03/G04+T17/T20 produce a predictive invariant or transfer operator beyond tautological rewriting",
+      "output": "preregistered holdout prediction for gamma(m), exit-angle density, escaper fractions and velocity tails, with a strictly calibrated baseline and source/proof certificates",
+      "accept": "at least one new independently auditable global classification bound, or a statistically significant accuracy/cost gain over a competent direct Newton + variational baseline",
+      "falsify": "fails out-of-sample mass/energy/angle tests, unquantified initial-measure dependence, or reproduces existing outcomes at higher computational cost"
+    }
+  ],
+  "critical_path": [
+    "P20",
+    "P21",
+    "P22",
+    "P23",
+    "P25",
+    "P27"
+  ],
+  "source_integrity": {
+    "user_data_status": "TEXT_TRANSCRIPTION_ONLY; scripts r17_*, r18_*, r19_* not provided or rerun in this task",
+    "no_live_monitor_claim": true,
+    "latest_24000_runs": "NOT_PROVIDED",
+    "novelty_status": "NOT_EVALUATED"
+  }
+}
