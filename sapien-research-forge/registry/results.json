@@ -108,6 +108,15 @@
       "domain": "planar equal/unequal masses, near Lagrange and Euler configurations",
       "source": "registry/T17_T20_P20_P27.json",
       "notes": "T19 free-L and unequal-mass pilots disagree with predicted exponents; 24000-run results not supplied; 141/141 and 29/29 CAP_U coverage claims not independently rerun."
+    },
+    {
+      "result_id": "THREEBODY-T21",
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "independent_verified": false,
+      "claim": "For m1=m2<m3 at the exact sigma* Lagrange quadratic resonance, exchange-reflection parity forces both quadratic resonant normal-form coefficients and kappa to vanish; explicit exact Hessian gap",
+      "domain": "planar, m=(1,1,Mstar), E=L=0, Lagrange L-minus neighborhood; Mstar≈12.38418125935",
+      "source": "results/THREEBODY-T21.md",
+      "notes": "Verified with symbolic pairwise potential Hessian; not peer-reviewed and no originality priority asserted."
     }
   ]
 }
