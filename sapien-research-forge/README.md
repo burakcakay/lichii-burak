@@ -7,6 +7,8 @@ Research lead: Burak (GitHub @burakcakay). This directory lives temporarily in a
 ## Topics and status
 - [G01: space reduction and reconstruction](results/THREEBODY-G01.md): analytic identities; complete singular-strata audit pending.
 - [G02: exact transition-operator problem](results/THREEBODY-G02.md): open research question; no general solution claimed.
+- [G03: quartic general-mass Gram dynamics](results/THREEBODY-G03.md): exact 13-variable polynomial representation and verified numerical crosschecks; not a closed global solution.
+- [G04: full symplectic Lie-algebra obstruction](results/THREEBODY-G04.md): exact algebraic reason a universal fixed linear two-mode split fails, plus a proposed mode-mixing observable.
 - [P05: Lagrange-Euler heteroclinic](results/THREEBODY-P05.md): 256-bit interval-certificate claim **NOT independently reproduced**.
 - [X10 / T16: permanent escape](results/THREEBODY-X10.md): full analytic bootstrap derivation; independent audit pending.
 - [T12b / T17: analytic invariant vanishing](results/THREEBODY-T12B.md): non-resonance argument conditional on T10 analyticity.
