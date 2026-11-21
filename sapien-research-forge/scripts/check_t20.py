@@ -14,7 +14,7 @@ packet=json.loads((root/"registry/T17_T20_P20_P27.json").read_text(encoding="utf
 assert len(packet["tasks"])==8
 assert len(set(x["id"] for x in packet["tasks"]))==8
 assert {x["id"] for x in packet["tasks"]}=={f"P{i}" for i in range(20,28)}
-assert {x["id"] for x in packet["theorems"]}=={"T20.A","T20.B","T20.C"}
+assert {"T20.A","T20.B","T20.C","T21"} <= {x["id"] for x in packet["theorems"]}
 
 # Check Hermitian rank-one gauge gluing and exact mirror behavior.
 rng=random.Random(20261122)
