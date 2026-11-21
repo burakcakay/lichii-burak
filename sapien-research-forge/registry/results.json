@@ -74,6 +74,22 @@
       "claim": "Explicit conservative finite margin test for entire 8D infinity balls to lie in X10, conditional only on computed center/norm bounds",
       "domain": "Equal-mass planar Newtonian Jacobi X10 cone, strict 8D sup-norm balls",
       "source": "results/THREEBODY-T18.md"
+    },
+    {
+      "result_id": "THREEBODY-G03",
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "independent_verified": false,
+      "claim": "13-variable quartic physical-time Gram/inverse-distance Newton flow for all positive masses, plus signed chirality transport; numeric crosschecks and Taylor recurrence",
+      "domain": "arbitrary positive masses, E in R, J in R3, spatial/planar, collision-free intervals",
+      "source": "results/THREEBODY-G03.md"
+    },
+    {
+      "result_id": "THREEBODY-G04",
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "independent_verified": false,
+      "claim": "For arbitrary positive masses the instantaneous Jacobi Hamiltonian matrix family Lie-generates full sp(4,R); no universal constant linear two-mode decomposition",
+      "domain": "positive mass triples; general collision-free Jacobi shapes",
+      "source": "results/THREEBODY-G04.md"
     }
   ]
 }

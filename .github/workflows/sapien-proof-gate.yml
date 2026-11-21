@@ -27,3 +27,8 @@ jobs:
 
       - name: Check T18 ball inclusion margins and sampling
         run: python sapien-research-forge/scripts/check_t18.py
+
+      - name: Install G03 numerical and exact-symbolic test dependencies
+        run: python -m pip install -r sapien-research-forge/scripts/requirements-g03.txt
+      - name: Test G03 quartic Newton reduction and G04 Lie obstruction
+        run: python sapien-research-forge/scripts/check_g03.py
