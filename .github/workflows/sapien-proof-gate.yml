@@ -38,3 +38,6 @@ jobs:
 
       - name: Verify T20 flux law, Hermitian gauge and source-measure counterexample
         run: python sapien-research-forge/scripts/check_t20.py
+
+      - name: Verify T21 symmetric-mass quadratic resonance cancellation
+        run: python sapien-research-forge/scripts/check_t21.py
