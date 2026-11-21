@@ -32,3 +32,6 @@ jobs:
         run: python -m pip install -r sapien-research-forge/scripts/requirements-g03.txt
       - name: Test G03 quartic Newton reduction and G04 Lie obstruction
         run: python sapien-research-forge/scripts/check_g03.py
+
+      - name: Verify P11-P19 bridge invariants and scientific queue integrity
+        run: python sapien-research-forge/scripts/check_p11_p19.py
