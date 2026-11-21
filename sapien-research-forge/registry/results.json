@@ -66,6 +66,14 @@
       "claim": "User-reported interval certificates and partial T15 coverage; full code/certificate review not done",
       "domain": "Equal-mass planar zero-energy/zero-angular-momentum L- unstable sector and nearby perturbations",
       "source": "evidence/rounds/T09-T15-20261121.md"
+    },
+    {
+      "result_id": "THREEBODY-T18",
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "independent_verified": false,
+      "claim": "Explicit conservative finite margin test for entire 8D infinity balls to lie in X10, conditional only on computed center/norm bounds",
+      "domain": "Equal-mass planar Newtonian Jacobi X10 cone, strict 8D sup-norm balls",
+      "source": "results/THREEBODY-T18.md"
     }
   ]
 }

@@ -24,3 +24,6 @@ jobs:
 
       - name: Check T16 X10 bootstrap constants and T17 nonresonance
         run: python sapien-research-forge/scripts/check_t16_t17.py
+
+      - name: Check T18 ball inclusion margins and sampling
+        run: python sapien-research-forge/scripts/check_t18.py
