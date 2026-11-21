@@ -1,0 +1,87 @@
+{
+  "schema": "sapien-research-forge/intake-audit/v1",
+  "record_id": "RQSN-T10-G0-G5-AUDIT-2026-11-21",
+  "project": "RQSN",
+  "provenance": {
+    "source_report_id": "RQSN-T10-G0-G5-AUDIT-2026-11-21",
+    "source_filename": "RQSN_T10_G0_G5_FORMAL_AUDIT_2026-11-21.json",
+    "source_version": "1.0.0",
+    "source_modified_at": "2026-11-21",
+    "access": "read from user Library in this run; private original not published",
+    "prior_public_comparison": "main registry/results plus open PR #7 and #8; no T10 intake record found",
+    "disclosure": "Public derivative contains only mathematical audit summaries, no raw chat or private source files"
+  },
+  "review_status": {
+    "source_verdict": "14/14 submitted and reviewed; not 14/14 formally closed",
+    "source_counts": {
+      "CONDITIONAL": 3,
+      "RESTRICTED_PASS": 1,
+      "PARTIAL": 2,
+      "PASS_FORMAL": 4,
+      "CORRECTION_REQUIRED": 3,
+      "PASS_WITH_CAVEAT": 1
+    },
+    "archive_verification": "SOURCE_REVIEW_REPORTED; NOT_INDEPENDENTLY_REEXECUTED_THIS_RUN",
+    "novelty": "NOT_ESTABLISHED",
+    "physical_evidence": "NONE",
+    "formal_proof_status": "SOURCE_ASSERTED_HUMAN_ARGUMENTS; NOT_MACHINE_CHECKED"
+  },
+  "newly_identified_mathematical_records": [
+    {
+      "id": "M002",
+      "type": "counterexample_to_universal_bound",
+      "claim": "For four independent unbiased Ising spins at beta*J=0, with A=(sum_i omega_i)/4, E|A|=3/8<1/2.",
+      "status": "EXACT_FINITE_COUNTEREXAMPLE_IN_SOURCE; NOT_REEXECUTED_THIS_RUN",
+      "effect": "Reject universal E|A|>=1/2 as stated."
+    },
+    {
+      "id": "M004-RECONSTRUCTION-CODING",
+      "type": "finite_coding_proposition",
+      "claim": "For a fixed unoriented skeleton D with r admissible orientation orbits modulo Aut(D), an unrestricted external fixed-length b-bit label can identify each orbit iff 2^b>=r. A label computed from D alone cannot select an orbit when r>1.",
+      "status": "ELEMENTARY_PIGEONHOLE_PROOF_IN_SOURCE; NOT_EXTERNALLY_REFEREED",
+      "scope": "finite admissible orientation classes; external code, not intrinsic reconstruction"
+    },
+    {
+      "id": "M003-ORBIT-SUPPORT-OBSTRUCTION",
+      "type": "conditional_finite_measure_proposition",
+      "claim": "For a fixed nonnegative Theta-invariant A on finite Omega, E_mu[A]>0 for every Theta-invariant probability measure mu iff A is positive on every Theta orbit.",
+      "status": "FINITE_ORBIT_MIXTURE_ARGUMENT_IN_SOURCE; NOT_EXTERNALLY_REFEREED",
+      "scope": "A fixed independently of mu; does not imply the analogous claim for A_mu defined through mutual information"
+    },
+    {
+      "id": "M009",
+      "type": "proof_sign_erratum",
+      "claim": "The submitted clock ket defect (-i*d/dc-H_C)|c> has the wrong sign for |c>=exp(-i*H_C*c)|c0>; the compatible expression is (-i*d/dc+H_C)|c>.",
+      "status": "ALGEBRAIC_CORRECTION_IN_SOURCE; GLOBAL_CLOCK_THEOREM_NOT_CERTIFIED"
+    },
+    {
+      "id": "M016",
+      "type": "numerical_counterexample_and_parameter_repair",
+      "claim": "If an ordinary channel reveals H with probability p and otherwise guesses an unbiased H, accuracy=(1+p)/2. p=.60 gives .80 rather than .65; p=.30 gives .65. Thus the originally asserted observational equality fails at p=.60.",
+      "status": "ELEMENTARY_EXACT_PROBABILITY_CHECK; NOT_FULL_EXPERIMENT_REPRODUCTION"
+    },
+    {
+      "id": "M025",
+      "type": "set_definition_erratum",
+      "claim": "For V(x)=x^2/2, the sublevel V<=1 is [-sqrt(2),sqrt(2)], not [-1,1]. The latter is V<=1/2.",
+      "status": "ELEMENTARY_EXACT_CORRECTION; BROADER_INVARIANCE_THEOREM_UNCHANGED"
+    }
+  ],
+  "unpromoted_claims": [
+    "Source lists four PASS_FORMAL items but this intake does not upgrade archive proof grades.",
+    "Source reports finite numerical checks including 1000-step manifold retractions; executable script and result artifact were not re-run in this intake.",
+    "Full 13-module global fixed-point map remains unavailable/incomplete; Brouwer does not certify its implementation.",
+    "No claims about phenomenal identity, physical time emergence or anomalous information access follow from this abstract mathematics."
+  ],
+  "unaffected": [
+    "P05 certificate remains incomplete absent new verified certificate",
+    "X10 independent referee status unchanged",
+    "G01/G02, ALIEN, PNP, OOG no new separately verified intake in this run"
+  ],
+  "review_gate": [
+    "Human review mathematical statements against private report",
+    "Independently rerun source verification script if accessible",
+    "Check literature novelty before claiming originality",
+    "Do not merge automatically"
+  ]
+}
