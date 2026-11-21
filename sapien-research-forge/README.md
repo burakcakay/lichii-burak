@@ -9,6 +9,7 @@ Research lead: Burak (GitHub @burakcakay). This directory lives temporarily in a
 - [G02: exact transition-operator problem](results/THREEBODY-G02.md): open research question; no general solution claimed.
 - [G03: quartic general-mass Gram dynamics](results/THREEBODY-G03.md): exact 13-variable polynomial representation and verified numerical crosschecks; not a closed global solution.
 - [G04: full symplectic Lie-algebra obstruction](results/THREEBODY-G04.md): exact algebraic reason a universal fixed linear two-mode split fails, plus a proposed mode-mixing observable.
+- [P11–P19 machine-native research problem DAG](registry/G03_T16_P11_P19.json): corrected Euler clock, zero-L mirror counterexample, explicit unequal-mass quadratic resonance, complete acceptance/falsification contracts.
 - [P05: Lagrange-Euler heteroclinic](results/THREEBODY-P05.md): 256-bit interval-certificate claim **NOT independently reproduced**.
 - [X10 / T16: permanent escape](results/THREEBODY-X10.md): full analytic bootstrap derivation; independent audit pending.
 - [T12b / T17: analytic invariant vanishing](results/THREEBODY-T12B.md): non-resonance argument conditional on T10 analyticity.
