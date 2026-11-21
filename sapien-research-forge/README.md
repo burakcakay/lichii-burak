@@ -10,6 +10,7 @@ Research lead: Burak (GitHub @burakcakay). This directory lives temporarily in a
 - [G03: quartic general-mass Gram dynamics](results/THREEBODY-G03.md): exact 13-variable polynomial representation and verified numerical crosschecks; not a closed global solution.
 - [G04: full symplectic Lie-algebra obstruction](results/THREEBODY-G04.md): exact algebraic reason a universal fixed linear two-mode split fails, plus a proposed mode-mixing observable.
 - [G05 / T20: spectral exit-flux identity](results/THREEBODY-G05-T20.md): exact 2D local Jacobian law; conditional three-body tails, and T17b/T18a corrections.
+- [T21: symmetry-forbidden Lagrange quadratic resonance](results/THREEBODY-T21.md): exact mass-exchange parity argument establishing κ=0 for m=(1,1,M*) and correcting an intermediate Hessian coefficient.
 - [P20–P27 machine-native research queue](registry/T17_T20_P20_P27.json): rare-event, angular-momentum crossover, resonance and falsifiable holdout experiments.
 - [P11–P19 machine-native research problem DAG](registry/G03_T16_P11_P19.json): corrected Euler clock, zero-L mirror counterexample, explicit unequal-mass quadratic resonance, complete acceptance/falsification contracts.
 - [P05: Lagrange-Euler heteroclinic](results/THREEBODY-P05.md): 256-bit interval-certificate claim **NOT independently reproduced**.
