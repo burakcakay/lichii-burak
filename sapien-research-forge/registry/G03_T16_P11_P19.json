@@ -1,6 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "artifact_id": "THREEBODY_G03_T16_BRIDGE_P11_P20_V1",
+  "artifact_id": "THREEBODY_G03_T16_BRIDGE_P11_P19_V1",
   "format": "machine-native-research-queue/1.0",
   "date": "2026-11-21",
   "research_attribution": {
@@ -45,6 +44,16 @@
         "ref": "sigma_star",
         "claim": "k*=(48+sqrt(129))/75; a*=sqrt(13+12k*); b*=sqrt(13-12k*); a*-2b*=1; lambda_2+lambda_3=lambda_4",
         "status": "SYM"
+      },
+      {
+        "ref": "P12/explicit_zero_L_counterexample",
+        "status": "SYM",
+        "claim": "Physical equal-mass planar Jacobi x=(3/10,0), u=(0,3/2), X=(8,0), W=(3,-27/640), b=41/100,V=2: total angular momentum L=.5(x wedge u)+(2/3)(X wedge W)=0; all five strict X10 margins positive; reflection (x2,X2,u2,W2) -> negative gives exactly same Gram Gamma and opposite signed binary ell_infinity. Thus a Gamma-only deterministic signed-flip predictor is impossible."
+      },
+      {
+        "ref": "P11/Euler_exact_Jacobian_numerical",
+        "status": "NUM",
+        "claim": "At equal-mass Euler E+ normalized x=(sqrt2,0),X=0,u=nu_E*x,W=0: 8D Jacobian eigenvalues match {0,nu_E,-nu_E/2,-2nu_E,(nu_E/4)(A-1),-(nu_E/4)(A+1),(nu_E/4)(-1±iB)} up to finite-difference tolerance."
       }
     ],
     "issues": [
@@ -104,7 +113,46 @@
         "Omega_12*Omega_34-Omega_13*Omega_24+Omega_14*Omega_23=0"
       ],
       "signed_angular_momentum": "Omega_13+Omega_24",
-      "orientation_obstruction": "Gamma invariant under planar reflection; Omega changes sign"
+      "orientation_obstruction": "Gamma invariant under planar reflection; Omega changes sign",
+      "explicit_counterexample": {
+        "mass": "m=(1,1,1)",
+        "position": {
+          "x": [
+            "3/10",
+            "0"
+          ],
+          "X": [
+            "8",
+            "0"
+          ]
+        },
+        "velocity": {
+          "u": [
+            "0",
+            "3/2"
+          ],
+          "W": [
+            "3",
+            "-27/640"
+          ]
+        },
+        "cone": {
+          "b": "41/100",
+          "V": "2",
+          "margins_lower_approx": [
+            0.11,
+            7.59,
+            0.652502914,
+            0.448541004,
+            4.209486166
+          ]
+        },
+        "total_L": "(1/2)*(9/20)+(2/3)*8*(-27/640)=0",
+        "mirror_operation": "all 2D vectors multiply by diag(1,-1)",
+        "Gamma_mirror": "equal",
+        "Omega_mirror": "negated",
+        "binary_ell_infinity": "strictly positive in original and strictly negative in reflected; follows X10 |ell(t)-ell_0|<b^2/(V*d^2)<ell_0"
+      }
     },
     "unequal_mass_exact_resonance": {
       "sigma_star": "(1064-32*sqrt(129))/5625",
@@ -158,7 +206,8 @@
       "domain": "m_i>0, planar rank(V)=2, collision-free; extend continuously across rank(V)=1",
       "given": [
         "G03 Gamma,h and force matrix K(h)",
-        "exact_bridge.planar_bivector"
+        "exact_bridge.planar_bivector",
+        "Explicit mirror-state X10 witness with total angular momentum exactly zero and opposite asymptotic binary angular-momentum signs"
       ],
       "unknowns": [
         "global, finite SO(2) atlas of constrained (Gamma,Omega,h) without an artificial flip at syzygy",
@@ -409,5 +458,6 @@
     "No treating SO(3) spatial chirality as planar SO(2) signed orientation",
     "No claiming polynomialization alone solves/integrates the general three-body problem",
     "Every accepted result must include proof or counterexample and machine-readable versioned evidence"
-  ]
+  ],
+  "schema_version": "1.0"
 }
