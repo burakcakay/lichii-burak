@@ -41,3 +41,6 @@ jobs:
 
       - name: Verify T21 symmetric-mass quadratic resonance cancellation
         run: python sapien-research-forge/scripts/check_t21.py
+
+      - name: Check G06 source-measure tail identities and exact quadratic resonance roots
+        run: python sapien-research-forge/scripts/check_g06.py

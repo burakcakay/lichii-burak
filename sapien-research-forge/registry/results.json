@@ -117,6 +117,15 @@
       "domain": "planar, m=(1,1,Mstar), E=L=0, Lagrange L-minus neighborhood; Mstar≈12.38418125935",
       "source": "results/THREEBODY-T21.md",
       "notes": "Verified with symbolic pairwise potential Hessian; not peer-reviewed and no originality priority asserted."
+    },
+    {
+      "result_id": "THREEBODY-G06",
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "independent_verified": false,
+      "claim": "Exact linear-flow source-density tail/exit-face exponent and conditional toy endpoint-dominance exponent, plus limited independent Round20 archive structural/replay audit",
+      "domain": "arbitrary positive diagonal unstable rates, local source density monomial, and specified toy endpoint transfer; global three-body application conditional",
+      "source": "results/THREEBODY-G06.md",
+      "notes": "Round20 ZIP: 141 internally consistent reported enclosures but upstream r10_manifold_certificate.json absent; all CAP_U remains unaudited. Normal-form derivative samples not a neighborhood-wide proof; original MC outputs absent."
     }
   ]
 }
