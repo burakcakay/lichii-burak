@@ -2,7 +2,7 @@
 
 **Public scientific research record, not a peer-reviewed proof repository.**
 
-Research lead: Burak (GitHub @burakcakay). This directory lives temporarily in an existing public repository because repository-creation permission is unavailable in the connected GitHub tool.
+Research lead: Burak (GitHub @burakcakay). This directory is the research record of the dedicated `burakcakay/sapien-research-forge` repository.
 
 ## Topics and status
 - [G01: space reduction and reconstruction](results/THREEBODY-G01.md): analytic identities; complete singular-strata audit pending.
