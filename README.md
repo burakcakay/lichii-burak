@@ -1,6 +1,6 @@
 # Sapien Research Forge: public research archive
 
-**This previously empty repository now hosts a temporary public archive of independently auditable mathematical research.** The dedicated planned repository name is `sapien-research-forge`; this existing repository is used because the current GitHub connection does not support repository creation.
+**This repository hosts the public archive of independently auditable mathematical research.** It is the dedicated `sapien-research-forge` repository, renamed in place on 2026-11-22: history, issues and pull requests are unchanged, and links to the previous repository name redirect here.
 
 Research coordinator: **Burak** (`@burakcakay`).
 
