@@ -1,0 +1,113 @@
+{
+  "schema_version": "1.0",
+  "date": "2026-11-22",
+  "research_lead": "Burak Çakay",
+  "designation": "ROUND20_G06_INDEPENDENT_AUDIT",
+  "inputs": {
+    "zip_sha256": "42d5b8c9746d3fc0636014f3f2858877b54520d3962700bfb687d961d1a7bf20",
+    "prereg_digest": "e54d38171c4902d61a062ed179cecc29a51e6d2d6e0fa3a2a1385c6f7aacdb19",
+    "original_uploaded_scripts_not_publicly_reproduced_in_full": true
+  },
+  "audit": {
+    "prereg_sha256_canonical_json": "PASS (remove digest field; json.dumps(indent=1); authoring time not externally attested)",
+    "zip_total_entries": 231,
+    "cocycle_original_code_replayed": "PASS 19136 transitions and 19136 triple-overlap checks",
+    "newton_mc_small_replay": "PASS M10, 250 runs, 250 event, 227 armed; original 50000 not rerun",
+    "exact_quadratic_resonance_enumeration": "PASS four quadratic relations; k=(48±sqrt(129))/75",
+    "arb_weight_cover": "141 successful piece summaries; rational endpoints form two uninterrupted intervals [1/256,93/32] and [124,23039/128] degrees",
+    "arb_attempt_failures": 50,
+    "upstream_certificate_missing": "r10_manifold_certificate.json, referenced in r14_lohner.py, r20_mweights.py",
+    "arb_full_verification": "NOT_POSSIBLE_WITH_SUPPLIED_ZIP",
+    "piece_ranges_self_consistent": true,
+    "certified_subset_Zw": [
+      23.28,
+      23.4938
+    ],
+    "certified_subset_Zl": [
+      74.4647,
+      77.5138
+    ],
+    "independent_probability_arithmetic": [
+      0.23096659,
+      0.23983422
+    ],
+    "float_reintegration_reported": "262/262 matches, source reports; not independently reexecuted",
+    "kappa_asymmetric": "3 nonzero Arb-labelled samples; independent interval eigenvector solver rerun pending",
+    "kappa_derivative": "OPEN; pointwise eps samples do not certify derivative or neighborhood-wide nonzero",
+    "large_mc_raw_trajectories": "not included in ZIP; summary JSON only",
+    "pooled_window_se": "r20_analyse.py uses se_if_independent across overlapping windows of same trajectory set",
+    "claim_level": "partial structural/replay audit; NOT a newly certified global Newton theorem"
+  },
+  "exact_mathematics": {
+    "G06a_source_density": {
+      "domain": "Theta_j'=lambda_j*Theta_j, lambda_j>0; box thresholds delta_j>0; f(x)=C*prod(abs(x_j)^beta_j)*(1+o(1)), beta_j>-1",
+      "survival": "P(T>t) ~ C*prod_j(2*delta_j^(beta_j+1)/(beta_j+1))*exp(-t*sum_j((beta_j+1)*lambda_j))",
+      "gamma": "sum_j((beta_j+1)*lambda_j)/abs(nu_L)",
+      "exit_face_weight": "((beta_j+1)*lambda_j)/sum_i((beta_i+1)*lambda_i)",
+      "equal_masses_betageneralization": "not a Newton global result; only local linear box exit",
+      "example_masses": [
+        1,
+        1,
+        10
+      ],
+      "gamma_regular": 2.1726039399558577,
+      "gamma_source_odd_squared": 5.017811819867572
+    },
+    "G06b_endpoint_dominance": {
+      "model": "I(r)=integral_0^1 min(1,r^gamma*x^(-p*gamma)) dx",
+      "result": "I(r)~r^gamma if p*gamma<1; ~r^gamma*log(1/r) if p*gamma=1; ~r^(1/p) if p*gamma>1",
+      "gamma_effective": "min(gamma,1/p)",
+      "warning": "Only conditional toy transfer if m(psi) vanishes as |psi-psi_b|^p. No evidence yet Newton m(psi) does so."
+    }
+  },
+  "next_tasks": [
+    {
+      "id": "P28",
+      "rank": 0,
+      "problem": "INDEPENDENT_ARB_CAP_REPLAY",
+      "input": "Original r10_manifold_certificate.json; original interval rounding and manifold validator; 141 weight-pieces",
+      "accept": "directed-rounding independent reproduction of 141 enclosures and 0-gaps with per-piece proof logs",
+      "falsify": "one interval failure or missing upstream coefficient"
+    },
+    {
+      "id": "P29",
+      "rank": 0,
+      "problem": "RESONANT_COEFFICIENT_TRANSVERSE_DERIVATIVE",
+      "input": "sigma* mass curve m=(1-eps,1+eps,M(eps)); c_res(0)=0 by reflection",
+      "accept": "0 not in interval enclosure of d c_res/d eps at eps=0, plus second/third derivative majorant on |eps|<eps0; prove neighborhood-wide activation",
+      "falsify": "derivative interval contains zero or analytic eigenbasis sign not invariant"
+    },
+    {
+      "id": "P30",
+      "rank": 1,
+      "problem": "PHYSICAL_SOURCE_MEASURE_AND_RANK",
+      "input": "G03/G04 initial physical ensembles projected through T17 C1 charts to unstable coordinates",
+      "accept": "certify whether pushed density f(0)>0 or vanishes with exponents beta_j; predict gamma_source from G06a, validate independent held-out simulations",
+      "falsify": "rank degeneracy or large-time scattering changes event exponent"
+    },
+    {
+      "id": "P31",
+      "rank": 1,
+      "problem": "ESCAPE_ENDPOINT_WEIGHT_UNIFORMITY",
+      "input": "uncertified arc endpoints and T27 inner m,F enclosures",
+      "accept": "prove m and F uniformly bounded positive on a specified full outgoing arc or exhibit rigorously isolated endpoint vanishing order p and changed tail class",
+      "falsify": "uncontrolled collision/heteroclinic transit, or proof of bounded m invalidating endpoint anomaly"
+    }
+  ],
+  "critical_path": [
+    "P28",
+    "P29",
+    "P31",
+    "P30"
+  ],
+  "guardrails": [
+    "source claims separate from independent replication",
+    "CAP_U never promoted by matching JSON flags",
+    "global generalized three-body solution remains open",
+    "prior-work novelty check required before any priority assertion"
+  ],
+  "references": {
+    "theorem": "results/THREEBODY-G06.md",
+    "original_round": "User upload Round20; raw archive remains outside public repo"
+  }
+}
