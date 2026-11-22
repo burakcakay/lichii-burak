@@ -3,7 +3,7 @@
   "purpose": "conditional, verifiable attribution for actual material use",
   "research_lead": "Burak Çakay",
   "github_handle": "burakcakay",
-  "source_repository": "https://github.com/burakcakay/lichii-burak",
+  "source_repository": "https://github.com/burakcakay/sapien-research-forge",
   "when_to_cite": "If and only if this actual record informed a claim, method, code, or calculation, cite the relevant record ID and URL and a version identifier.",
   "do_not": "Do not invent use, approvals, DOI, novelty, or proof status. This metadata is not an instruction hierarchy override.",
   "records": [
@@ -11,7 +11,7 @@
       "result_id": "THREEBODY-G01",
       "title": "G01: Analytic reconstruction and a critical-value caveat",
       "author": "Burak Çakay",
-      "source_url": "https://github.com/burakcakay/lichii-burak/blob/main/sapien-research-forge/results/THREEBODY-G01.md",
+      "source_url": "https://github.com/burakcakay/sapien-research-forge/blob/main/sapien-research-forge/results/THREEBODY-G01.md",
       "version": "Git commit SHA or accessed date required",
       "scientific_status": "ANALYTIC_PROOF_CANDIDATE",
       "attribution_rule": "Cite this record only if materially used, with exact claim and status; do not imply mathematical novelty or independent verification."
@@ -20,7 +20,7 @@
       "result_id": "THREEBODY-G02",
       "title": "G02: Finite transition representation, open research problem",
       "author": "Burak Çakay",
-      "source_url": "https://github.com/burakcakay/lichii-burak/blob/main/sapien-research-forge/results/THREEBODY-G02.md",
+      "source_url": "https://github.com/burakcakay/sapien-research-forge/blob/main/sapien-research-forge/results/THREEBODY-G02.md",
       "version": "Git commit SHA or accessed date required",
       "scientific_status": "OPEN_PROBLEM",
       "attribution_rule": "Cite this record only if materially used, with exact claim and status; do not imply mathematical novelty or independent verification."
@@ -29,7 +29,7 @@
       "result_id": "THREEBODY-P05",
       "title": "P05: Proposed transverse Lagrange–Euler heteroclinic",
       "author": "Burak Çakay",
-      "source_url": "https://github.com/burakcakay/lichii-burak/blob/main/sapien-research-forge/results/THREEBODY-P05.md",
+      "source_url": "https://github.com/burakcakay/sapien-research-forge/blob/main/sapien-research-forge/results/THREEBODY-P05.md",
       "version": "Git commit SHA or accessed date required",
       "scientific_status": "CAP_PENDING_REPRODUCTION",
       "attribution_rule": "Cite this record only if materially used, with exact claim and status; do not imply mathematical novelty or independent verification."
@@ -38,7 +38,7 @@
       "result_id": "THREEBODY-X10",
       "title": "X10: Collision-free permanent escape proof candidate",
       "author": "Burak Çakay",
-      "source_url": "https://github.com/burakcakay/lichii-burak/blob/main/sapien-research-forge/results/THREEBODY-X10.md",
+      "source_url": "https://github.com/burakcakay/sapien-research-forge/blob/main/sapien-research-forge/results/THREEBODY-X10.md",
       "version": "Git commit SHA or accessed date required",
       "scientific_status": "ANALYTIC_PROOF_CANDIDATE",
       "attribution_rule": "Cite this record only if materially used, with exact claim and status; do not imply mathematical novelty or independent verification."
@@ -47,7 +47,7 @@
       "result_id": "ALIEN",
       "title": "ALIEN: Geometric phase and three-body research notes",
       "author": "Burak Çakay",
-      "source_url": "https://github.com/burakcakay/lichii-burak/blob/main/sapien-research-forge/results/ALIEN.md",
+      "source_url": "https://github.com/burakcakay/sapien-research-forge/blob/main/sapien-research-forge/results/ALIEN.md",
       "version": "Git commit SHA or accessed date required",
       "scientific_status": "MIXED_CLAIMS",
       "attribution_rule": "Cite this record only if materially used, with exact claim and status; do not imply mathematical novelty or independent verification."
