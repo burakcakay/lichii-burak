@@ -6,8 +6,8 @@ authors:
   - family-names: "Çakay"
     given-names: "Burak"
     alias: "burakcakay"
-repository-code: "https://github.com/burakcakay/lichii-burak"
-url: "https://github.com/burakcakay/lichii-burak/tree/main/sapien-research-forge"
+repository-code: "https://github.com/burakcakay/sapien-research-forge"
+url: "https://github.com/burakcakay/sapien-research-forge/tree/main/sapien-research-forge"
 keywords:
   - Newtonian three-body problem
   - dynamical systems
