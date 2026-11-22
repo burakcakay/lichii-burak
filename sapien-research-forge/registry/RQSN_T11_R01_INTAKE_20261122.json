@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0",
+  "record_id": "RQSN-T11-R01-INTAKE-2026-11-22",
+  "domain": "RQSN/atemporal-record-clock-memory finite models",
+  "source": {
+    "artifact_id": "RQSN_OMEGA0_T11_R01_MACHINE_NATIVE",
+    "filename": "RQSN_T11_R01_MACHINE_NATIVE.json",
+    "library_file_id": "libfile_9f81f989c02081918ab26ff97a949f62",
+    "source_created_utc": "2026-11-21T23:02:46Z",
+    "source_access": "private_user_library_read_in_run",
+    "source_visibility": "private_source_not_published",
+    "source_reproducibility": "Source names RQSN_T11_R01_verify.py, but verifier and original dependency set not independently obtained or rerun in this intake."
+  },
+  "comparison": {
+    "base_repository": "burakcakay/sapien-research-forge",
+    "base_branch": "main",
+    "compared_at": "2026-11-22",
+    "existing_open_prs": [
+      7,
+      8,
+      14
+    ],
+    "delta": "T11 R01 finite NAND-sector/clock/memory candidate not present in main tree or open PR titles/bodies inspected; distinct from T09 and T10."
+  },
+  "records": [
+    {
+      "id": "T11-R01-TH1",
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "claim": "For nonempty swap-invariant subsets of {0,1}^2 under uniform measure, only the NAND and OR supports have nonzero conditional-fiber cardinality gap; active fraction 2/3.",
+      "evidence": "Source supplies explicit seven-subset enumeration argument.",
+      "limit": "Definition depends on ordered factor indices; invariance under quotient/gauge not established."
+    },
+    {
+      "id": "T11-R01-TH2",
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "claim": "A stipulated sector-dependent pair of two-level Hamiltonians yields a zero-constraint entangled state, normalized phase POVM and conditional Schrodinger equation.",
+      "evidence": "Source supplies 2x2 matrix identities.",
+      "limit": "Sector-to-clock coupling A3 is an independent axiom, not emergent physical time."
+    },
+    {
+      "id": "T11-R01-TH3",
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "claim": "The channel T(rho)=(1-kappa)rho+kappa*tau has a unique fixed point for kappa>0 and a controlled-SWAP unitary dilation with fresh ancilla.",
+      "evidence": "Source supplies trace-distance identity and dilation construction.",
+      "limit": "Requires A4-A5, discarding ancilla; no strict contraction of a closed unitary system."
+    },
+    {
+      "id": "T11-R01-TH4",
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "claim": "For discrete clock parameter c_n=n delta, a moving-target memory channel obeys a geometric-series trace-distance tracking bound.",
+      "evidence": "Source supplies contraction recurrence and asymptotic expression.",
+      "limit": "Ordered updates and prepared targets are assumed, not derived."
+    },
+    {
+      "id": "T11-R01-NG1",
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "claim": "Unitary conjugation preserves trace distance, precluding global strict contraction on all density matrices of a closed finite system.",
+      "evidence": "Source invokes unitary invariance of trace norm.",
+      "limit": "A standard mathematical fact, not a novelty claim."
+    },
+    {
+      "id": "T11-R01-CM1-CM5",
+      "status": "COUNTEREXAMPLE_CANDIDATE",
+      "claim": "Five explicit finite countermodels target universal reversal-record, unconditional clock, unique fixed-point, automatic composition, and root dimension claims.",
+      "evidence": "Instances described in source.",
+      "limit": "Independent checking and scope review pending."
+    }
+  ],
+  "verification": {
+    "source_reported": "G0/G1/G2/G4/G5 pass in source, G3 proof arguments awaiting independent review",
+    "performed_this_run": "Read source, compared main repository file tree and open PRs; no independent code execution, formal proof assistant, literature novelty or human review.",
+    "independent_verified": false,
+    "proof_status_promoted": false
+  },
+  "privacy": "Only this derived mathematical abstract is proposed. No private source, chats, raw logs, or user personal data uploaded.",
+  "unchanged": [
+    "THREEBODY-P05 certificate status",
+    "THREEBODY-X10 referee status"
+  ],
+  "merge_policy": "Draft PR; human approval required; never auto merge."
+}
