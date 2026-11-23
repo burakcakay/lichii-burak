@@ -1,0 +1,99 @@
+{
+  "schema_version": "1.0",
+  "record_id": "NEX_T_X10_P40_P41_CROSS_AUDIT_INTAKE_20261123",
+  "research_lead": "Burak Çakay",
+  "record_type": "research_intake_unverified",
+  "date": "2026-11-23",
+  "source": {
+    "source_id": "NEX_T_Gemini_Claude_Cross_Audit_v1",
+    "source_filename": "NEX_T_Gemini_Claude_Cross_Audit_v1.md",
+    "source_created_utc": "2026-11-22T13:41:43Z",
+    "source_type": "conversation_attached_research_report",
+    "access_status": "read_in_this_run",
+    "publication": "sanitized mathematical metadata only; original conversation attachment not published",
+    "independent_execution": "not performed in this run"
+  },
+  "comparison": {
+    "canonical_repository": "burakcakay/sapien-research-forge",
+    "base_branch": "main",
+    "base_head_at_review": "9af0a9bf576cb29ac30a8d037caf255628a4bfe9",
+    "existing_related": "sapien-research-forge/results/THREEBODY-X10.md; sapien-research-forge/results/THREEBODY-G06.md",
+    "existing_open_prs": [
+      7,
+      8,
+      14,
+      18
+    ],
+    "novel_delta": "Post-G06 adversarial audit of proposed angular-momentum-free X10 extension; P29 chart/gauge correction not in base results"
+  },
+  "claims": [
+    {
+      "id": "P40",
+      "status": "COUNTEREXAMPLE_CANDIDATE_UNVERIFIED",
+      "statement": "Removing strict inner angular momentum margin from a proposed escape cone cannot by itself guarantee collision-free physical Newton flow",
+      "witness": {
+        "m": [
+          1,
+          1,
+          1
+        ],
+        "x": [
+          0.3,
+          0
+        ],
+        "xdot": [
+          0,
+          0
+        ],
+        "X": [
+          8,
+          0
+        ],
+        "Xdot": [
+          3,
+          0
+        ],
+        "b": 0.41,
+        "V": 2,
+        "reported_margins": [
+          0.11,
+          7.59,
+          1.7830604001,
+          4.209486166
+        ],
+        "reported_inner_collision_time_approx": 0.12905634
+      },
+      "limitations": "Witness and claimed collision comparison taken from source report; no fresh exact proof or independently executed integrator here. Refutes only the proposed weakened cone, not the published original X10 sufficient criterion with nonzero angular momentum margin."
+    },
+    {
+      "id": "P41",
+      "status": "NUM_HP_UNVERIFIED",
+      "statement": "Corrected local CP1 chart yields reported |c_res(epsilon)|/|epsilon| about 3.04598882 and eigenvector-normalized ratio about 0.99727487 in one gauge",
+      "limitations": "Gauge/coordinate-dependent; not directly comparable to previous 1.76239409759 without explicit transformation. No validated interval for derivative at zero; no CAP_R."
+    },
+    {
+      "id": "P44",
+      "status": "ALGEBRAIC_ERRATA_REVIEW_PENDING",
+      "statement": "Source identifies a Jacobi equilateral coordinate sign issue, a third-derivative central-difference sign issue and a McGehee radial time-normalization factor-of-two issue",
+      "limitations": "Conventions and original implementations require independent recheck before adoption."
+    }
+  ],
+  "unchanged": {
+    "P05": "No new independent certificate; no status change",
+    "X10": "Existing original proof-candidate/review status unchanged",
+    "global_three_body_solution": false
+  },
+  "verification": {
+    "status": "SOURCE_READ_ONLY",
+    "formal_proof_replay": false,
+    "independent_numerical_replay": false,
+    "novelty_literature_review": false,
+    "proof_status_promotion": false
+  },
+  "next_checks": [
+    "Recompute exact cone margins and establish a comparison-based collision proof",
+    "Run supplied tests independently and record environment and hashes",
+    "Derive explicit CP1-to-8D chart/gauge transformation",
+    "Request independent directed-rounding replay for P29 derivative"
+  ]
+}
