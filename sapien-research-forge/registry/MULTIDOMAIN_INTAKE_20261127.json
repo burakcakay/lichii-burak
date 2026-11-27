@@ -1,0 +1,252 @@
+{
+  "schema_version": "1.0",
+  "record_id": "MULTIDOMAIN-INTAKE-2026-11-27",
+  "date": "2026-11-27",
+  "comparison": {
+    "repository": "burakcakay/sapien-research-forge",
+    "base": "main",
+    "open_prs_checked": [
+      7,
+      8,
+      14,
+      18,
+      19,
+      20,
+      21
+    ],
+    "scope": "Additive intake of previously unrecorded accessible results and newly available evidence; not a claim of scientific novelty or exhaustive coverage."
+  },
+  "policy": {
+    "public_summary_only": true,
+    "raw_sources_uploaded": false,
+    "proof_status_promoted": false,
+    "auto_merge": false,
+    "manifest_note": "SHA-256 matches check internal byte integrity, not authorship, mathematical truth, or externally authenticated provenance.",
+    "unchanged": [
+      "THREEBODY-P05",
+      "THREEBODY-X10"
+    ]
+  },
+  "sources": [
+    {
+      "id": "AETHER-01",
+      "archive": "XI_AETHER_v0.1.0.zip",
+      "archive_sha256": "fa13f015e210e298cc8f16b19fa5cfdd42be0704a9b4545279e75ef16c75982f",
+      "members": [
+        "XI_AETHER/PROGRESS.md",
+        "XI_AETHER/summary.json",
+        "XI_AETHER/results.csv",
+        "XI_AETHER/run.py"
+      ],
+      "manifest_matched": 13,
+      "manifest_total": 13
+    },
+    {
+      "id": "OOG-01",
+      "archive": "OOG_RESEARCH_HANDOFF_2026-11-27.zip",
+      "archive_sha256": "4b27bf9a8b2c5bae217116d6a82bfefc3b0d3abc0bd99404df1753918447f142",
+      "members": [
+        "core/BASELINE.md",
+        "sources/A006/oog_gate_v1/A006_KAPI0_REVIEW.md",
+        "sources/A007/OOG_A007_INDEPENDENT_REVIEW_TR.md",
+        "sources/A007/ERRATA_A007.md"
+      ],
+      "manifest_matched": 36,
+      "manifest_total": 36
+    },
+    {
+      "id": "PNP-01",
+      "archive": "PNP_AGENT_HANDOFF.zip",
+      "archive_sha256": "0ac053bbb9d8470f8911ab44152256ba56b23f19bbe5fbeea24d5a92eab8ec8d",
+      "members": [
+        "PNP_AGENT_HANDOFF/archive/records/PNP/PNP-003/xor_symmetries.md",
+        "PNP_AGENT_HANDOFF/archive/tests/test_xor_projection.py"
+      ],
+      "manifest_matched": 47,
+      "manifest_total": 47
+    },
+    {
+      "id": "QLANG-L",
+      "archive": "QLANG_G04L_incremental_semantic_subgraphs.zip",
+      "archive_sha256": "e9dffbc6c1faa520d13c2a6759bafc28ce9d9b3cf252930b60f91003f4c59e0b",
+      "members": [
+        "README.md",
+        "results.json",
+        "extra_results.json",
+        "checkpoint.json"
+      ],
+      "manifest_matched": 9,
+      "manifest_total": 9
+    },
+    {
+      "id": "QLANG-K",
+      "archive": "QLANG_G04K_distributed_proof_memory.zip",
+      "archive_sha256": "771114db80046e75cf06e485ec64cc49ebd0353016c6f026cf42d480793d04a9",
+      "parent_source": "QLANG-L",
+      "members": [
+        "README_G04K.md",
+        "results_k.json",
+        "extra_k.json",
+        "results_j.json",
+        "checkpoint.json"
+      ],
+      "manifest_matched": 36,
+      "manifest_total": 36
+    },
+    {
+      "id": "RQSN-01",
+      "artifact": "VALIDATION_REPORT(1).json",
+      "companion": "CANONICAL_STATE.json",
+      "source_snapshot": "2026-11-27.handoff.1",
+      "access": "Read accessible structured handoff reports; no claim that original additional Work-audit output was retrieved."
+    }
+  ],
+  "records": [
+    {
+      "id": "XI-AETHER-AE003-001-INTAKE",
+      "source_ids": [
+        "AETHER-01"
+      ],
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "claim": "For the known Scherrer-type purely kinetic k-essence model P(X)=-V0+A(X-X0)^2, with A>0, X0>0 and d=X-X0>0, rho=V0+4 A X0 d+3 A d^2 and c_s^2=d/(2X0+3d). The stated kinetic and gradient positivity conditions hold on that branch. The d=0 degeneracy and strong-coupling behavior require separate analysis.",
+      "scope": "Local classical model identity; known model, not a new ether or dark-sector discovery.",
+      "verification": "Source derivation inspected; no formal proof or physical verification."
+    },
+    {
+      "id": "XI-AETHER-AE003-002-003-INTAKE",
+      "source_ids": [
+        "AETHER-01"
+      ],
+      "status": "NUMERICAL",
+      "claim": "Dimensionless FLRW toy backgrounds with X0=1, present-day fractions V0=.685, dark matter=.265, baryons=.05; independently recalibrate A for each positive q using a^3 sqrt(1+d)d=q. Radiation is omitted in both backgrounds. Finite q can deviate substantially from the comparison H(a).",
+      "results": {
+        "samples": 1204,
+        "samples_per_q": 301,
+        "a_range": [
+          0.001,
+          2
+        ],
+        "relative_H_error_definition": "H/H_reference-1",
+        "series": [
+          {
+            "q": 0.001,
+            "max_abs_relative_H_error": 6.952509751956923,
+            "cs2_at_a_min": 0.33331111185185186
+          },
+          {
+            "q": 0.00001,
+            "max_abs_relative_H_error": 2.711020103407389,
+            "cs2_at_a_min": 0.3328549138899816
+          },
+          {
+            "q": 1e-7,
+            "max_abs_relative_H_error": 0.7824928521648977,
+            "cs2_at_a_min": 0.32317821694352644
+          },
+          {
+            "q": 1e-12,
+            "max_abs_relative_H_error": 0.00010510067985758376,
+            "cs2_at_a_min": 0.0004990021825117023
+          }
+        ]
+      },
+      "verification": "Reviewed source runner and executed it in an isolated temporary directory; exit 0, resulting summary exactly matched archived JSON (maximum numeric difference 0). Original CSV row count read. No observational fit or empirical exclusion, no claim of a new substrate. The simulated output is not an observational data set."
+    },
+    {
+      "id": "OOG-A005-STAR-AND-TWO-GENERATOR-INTAKE",
+      "source_ids": [
+        "OOG-01"
+      ],
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "claim": "Reconstructed finite deterministic test-star: q>=2, states x_1,...,x_q,L,H; initially only H observed as 1. T_j sends x_j to H, all other x_i to L; L,H absorbing. With the same unknown state on each copy, exact pooled one-copy response rank is q+2, whereas one adaptive k-copy protocol has maximal coherent rank min(q+2,k+2). Thus k_rank=1 and zero-error identification needs q copies. Uniform prior residual entropy for 0<=k<=q is (q-k+1)/(q+2) log2(q-k+1). Cycling candidates and using one destructive test generates the same test family with two actions.",
+      "verification": "Accessible handoff baseline contains explicit reconstruction rather than the missing original A005 standalone file. No new execution or formal proof audit. Scope limited to the stipulated deterministic observations and copy regime; not a general no-cloning result."
+    },
+    {
+      "id": "OOG-A006-OPERATIONAL-COUNTERMODELS-INTAKE",
+      "source_ids": [
+        "OOG-01"
+      ],
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "claims": [
+        "Noninjectivity of f on all states need not imply distinguishability loss on a restricted accessible family: f(0)=0,f(1)=1,f(2)=0 is injective on {0,1} but not {0,2}.",
+        "A three-cycle can be reversed by a tailored involution but not by an independently fixed identity reversal; distinguish abstract reversibility from a prescribed physical reversal.",
+        "An environment with one bit of capacity for a two-state reset need not carry one bit of entropy: for P(X=1)=.01 the record entropy is h2(.01)≈.0807931 bits; heat requires additional thermodynamic assumptions.",
+        "A deterministic bit-flip instrument realizing the unit effect need not satisfy 1∘b=b, so arbitrary instruments do not automatically satisfy the sequential-product axioms used in Jordan reconstruction."
+      ],
+      "verification": "Original dated review and errata accessible within checked handoff. Source reports finite diagnostic checks; not freshly rerun. No physical emergence conclusion."
+    },
+    {
+      "id": "OOG-A007-TV-RECOVERY-INTAKE",
+      "source_ids": [
+        "OOG-01"
+      ],
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "claim": "For K merging the first two coordinates of a classical three-outcome distribution, p=(.5,.3,.2), q=(.2,.2,.6) preserve TV=.4 but their unique linear two-output recovery has a negative entry; the reported minimax TV error is 1/30. For p=(.5,.5,0), q=(0,.5,.5) and the same merge, TV is preserved and the reported minimax error is 1/6. No universal zero-deficit TV-to-recovery implication.",
+      "verification": "Source secondary review reports 22/22 checks including LP calculations; not independently replayed in this intake. No claim that 1/6 is the global optimum across all systems."
+    },
+    {
+      "id": "OOG-A008-T1-T2-INTAKE",
+      "source_ids": [
+        "OOG-01"
+      ],
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "claim": "Under common compatible affine data and common affine gates preserving both compact convex normalized bases B_-⊊B_+, B_t=(1-t)B_-+t B_+ supplies continuum many compatible invariant bases. Support functions distinguish t. If fixed preparations affinely span the relevant space, a data-preserving affine map fixing them must be identity. Exact recovery under K=id does not resolve cone-completion ambiguity.",
+      "verification": "Analytic argument in accessible A007 review/baseline; no formal proof audit or novelty claim. Distinct from A008.P2 (open PR #20). Does not claim abstract pairwise nonisomorphism."
+    },
+    {
+      "id": "PNP-003-LEMMA-01-INTAKE",
+      "source_ids": [
+        "PNP-01"
+      ],
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "claim": "For nonempty S=Sol(Psi) of a satisfiable Boolean 2-CNF, XOR translation stabilizer equals intersection of pullbacks of stabilizers of all unary and pairwise coordinate projections. Each stabilizer is a linear subspace over F2, hence Sym(S)=ker H. Reverse inclusion follows from clause locality and the XOR involution. For S={00,11}, translations 10 and 01 are individually nonsymmetries, yet their XOR 11 is a symmetry: individual negative witnesses on a basis do not certify that its span contains no symmetry.",
+      "verification": "Read informal proof and inspected and reran the supplied standard-library test in a temporary directory. Both unittest cases passed (includes exhaustive nonempty 2-CNF solution relations for n=1,2,3). Not a formal theorem certificate or a new general complexity result. P versus NP remains OPEN."
+    },
+    {
+      "id": "QLANG-G04J-INTAKE",
+      "source_ids": [
+        "QLANG-K"
+      ],
+      "status": "NUMERICAL",
+      "claim": "Restricted binary proof protocol experiment; source reports 80 random, 80 structured and 80 identity cases, 251 round trips, 1256 mutations, 1255 truncations and 1000 fuzz cases.",
+      "verification": "Read archived results in checked parent bundle; counts are source-reported, not independently executed. No general soundness or performance claim; G0 OPEN and G1 LOCKED."
+    },
+    {
+      "id": "QLANG-G04K-INTAKE",
+      "source_ids": [
+        "QLANG-K"
+      ],
+      "status": "NUMERICAL",
+      "claim": "Content-addressed proof reuse experiment: 180 small scalar comparisons, 180 receipt hits, 180 wrong-claim checks, 1441 mutations; simulated 48-transfer mixed workload full compressed 1005327 bytes, whole receipt 514501, fixed delta 397643, section delta 197340. On unrelated 16-proof workload section delta 15980 exceeds whole receipt 13588 and full compressed 12932 bytes.",
+      "verification": "Source-reported synthetic benchmarks only; no rerun, network deployment, general acceleration, or security proof. Cache is local trusted state; transport overhead incomplete. G0 OPEN/G1 LOCKED."
+    },
+    {
+      "id": "QLANG-G04L-INTAKE",
+      "source_ids": [
+        "QLANG-L",
+        "QLANG-K"
+      ],
+      "status": "NUMERICAL",
+      "claim": "Incremental ordered Boolean decision-diagram proof verification uses locally checked context/operation/operand receipts with structural hash binding, under collision-resistance and checker correctness assumptions. Source reports 180 small/repeat/renumber/sparse cases each, 179 cold sparse rejections, 1079 mutation cases, and extra cache isolation/atomicity checks. In mixed workload full checker work 840274 vs warm 694091, but median time 366.048101 vs 374.853438 ms; optimistic sparse payload 415301 vs full 779066 bytes excludes receiver inventory cost.",
+      "verification": "Source README, checkpoints and result JSON inspected; archive manifests matched. No independent test replay or formal implementation proof. No performance promotion. G0 OPEN/G1 LOCKED."
+    },
+    {
+      "id": "RQSN-T09-T10-T11-REPLAY-EVIDENCE-INTAKE",
+      "source_ids": [
+        "RQSN-01"
+      ],
+      "status": "NUMERICAL",
+      "claim": "Newly accessible handoff validation report records five successful script runs (GLITCH toy, T09, T10, T11 verifier, T11 symbolic checker). The latter four report matching archived JSON; T10 needed temporary output-path portability patch. T11 symbolic report gives exact contraction factor 3/5 and moving-target steady trace distance sqrt(3)/6.",
+      "verification": "Prior reruns described by accessible structured report, not freshly executed or independently authenticated in this intake. This entry adds evidence metadata, not duplicate theorem claims or proof-status changes to PRs #7/#8/#14/#18. No physical or consciousness conclusion."
+    }
+  ],
+  "intake_verification": {
+    "manifest_entries_matched": 141,
+    "manifest_entries_checked": 141,
+    "fresh_runner_replays": 2,
+    "fresh_runner_successes": 2,
+    "independent_formal_review": false,
+    "novelty_review": false
+  },
+  "exclusions": "No raw archives, private conversations, internal/private implementation files, or speculative personal/ontological model records are uploaded. Unreviewed intermediate packages and incomplete source claims are not certified. No new P05 certificate or X10 referee evidence found in the inspected sources; neither status changed."
+}
