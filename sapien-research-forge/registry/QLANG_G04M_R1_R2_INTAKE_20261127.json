@@ -1,0 +1,168 @@
+{
+  "schema_version": "1.0",
+  "record_id": "QLANG-G04M-R1-R2-INTAKE-2026-11-27",
+  "date": "2026-11-27",
+  "comparison": {
+    "repository": "burakcakay/sapien-research-forge",
+    "base_branch": "main",
+    "base_sha": "9af0a9bf576cb29ac30a8d037caf255628a4bfe9",
+    "open_prs_checked": [
+      7,
+      8,
+      14,
+      18,
+      19,
+      20,
+      21,
+      22
+    ],
+    "delta": "G04M-R1/R2 dependency-closed memory and ROBDD receipt results are absent from the inspected main tree and open PR summaries; PR #22's Q-LANG entries end at G04L. This is an additive summary, not a claim of scientific novelty."
+  },
+  "sources": [
+    {
+      "id": "M1",
+      "artifact": "QLANG_G04M_R1_verified_closure.zip",
+      "sha256": "caaaa9f7056c1e60e7f5f9f1ab4cf622970bf6575623e2d982501972815b9393",
+      "members": [
+        "README.md",
+        "checkpoint.json",
+        "results.json",
+        "maximality_results.json",
+        "test_maximality.py"
+      ],
+      "manifest_matched": 10,
+      "manifest_total": 10
+    },
+    {
+      "id": "M2",
+      "artifact": "QLANG_G04M_R2_robdd_crystal_memory.zip",
+      "sha256": "26c8df104a1b1608b8d99ffe6be78407c15ca9ae53ba309d1fa4737aebba64d1",
+      "members": [
+        "README.md",
+        "checkpoint.json",
+        "results.json",
+        "test_r2.py",
+        "parent_integrity.json"
+      ],
+      "manifest_matched": 25,
+      "manifest_total": 25
+    }
+  ],
+  "records": [
+    {
+      "id": "QLANG-G04M-R1-SELECTIVE-INVALIDATION",
+      "source_ids": [
+        "M1"
+      ],
+      "status": "ANALYTIC_PROOF_CANDIDATE",
+      "claim": "Let K be a finite admitted dependency DAG, with edges from a record to its required records. For an invalidated set B, remove every vertex with a directed path (including a zero-length path) to B. The survivors form the unique greatest dependency-closed subset of K disjoint from B. Indeed, any surviving vertex with a removed dependency would itself reach B; and every dependency-closed subset avoiding B must exclude each vertex reaching B.",
+      "scope": "Fixed graph, fixed record interpretation, no substitution or repair; trusted immutable local state. This is an elementary graph-theoretic property, not an originality or implementation-correctness claim.",
+      "verification": {
+        "independent_finite_check": "A separately written set-enumeration and fixed-point calculation on the source's eight-node graph found 24 dependency-closed subsets and checked all 256 invalidation sets; 224 have nonempty survivors. Results match the archived counts. The original implementation was not executed in this intake.",
+        "formal_proof_review": false,
+        "novelty_review": false
+      }
+    },
+    {
+      "id": "QLANG-G04M-R1-LOCAL-DAG-EXPERIMENT",
+      "source_ids": [
+        "M1"
+      ],
+      "status": "NUMERICAL",
+      "scope": "Finite fixed-context Boolean expression DAG, n<=12; synthetic local CPU workload; no network or production parser.",
+      "source_reported": {
+        "scalar_cases": 240,
+        "atomic_rejections": 960,
+        "incremental_cases": 240,
+        "eviction_repair_cases": 240,
+        "equal_count_wrong_root_rejections": 27,
+        "concurrent_reads": 556,
+        "benchmark_3071_nodes_ms": {
+          "old_warm": 9.172,
+          "new_warm": 0.002044,
+          "old_extension": 18.034,
+          "new_extension": 0.055924,
+          "old_cold": 19.389,
+          "new_cold": 35.259
+        }
+      },
+      "limitations": "Warm API comparison includes the old closure-list construction, but new API trusts immutable admitted records. A direct dictionary is a stronger baseline for exact-repeat lookup. New cold admission is slower. Explicit corruption negative control returns an incorrect count until a full audit detects corruption and clears the store. No persistence, crash recovery, hardware integrity or general speedup demonstrated.",
+      "verification": "Read source results and integrity-checked archive; reported implementation tests and timings not rerun."
+    },
+    {
+      "id": "QLANG-G04M-R2-ROBDD-RECEIPT-EXPERIMENT",
+      "source_ids": [
+        "M2"
+      ],
+      "status": "NUMERICAL",
+      "claim": "A fixed-order ROBDD receipt prototype binds the input triple (f,g,p) to the roots, exact counts and union of supports of P=p and Q=p AND (f XOR g). Locally checked dependency-closed receipts can be reused when the trusted context and operands match. Correctness relies on fixed-order ROBDD semantics, collision resistance and intact locally admitted records.",
+      "source_reported": {
+        "small_scalar_reference_cases": 248,
+        "cold_negative_checks": 2465,
+        "warm_negative_checks": 2227,
+        "invalidation_revalidation_checks": 255,
+        "capacity_checks": 4,
+        "budget_checks": 10,
+        "context_isolation_checks": 2,
+        "concurrent_checks": 64,
+        "explicit_corruption_audits": 4,
+        "ring_128_repeat": {
+          "reused_apply_receipts": 22131,
+          "reused_nodes": 22053,
+          "new_apply_steps": 0,
+          "new_nodes": 0,
+          "receiver_median_ms": {
+            "prior_full": 89.71834,
+            "prior_sparse": 46.240475,
+            "new_cold": 647.906572,
+            "new_warm": 2.614207,
+            "direct_solver": 37.349104
+          },
+          "delta_preparation_ms": 18.054133
+        },
+        "ring_128_related_complement": {
+          "new_apply_steps": 502,
+          "new_nodes": 502,
+          "receiver_median_ms": {
+            "prior_full": 86.489021,
+            "prior_sparse": 50.89317,
+            "new_cold": 661.091227,
+            "new_warm": 11.789696,
+            "direct_solver": 34.680683
+          },
+          "delta_preparation_ms": 18.983051
+        },
+        "unrelated_8_receiver_ms": {
+          "prior_full": 0.44455,
+          "prior_sparse": 0.732163,
+          "new_cold": 1.93175,
+          "new_delta": 1.675764,
+          "direct_solver": 0.439412
+        },
+        "trusted_exact_claim_cache_ns": 71.06354
+      },
+      "limitations": "Receiver-only timings exclude proof generation, adapter conversion, actual encoding/decoding, networking and inventory transmission. No independent total-pipeline measurement; stage medians must not be added and labeled a measured total median. Exact-claim cache is substantially faster for exact repeats; unrelated inputs and cold admission can lose. No general speedup, persistence, formal code-correctness or production deployment demonstrated.",
+      "verification": "Source reports inspected and manifest entries checked; no original R2 test execution, timing replication, or formal certificate verification in this intake."
+    }
+  ],
+  "integrity": {
+    "current_unique_manifest_entries_matched": 35,
+    "current_unique_manifest_entries_total": 35,
+    "nested_parent_entries_matched": 34,
+    "nested_parent_entries_total": 34,
+    "note": "Nested R1's 10 entries duplicate the separately checked R1 manifest; nested parent total also includes H (15) and L (9). Counts are reported separately, not as unique total. Hash matching establishes internal byte consistency only."
+  },
+  "gate_status": {
+    "G0": "OPEN",
+    "G1": "LOCKED",
+    "general_G0.4M": "PARTIAL",
+    "R1/R2_source_status": "RESTRICTED_PROTOTYPE_PASS",
+    "proof_status_promoted": false
+  },
+  "privacy": "Scientific mathematical abstract and aggregate research metrics only; no original files, private conversation, provider information, private neural training or orchestration data published. No source code copied.",
+  "unchanged": [
+    "THREEBODY-P05 certificate",
+    "THREEBODY-X10 referee status"
+  ],
+  "merge_policy": "Draft; human review; no auto merge."
+}
